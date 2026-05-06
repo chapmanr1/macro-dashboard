@@ -114,8 +114,8 @@
     a.sector-cell:hover { filter: brightness(1.25); }
     a.yc-spread-row { display: flex; text-decoration: none; color: inherit; cursor: pointer; }
     a.yc-spread-row:hover .yc-spread-lbl { color: var(--white); }
-    a.news-source { text-decoration: none; color: var(--amber); cursor: pointer; transition: color 0.15s; font-size: 8px; letter-spacing: 0.08em; text-align: right; padding-top: 2px; display: block; }
-    a.news-source:hover { color: var(--white); }
+    .news-source { text-decoration: none; color: var(--amber); cursor: pointer; transition: color 0.15s; font-size: 8px; letter-spacing: 0.08em; text-align: right; padding-top: 2px; display: block; min-width: 0; }
+    .news-source:hover { color: var(--white); }
     .driving-source-link { text-decoration: none; color: inherit; cursor: pointer; transition: color 0.15s; }
     .driving-source-link:hover { color: var(--white); }
     .news-headline:hover, .driving-headline:hover { color: #fff; }
@@ -1286,7 +1286,7 @@ const SOURCE_URLS = {
 };
 function _srcLink(source) {
   const u = SOURCE_URLS[source]; const s = (source||'').toUpperCase();
-  return u ? `<a class="driving-source-link" href="${u}" target="_blank" rel="noopener noreferrer">${s}</a>` : s;
+  return u ? `<span class="driving-source-link" onclick="event.preventDefault();event.stopPropagation();window.open('${u}','_blank','noopener,noreferrer')">${s}</span>` : s;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2078,7 +2078,7 @@ function renderNewsFeed(data) {
     <a class="news-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
       <div class="news-time">${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)}</div>
       <div class="news-headline">${a.title||a.headline||''}</div>
-      ${SOURCE_URLS[a.source] ? `<a class="news-source" href="${SOURCE_URLS[a.source]}" target="_blank" rel="noopener noreferrer">${(a.source||'').toUpperCase()}</a>` : `<div class="news-source">${(a.source||'').toUpperCase()}</div>`}
+      <div class="news-source"${SOURCE_URLS[a.source] ? ` onclick="event.preventDefault();event.stopPropagation();window.open('${SOURCE_URLS[a.source]}','_blank','noopener,noreferrer')"` : ''}>${(a.source||'').toUpperCase()}</div>
     </a>`).join('');
 
   setEl('newsContent', items);
