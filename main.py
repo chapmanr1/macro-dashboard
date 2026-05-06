@@ -8,6 +8,7 @@ import threading
 import time
 import logging
 import traceback
+import concurrent.futures
 from flask import Flask, jsonify, render_template, request
 from datetime import datetime
 
@@ -55,10 +56,15 @@ except ImportError:
                 "timestamp": datetime.utcnow().isoformat(), "error": "Market module not loaded"}
 
 try:
-    from research import search_tickers, get_ticker_analysis, get_watchlist_prices as research_prices
+    from research import (search_tickers, search_fred, search_edgar,
+                          get_ticker_analysis, get_company_analysis,
+                          get_watchlist_prices as research_prices)
 except ImportError:
     def search_tickers(q): return []
+    def search_fred(q): return []
+    def search_edgar(q): return []
     def get_ticker_analysis(s): return {"symbol": s, "error": "Research module not loaded"}
+    def get_company_analysis(s): return {"symbol": s, "error": "Research module not loaded"}
     def research_prices(t): return []
 
 app = Flask(__name__)
@@ -141,11 +147,18 @@ def api_research_search():
     try:
         q = request.args.get('q', '').strip()
         if not q:
-            return jsonify({"results": []})
-        return jsonify({"results": search_tickers(q)})
+            return jsonify({"tickers": [], "fred": [], "sec_filings": []})
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+            ft = ex.submit(search_tickers, q)
+            ff = ex.submit(search_fred, q)
+            fe = ex.submit(search_edgar, q)
+            tickers = ft.result(timeout=10) if True else []
+            fred    = ff.result(timeout=5)  if True else []
+            sec     = fe.result(timeout=12) if True else []
+        return jsonify({"tickers": tickers, "fred": fred, "sec_filings": sec})
     except Exception as e:
         log.error(f"Research search error: {e}\n{traceback.format_exc()}")
-        return jsonify({"error": str(e), "results": []}), 500
+        return jsonify({"error": str(e), "tickers": [], "fred": [], "sec_filings": []}), 500
 
 @app.route("/api/research/ticker/<symbol>")
 def api_research_ticker(symbol):
@@ -153,6 +166,17 @@ def api_research_ticker(symbol):
         return jsonify(get_ticker_analysis(symbol))
     except Exception as e:
         log.error(f"Research ticker error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "symbol": symbol}), 500
+
+@app.route("/api/research/company/<symbol>")
+def api_research_company(symbol):
+    try:
+        sym = symbol.strip().upper()
+        if not sym.replace(".", "").replace("-", "").replace("^", "").isalnum():
+            return jsonify({"error": "Invalid symbol"}), 400
+        return jsonify(get_company_analysis(sym))
+    except Exception as e:
+        log.error(f"Research company error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "symbol": symbol}), 500
 
 @app.route("/api/research/prices", methods=["POST"])

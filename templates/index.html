@@ -562,6 +562,69 @@
     .research-loading { padding:20px 14px;text-align:center;font-size:9px;color:var(--muted);letter-spacing:0.1em; }
     .research-error { padding:10px 14px;font-size:9px;color:var(--red); }
     @media (max-width:640px) { .research-panel { width:100%;right:-100%; } }
+    /* Grouped search categories */
+    .rsrch-cat-hdr { display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg2);border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none; }
+    .rsrch-cat-hdr:hover { background:var(--bg3); }
+    .rsrch-cat-lbl { font-size:7px;font-weight:700;letter-spacing:0.14em;color:var(--muted);flex:1; }
+    .rsrch-cat-count { font-size:7px;background:var(--border2);color:var(--muted);padding:1px 5px; }
+    .rsrch-cat-arrow { font-size:8px;color:var(--muted2); }
+    /* Deep analysis header */
+    .ra-header { padding:12px 14px 8px; }
+    .ra-sym-row { display:flex;align-items:center;gap:8px;margin-bottom:2px;flex-wrap:wrap; }
+    .ra-symbol { font-size:20px;font-weight:700;color:var(--amber);letter-spacing:0.1em; }
+    .ra-exch { font-size:8px;color:var(--muted);border:1px solid var(--border);padding:1px 5px;letter-spacing:0.06em; }
+    .ra-name-row { font-size:9px;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .ra-price-row { display:flex;align-items:baseline;gap:10px;margin-bottom:3px;flex-wrap:wrap; }
+    .ra-price { font-size:20px;font-weight:700;color:var(--white); }
+    .ra-change { font-size:10px;font-weight:700; }
+    .ra-prepost { font-size:8px;color:var(--muted2);letter-spacing:0.04em; }
+    /* 52W range */
+    .ra-range-wrap { padding:8px 14px;border-bottom:1px solid var(--border); }
+    .ra-range-labels { display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px; }
+    .ra-range-bar { position:relative;height:4px;background:var(--border2);border-radius:2px; }
+    .ra-range-fill { height:100%;background:var(--amber);border-radius:2px;opacity:0.45; }
+    .ra-range-marker { position:absolute;top:-4px;width:3px;height:12px;background:var(--amber);border-radius:1px;transform:translateX(-50%); }
+    /* Verdict row */
+    .ra-verdict-row { display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap; }
+    .ra-verdict { font-size:9px;font-weight:700;letter-spacing:0.14em;padding:3px 10px;border:1px solid;flex-shrink:0; }
+    .ra-score-chip { font-size:9px;font-weight:700;letter-spacing:0.06em; }
+    /* Section blocks */
+    .ra-section { padding:8px 14px;border-bottom:1px solid var(--border); }
+    .ra-section-title { font-size:7px;font-weight:700;letter-spacing:0.14em;color:var(--muted);margin-bottom:5px; }
+    .ra-desc { font-size:9px;color:var(--muted);line-height:1.5;margin-bottom:5px; }
+    .ra-meta-row { font-size:8px;color:var(--muted2);margin-bottom:4px;line-height:1.6; }
+    .ra-website { font-size:8px;color:var(--blue);text-decoration:none;letter-spacing:0.04em; }
+    .ra-website:hover { text-decoration:underline; }
+    /* Earnings box */
+    .ra-earnings-box { padding:7px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:9px;color:var(--white); }
+    .ra-earnings-box strong { color:var(--amber); }
+    /* Fundamentals grid */
+    .ra-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:3px; }
+    .ra-metric-row { display:flex;justify-content:space-between;align-items:center;padding:3px 6px;background:var(--bg3); }
+    .ra-metric-lbl { font-size:8px;color:var(--muted);letter-spacing:0.06em; }
+    .ra-metric-val { font-size:9px;font-weight:700;color:var(--white); }
+    /* Intrinsic value */
+    .ra-iv-box { border:1px solid var(--border); }
+    .ra-iv-row { display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border); }
+    .ra-iv-row:last-child { border-bottom:none; }
+    .ra-iv-lbl { font-size:8px;color:var(--muted); }
+    .ra-iv-val { font-size:10px;font-weight:700;color:var(--white); }
+    .ra-iv-margin { font-size:9px;font-weight:700;min-width:46px;text-align:right; }
+    /* Scorecards */
+    .ra-criterion { display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border); }
+    .ra-criterion:last-child { border-bottom:none; }
+    .ra-criterion-icon { font-size:9px;text-align:center;font-weight:700; }
+    .ra-criterion-lbl { font-size:8px; }
+    .ra-criterion-val { font-size:8px;color:var(--muted);min-width:42px;text-align:right; }
+    .ra-criterion-pass .ra-criterion-icon,.ra-criterion-pass .ra-criterion-lbl { color:var(--green); }
+    .ra-criterion-fail .ra-criterion-icon,.ra-criterion-fail .ra-criterion-lbl { color:var(--muted2); }
+    /* Action buttons */
+    .ra-btn-strip { display:flex;flex-wrap:wrap;gap:5px;padding:10px 14px;border-top:1px solid var(--border);background:#080808; }
+    .ra-btn { background:none;border:1px solid var(--border2);color:var(--muted);font-family:var(--font);font-size:8px;padding:5px 8px;cursor:pointer;letter-spacing:0.1em;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:30px;min-width:44px;transition:border-color 0.15s,color 0.15s;-webkit-tap-highlight-color:transparent; }
+    .ra-btn:hover { border-color:var(--blue);color:var(--blue); }
+    .ra-btn-wl-active { border-color:var(--green) !important;color:var(--green) !important; }
+    /* News panel inside analysis */
+    .ra-news-panel { padding:8px 14px;border-bottom:1px solid var(--border); }
 
     /* ── MOBILE ── */
     @media (max-width: 640px) {
@@ -998,7 +1061,7 @@
     <div id="researchWLList"></div>
 
     <!-- ANALYSIS -->
-    <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">QUICK ANALYSIS</div></div>
+    <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">COMPANY ANALYSIS</div></div>
     <div id="researchAnalysisCard" style="display:none"></div>
 
   </div>
@@ -2734,8 +2797,9 @@ let _researchWL = [];
 let _lastRegimeData = null;
 let _rwlPriceInterval = null;
 let _searchDebounce = null;
+let _catCollapsed = { tickers: false, news: false, fred: false, sec: false };
 
-function _loadRWL() { try { _researchWL = JSON.parse(localStorage.getItem(RWL_KEY)) || []; } catch { _researchWL = []; } }
+function _loadRWL() { try { _researchWL = JSON.parse(localStorage.getItem(RWL_KEY)) || []; } catch(e) { _researchWL = []; } }
 function _saveRWL() { localStorage.setItem(RWL_KEY, JSON.stringify(_researchWL)); }
 
 function openResearch() {
@@ -2789,38 +2853,85 @@ function clearResearchSearch() {
   _srchResults.innerHTML = '';
 }
 
+function _srchCatHdr(id, label, count) {
+  const col = _catCollapsed[id];
+  return `<div class="rsrch-cat-hdr" onclick="toggleSearchCat('${id}')" data-catid="${id}">
+    <span class="rsrch-cat-lbl">${label}</span>
+    <span class="rsrch-cat-count">${count}</span>
+    <span class="rsrch-cat-arrow">${col ? '▶' : '▼'}</span>
+  </div>`;
+}
+
+function toggleSearchCat(id) {
+  _catCollapsed[id] = !_catCollapsed[id];
+  const body = document.getElementById('rsrch-cat-' + id);
+  if (body) body.style.display = _catCollapsed[id] ? 'none' : '';
+  const hdr = _srchResults.querySelector('[data-catid="' + id + '"]');
+  if (hdr) { const arr = hdr.querySelector('.rsrch-cat-arrow'); if (arr) arr.textContent = _catCollapsed[id] ? '▶' : '▼'; }
+}
+
 async function doResearchSearch(q) {
   _srchResults.style.display = 'block';
   _srchResults.innerHTML = '<div class="research-loading">SEARCHING...</div>';
-
   const newsMatches = (_lastNewsRaw || [])
     .filter(a => (a.title||'').toLowerCase().includes(q.toLowerCase()))
-    .slice(0, 3);
-
+    .slice(0, 5);
   try {
     const data = await apiFetch('/api/research/search?q=' + encodeURIComponent(q));
-    const results = data.results || [];
-    if (!results.length && !newsMatches.length) {
-      _srchResults.innerHTML = '<div class="research-loading">NO RESULTS</div>';
-      return;
-    }
+    const tickers = data.tickers || [];
+    const fred    = data.fred    || [];
+    const sec     = data.sec_filings || [];
+    const total   = tickers.length + newsMatches.length + fred.length + sec.length;
+    if (!total) { _srchResults.innerHTML = '<div class="research-loading">NO RESULTS</div>'; return; }
     let html = '';
-    results.forEach(r => {
-      const sym = r.symbol.replace(/'/g,'');
-      html += `<div class="research-result-item" onclick="analyzeResearchTicker('${sym}')">
-        <span class="research-result-sym">${r.symbol}</span>
-        <span class="research-result-name">${r.name||''}</span>
-        <span class="research-result-type">${(r.type||'').toUpperCase()}</span>
-      </div>`;
-    });
+    if (tickers.length) {
+      html += _srchCatHdr('tickers','TICKERS', tickers.length);
+      html += `<div id="rsrch-cat-tickers" style="${_catCollapsed.tickers?'display:none':''}">`;
+      tickers.forEach(r => {
+        const sym = r.symbol.replace(/'/g,'');
+        html += `<div class="research-result-item" onclick="analyzeResearchTicker('${sym}')">
+          <span class="research-result-sym">${r.symbol}</span>
+          <span class="research-result-name">${r.name||''}</span>
+          <span class="research-result-type">${(r.type||'').toUpperCase()}</span>
+        </div>`;
+      });
+      html += '</div>';
+    }
     if (newsMatches.length) {
-      html += '<div style="padding:4px 10px;font-size:7px;color:var(--muted);letter-spacing:0.1em;background:var(--bg2);border-top:1px solid var(--border)">NEWS MATCHES</div>';
+      html += _srchCatHdr('news','NEWS', newsMatches.length);
+      html += `<div id="rsrch-cat-news" style="${_catCollapsed.news?'display:none':''}">`;
       newsMatches.forEach(a => {
+        const src = (a.source||'NEWS').toUpperCase().slice(0,10);
         html += `<a class="research-result-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
-          <span class="research-result-sym" style="color:var(--blue);font-size:8px">${(a.source||'').toUpperCase()}</span>
+          <span class="research-result-sym" style="color:var(--blue);min-width:50px;font-size:8px">${src}</span>
           <span class="research-result-name">${a.title||''}</span>
         </a>`;
       });
+      html += '</div>';
+    }
+    if (fred.length) {
+      html += _srchCatHdr('fred','FRED DATA', fred.length);
+      html += `<div id="rsrch-cat-fred" style="${_catCollapsed.fred?'display:none':''}">`;
+      fred.forEach(f => {
+        html += `<a class="research-result-item" href="${f.url}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym" style="color:var(--amber);font-size:8px;min-width:72px">${f.series_id}</span>
+          <span class="research-result-name">${f.name}</span>
+          <span class="research-result-type">FRED</span>
+        </a>`;
+      });
+      html += '</div>';
+    }
+    if (sec.length) {
+      html += _srchCatHdr('sec','SEC FILINGS', sec.length);
+      html += `<div id="rsrch-cat-sec" style="${_catCollapsed.sec?'display:none':''}">`;
+      sec.forEach(f => {
+        html += `<a class="research-result-item" href="${f.url||'#'}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym" style="color:var(--muted2);font-size:8px;min-width:38px">${f.form_type||'SEC'}</span>
+          <span class="research-result-name">${f.company||''}</span>
+          <span class="research-result-type">${(f.date||'').slice(0,10)}</span>
+        </a>`;
+      });
+      html += '</div>';
     }
     _srchResults.innerHTML = html;
   } catch(e) {
@@ -2898,26 +3009,27 @@ if (_rwlBtn && _rwlAdd) {
 // ── Analysis ──────────────────────────────────────────────────
 async function analyzeResearchTicker(sym) {
   clearResearchSearch();
-  const sec = document.getElementById('researchAnalysisSec');
+  const sec  = document.getElementById('researchAnalysisSec');
   const card = document.getElementById('researchAnalysisCard');
   if (!card || !sec) return;
-  sec.style.display = '';
+  sec.style.display  = '';
   card.style.display = 'block';
   card.innerHTML = '<div class="research-loading">ANALYZING ' + sym + '...</div>';
   setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
   try {
-    const data = await apiFetch('/api/research/ticker/' + sym);
-    renderResearchAnalysis(data);
+    const data = await apiFetch('/api/research/company/' + sym);
+    renderCompanyAnalysis(data);
   } catch(e) {
     card.innerHTML = '<div class="research-error">ANALYSIS UNAVAILABLE — ' + e.message + '</div>';
   }
 }
 
 function _fmtMktCap(v) {
-  if (!v) return '--';
-  if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
-  if (v >= 1e9)  return '$' + (v/1e9).toFixed(1) + 'B';
-  if (v >= 1e6)  return '$' + (v/1e6).toFixed(0) + 'M';
+  if (v == null) return '--';
+  const av = Math.abs(v);
+  if (av >= 1e12) return (v >= 0 ? '$' : '-$') + (av/1e12).toFixed(2) + 'T';
+  if (av >= 1e9)  return (v >= 0 ? '$' : '-$') + (av/1e9).toFixed(1) + 'B';
+  if (av >= 1e6)  return (v >= 0 ? '$' : '-$') + (av/1e6).toFixed(0) + 'M';
   return '$' + v.toFixed(0);
 }
 
@@ -2926,116 +3038,288 @@ function _regimeFit(d) {
   const regime = (_lastRegimeData.label || '').toUpperCase();
   const sector = (d.sector || '').toUpperCase();
   const fits = {
-    'STRONG GROWTH':  { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','INDUSTRIALS','FINANCIALS'],     bad:['UTILITIES','CONSUMER STAPLES'] },
-    'GOLDILOCKS':     { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','FINANCIALS','INDUSTRIALS'],     bad:['UTILITIES','CONSUMER STAPLES'] },
-    'STAGFLATION':    { good:['ENERGY','MATERIALS','HEALTH CARE','UTILITIES','CONSUMER STAPLES'],    bad:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'] },
-    'RECESSION':      { good:['CONSUMER STAPLES','HEALTH CARE','UTILITIES','COMMUNICATION SERVICES'],bad:['ENERGY','FINANCIALS','INDUSTRIALS','CONSUMER DISCRETIONARY'] },
-    'REFLATION':      { good:['ENERGY','MATERIALS','FINANCIALS','INDUSTRIALS'],                      bad:['UTILITIES','CONSUMER STAPLES'] },
-    'OVERHEATING':    { good:['ENERGY','MATERIALS','REAL ESTATE'],                                   bad:['TECHNOLOGY','CONSUMER DISCRETIONARY'] },
-    'DISINFLATION':   { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'],                  bad:['ENERGY','MATERIALS'] },
+    'STRONG GROWTH':  { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','INDUSTRIALS','FINANCIALS'],      bad:['UTILITIES','CONSUMER STAPLES'] },
+    'GOLDILOCKS':     { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','FINANCIALS','INDUSTRIALS'],      bad:['UTILITIES','CONSUMER STAPLES'] },
+    'STAGFLATION':    { good:['ENERGY','MATERIALS','HEALTH CARE','UTILITIES','CONSUMER STAPLES'],     bad:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'] },
+    'RECESSION':      { good:['CONSUMER STAPLES','HEALTH CARE','UTILITIES','COMMUNICATION SERVICES'], bad:['ENERGY','FINANCIALS','INDUSTRIALS','CONSUMER DISCRETIONARY'] },
+    'REFLATION':      { good:['ENERGY','MATERIALS','FINANCIALS','INDUSTRIALS'],                       bad:['UTILITIES','CONSUMER STAPLES'] },
+    'OVERHEATING':    { good:['ENERGY','MATERIALS','REAL ESTATE'],                                    bad:['TECHNOLOGY','CONSUMER DISCRETIONARY'] },
+    'DISINFLATION':   { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'],                   bad:['ENERGY','MATERIALS'] },
   };
   const fit = fits[regime];
   if (!fit) return null;
   const isGood = fit.good.some(s => sector.includes(s));
   const isBad  = fit.bad.some(s => sector.includes(s));
   const beta = d.beta;
-  const betaNote = beta != null ? ` Beta: ${beta.toFixed(2)}.` : '';
-  if (isGood) return { label:'REGIME FIT', desc:`${d.sector} tends to outperform in ${regime} environments.${betaNote}`, color:'green' };
-  if (isBad)  return { label:'REGIME HEADWIND', desc:`${d.sector} faces headwinds in ${regime} environments.${betaNote}`, color:'red' };
-  return { label:'NEUTRAL', desc:`No strong sector bias for ${d.sector} in ${regime}.${betaNote}`, color:'amber' };
+  const bn = beta != null ? ` Beta: ${beta.toFixed(2)}.` : '';
+  if (isGood) return { label:'REGIME FIT',      desc:`${d.sector} tends to outperform in ${regime} environments.${bn}`, color:'green' };
+  if (isBad)  return { label:'REGIME HEADWIND', desc:`${d.sector} faces headwinds in ${regime} environments.${bn}`,     color:'red'   };
+  return { label:'NEUTRAL', desc:`No strong sector bias for ${d.sector} in ${regime}.${bn}`, color:'amber' };
 }
 
-function renderResearchAnalysis(d) {
+function _raMetricRow(lbl, val) {
+  return `<div class="ra-metric-row"><span class="ra-metric-lbl">${lbl}</span><span class="ra-metric-val">${val}</span></div>`;
+}
+
+function _raCriterion(c) {
+  const cls = c.pass ? 'ra-criterion ra-criterion-pass' : 'ra-criterion ra-criterion-fail';
+  return `<div class="${cls}">
+    <span class="ra-criterion-icon">${c.pass ? '✓' : '✗'}</span>
+    <span class="ra-criterion-lbl">${c.label}</span>
+    <span class="ra-criterion-val">${c.current||''}</span>
+  </div>`;
+}
+
+function toggleRaWL(sym) {
+  const inWL = _researchWL.includes(sym);
+  if (inWL) { removeResearchWL(sym); } else { addResearchWL(sym); }
+  const btn = document.getElementById('ra-wl-btn');
+  if (!btn) return;
+  const nowIn = _researchWL.includes(sym);
+  btn.textContent = nowIn ? '✓ WATCHLIST' : '+ WATCHLIST';
+  btn.className = 'ra-btn' + (nowIn ? ' ra-btn-wl-active' : '');
+}
+
+function toggleRaNews(sym, name) {
+  const panel = document.getElementById('ra-news-panel');
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  const matches = (_lastNewsRaw || []).filter(a => {
+    const t  = (a.title||'').toLowerCase();
+    const s  = sym.toLowerCase();
+    const n  = (name||'').toLowerCase().split(' ')[0];
+    return t.includes(s) || (n.length > 3 && t.includes(n));
+  }).slice(0, 8);
+  if (!matches.length) { panel.innerHTML = '<div style="padding:8px 14px;font-size:9px;color:var(--muted)">No related news found.</div>'; }
+  else {
+    panel.innerHTML = matches.map(a =>
+      `<div class="research-news-item">
+        <a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">${a.title||''}</a>
+        <div class="research-news-time">${fmtRelTime(a.publishedAt||a.timestamp)} &middot; ${(a.source||'').toUpperCase()}</div>
+      </div>`
+    ).join('');
+  }
+  panel.style.display = '';
+}
+
+function renderCompanyAnalysis(d) {
   const card = document.getElementById('researchAnalysisCard');
   if (!card) return;
-  if (d.error) {
-    card.innerHTML = `<div class="research-analysis"><div class="research-error">${d.error}</div></div>`;
-    return;
+  if (d.error) { card.innerHTML = `<div class="research-analysis"><div class="research-error">${d.error}</div></div>`; return; }
+
+  const safeS  = (d.symbol||'').replace(/'/g,'');
+  const inWL   = _researchWL.includes(d.symbol);
+  const price  = d.price;
+  const chgCls = (d.day_change||0) > 0 ? 'c-green' : (d.day_change||0) < 0 ? 'c-red' : 'c-muted';
+  const chgStr = d.day_change != null
+    ? (d.day_change >= 0 ? '+' : '') + fmtN(d.day_change, 2)
+      + ' (' + (d.day_pct >= 0 ? '+' : '') + fmtN(d.day_pct, 2) + '%)'
+    : '';
+
+  // 52W range bar
+  let rangeHtml = '';
+  if (d['52w_high'] && d['52w_low']) {
+    const pos = d['52w_pos'] ?? 50;
+    rangeHtml = `<div class="ra-range-wrap">
+      <div class="ra-range-labels">
+        <span>$${fmtN(d['52w_low'],2)}</span><span>52W RANGE</span><span>$${fmtN(d['52w_high'],2)}</span>
+      </div>
+      <div class="ra-range-bar">
+        <div class="ra-range-fill" style="width:${pos}%"></div>
+        <div class="ra-range-marker" style="left:${pos}%"></div>
+      </div>
+      <div style="text-align:center;font-size:7px;color:var(--muted);margin-top:2px">${pos}% OF 52W RANGE</div>
+    </div>`;
   }
 
-  const gSc = d.graham_score ?? 0;
-  const bSc = d.buffett_score ?? 0;
-  const vSc = d.value_score ?? 0;
-  const gColor = gSc >= 4 ? 'var(--green)' : gSc >= 2 ? 'var(--amber)' : 'var(--red)';
-  const bColor = bSc >= 4 ? 'var(--green)' : bSc >= 2 ? 'var(--amber)' : 'var(--red)';
-  const vColor = vSc >= 60 ? 'var(--green)' : vSc >= 40 ? 'var(--amber)' : 'var(--red)';
-  const verdictColor = d.verdict_color === 'green' ? 'var(--green)' : d.verdict_color === 'red' ? 'var(--red)' : 'var(--amber)';
+  // Verdict
+  const vC     = d.verdict_color === 'green' ? 'var(--green)' : d.verdict_color === 'red' ? 'var(--red)' : 'var(--amber)';
+  const gPass  = d.graham_pass ?? 0;
+  const bPass  = d.buffett_pass ?? 0;
+  const vScore = d.value_score ?? 0;
+  const vScC   = vScore >= 60 ? 'var(--green)' : vScore >= 40 ? 'var(--amber)' : 'var(--red)';
+  const gChipC = gPass >= 4 ? 'var(--green)' : gPass >= 2 ? 'var(--amber)' : 'var(--red)';
+  const bChipC = bPass >= 4 ? 'var(--green)' : bPass >= 2 ? 'var(--amber)' : 'var(--red)';
 
-  let grahamHtml = '';
-  if (d.graham_number) {
-    const mgn = d.graham_margin_of_safety;
-    const mgnStr = mgn != null ? (mgn >= 0 ? '+' + mgn.toFixed(1) + '%' : mgn.toFixed(1) + '%') : '--';
-    const mgnCls = mgn != null && mgn > 0 ? 'c-green' : 'c-red';
-    grahamHtml = `<div class="research-graham-num">GRAHAM NUMBER: <span>$${d.graham_number.toFixed(2)}</span> &nbsp;·&nbsp; MARGIN OF SAFETY: <span class="${mgnCls}">${mgnStr}</span></div>`;
+  // Pre/post market
+  const prePost = [
+    d.pre_market  ? 'Pre: $'  + fmtN(d.pre_market,2)  : null,
+    d.post_market ? 'Post: $' + fmtN(d.post_market,2) : null,
+  ].filter(Boolean).join(' · ');
+
+  // Earnings
+  let earningsHtml = '';
+  if (d.next_earnings) {
+    const dStr = d.earnings_days != null ? ` (${d.earnings_days}d)` : '';
+    const eps2 = [
+      d.eps_est    != null ? `Est: $${d.eps_est.toFixed(2)}`    : null,
+      d.eps_actual != null ? `TTM: $${d.eps_actual.toFixed(2)}` : null,
+    ].filter(Boolean).join(' · ');
+    earningsHtml = `<div class="ra-earnings-box">
+      NEXT EARNINGS: <strong>${d.next_earnings}${dStr}</strong>
+      ${eps2 ? `<div style="font-size:8px;color:var(--muted);margin-top:2px">${eps2}</div>` : ''}
+    </div>`;
   }
 
+  // Description
+  const desc = d.description ? (d.description.length > 220 ? d.description.slice(0,220) + '…' : d.description) : '';
+  const metaParts = [
+    d.sector && d.sector !== '--' ? d.sector : null,
+    d.industry && d.industry !== '--' ? d.industry : null,
+    d.employees ? (d.employees/1000).toFixed(0) + 'K employees' : null,
+    d.hq || null,
+  ].filter(Boolean);
+
+  // Regime fit
   const fit = _regimeFit(d);
-  const fitColor = fit ? (fit.color === 'green' ? 'var(--green)' : fit.color === 'red' ? 'var(--red)' : 'var(--amber)') : 'var(--muted)';
+  const fitC = fit ? (fit.color === 'green' ? 'var(--green)' : fit.color === 'red' ? 'var(--red)' : 'var(--amber)') : 'var(--muted)';
   const fitHtml = fit ? `<div class="research-regime-fit">
     <div class="research-regime-fit-title">REGIME FIT &mdash; ${_lastRegimeData?.label||'UNKNOWN'}</div>
-    <div class="research-regime-fit-val" style="color:${fitColor}">${fit.label}</div>
+    <div class="research-regime-fit-val" style="color:${fitC}">${fit.label}</div>
     <div class="research-regime-fit-desc">${fit.desc}</div>
   </div>` : '';
 
-  const metrics = [
-    {l:'P/E',    v: d.pe != null ? d.pe.toFixed(1) : '--'},
-    {l:'FWD P/E',v: d.forward_pe != null ? d.forward_pe.toFixed(1) : '--'},
-    {l:'P/B',    v: d.pb != null ? d.pb.toFixed(2) : '--'},
-    {l:'P/S',    v: d.ps != null ? d.ps.toFixed(2) : '--'},
-    {l:'ROE',    v: d.roe != null ? (d.roe*100).toFixed(1)+'%' : '--'},
-    {l:'MARGIN', v: d.profit_margins != null ? (d.profit_margins*100).toFixed(1)+'%' : '--'},
-    {l:'D/E',    v: d.debt_equity != null ? (d.debt_equity/100).toFixed(2)+'x' : '--'},
-    {l:'BETA',   v: d.beta != null ? d.beta.toFixed(2) : '--'},
-  ];
+  // Fundamentals
+  const valuation = [
+    _raMetricRow('P/E (TTM)',  d.pe           != null ? d.pe.toFixed(1)                : '--'),
+    _raMetricRow('Fwd P/E',    d.forward_pe   != null ? d.forward_pe.toFixed(1)        : '--'),
+    _raMetricRow('P/S',        d.ps           != null ? d.ps.toFixed(2)                : '--'),
+    _raMetricRow('P/B',        d.pb           != null ? d.pb.toFixed(2)                : '--'),
+    _raMetricRow('EV/EBITDA',  d.ev_ebitda    != null ? d.ev_ebitda.toFixed(1)         : '--'),
+    _raMetricRow('PEG',        d.peg          != null ? d.peg.toFixed(2)               : '--'),
+  ].join('');
+  const profitability = [
+    _raMetricRow('Gross Mgn',  d.gross_margins  != null ? (d.gross_margins*100).toFixed(1)+'%'  : '--'),
+    _raMetricRow('Op Mgn',     d.op_margins     != null ? (d.op_margins*100).toFixed(1)+'%'     : '--'),
+    _raMetricRow('Net Mgn',    d.profit_margins != null ? (d.profit_margins*100).toFixed(1)+'%' : '--'),
+    _raMetricRow('ROE',        d.roe            != null ? (d.roe*100).toFixed(1)+'%'            : '--'),
+    _raMetricRow('ROA',        d.roa            != null ? (d.roa*100).toFixed(1)+'%'            : '--'),
+  ].join('');
+  const health = [
+    _raMetricRow('Curr Ratio', d.current_ratio != null ? d.current_ratio.toFixed(2)       : '--'),
+    _raMetricRow('Quick Ratio',d.quick_ratio   != null ? d.quick_ratio.toFixed(2)          : '--'),
+    _raMetricRow('D/E',        d.debt_equity   != null ? (d.debt_equity/100).toFixed(2)+'x': '--'),
+    _raMetricRow('Cash',       d.total_cash    != null ? _fmtMktCap(d.total_cash)          : '--'),
+    _raMetricRow('FCF',        d.free_cashflow != null ? _fmtMktCap(d.free_cashflow)       : '--'),
+  ].join('');
+  const growth = [
+    _raMetricRow('Rev Growth', d.revenue_growth  != null ? (d.revenue_growth*100).toFixed(1)+'%'  : '--'),
+    _raMetricRow('EPS Growth', d.earnings_growth != null ? (d.earnings_growth*100).toFixed(1)+'%' : '--'),
+    _raMetricRow('Beta',       d.beta            != null ? d.beta.toFixed(2)                      : '--'),
+    _raMetricRow('Mkt Cap',    _fmtMktCap(d.market_cap)),
+  ].join('');
+  const perShare = [
+    _raMetricRow('EPS (TTM)',  d.eps          != null ? '$'+d.eps.toFixed(2)            : '--'),
+    _raMetricRow('Fwd EPS',    d.forward_eps  != null ? '$'+d.forward_eps.toFixed(2)    : '--'),
+    _raMetricRow('BVPS',       d.bvps         != null ? '$'+d.bvps.toFixed(2)           : '--'),
+    _raMetricRow('Div Yield',  d.div_yield    != null ? (d.div_yield*100).toFixed(2)+'%': '--'),
+    _raMetricRow('Analyst Tgt',d.analyst_target != null ? '$'+d.analyst_target.toFixed(2): '--'),
+    _raMetricRow('Recommend',  d.recommendation || '--'),
+  ].join('');
 
-  const tickerNews = (_lastNewsRaw || []).filter(a => {
-    const t = (a.title||'').toLowerCase();
-    const sym = d.symbol.toLowerCase();
-    const name = (d.name||'').toLowerCase().split(' ')[0];
-    return t.includes(sym) || (name.length > 3 && t.includes(name));
-  }).slice(0, 3);
+  // Intrinsic value rows
+  function ivRow(lbl, val, mgn) {
+    if (val == null) return '';
+    const mCls = mgn > 0 ? 'c-green' : 'c-red';
+    const mStr = mgn != null ? (mgn >= 0 ? '+' : '') + mgn.toFixed(1) + '%' : '';
+    return `<div class="ra-iv-row">
+      <span class="ra-iv-lbl">${lbl}</span>
+      <span class="ra-iv-val">$${val.toFixed(2)}</span>
+      ${mStr ? `<span class="ra-iv-margin ${mCls}">${mStr}</span>` : '<span></span>'}
+    </div>`;
+  }
+  const ivRows = [
+    ivRow('Graham Number', d.graham_number, d.graham_margin),
+    ivRow('DCF Value',     d.dcf_value,     d.dcf_margin),
+    ivRow('NAV / BVPS',   d.nav,           d.nav_margin),
+  ].filter(Boolean).join('');
 
-  const inWL = _researchWL.includes(d.symbol);
-  const safeS = d.symbol.replace(/'/g,'');
+  // Scorecards
+  const grahamSc = (d.graham_scorecard || []).map(_raCriterion).join('');
+  const buffettSc = (d.buffett_scorecard || []).map(_raCriterion).join('');
+
+  // External URLs
+  const edgarUrl    = `https://www.sec.gov/cgi-bin/browse-edgar?company=${encodeURIComponent(d.name||d.symbol)}&CIK=&type=10-K&dateb=&owner=include&count=10&search_text=&action=getcompany`;
+  const earningsUrl = `https://finance.yahoo.com/quote/${d.symbol}/financials/`;
+  const tenKUrl     = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=${encodeURIComponent(d.symbol)}&type=10-K&dateb=&owner=include&count=5`;
+  const safeNameQ   = encodeURIComponent(d.name||d.symbol);
 
   card.innerHTML = `<div class="research-analysis">
-    <div class="research-ticker-hdr">
-      <span class="research-ticker-sym">${d.symbol}</span>
-      <span class="research-ticker-name">${d.name||''}</span>
-      <span class="research-ticker-price c-white">${d.price != null ? '$'+fmtN(d.price,2) : '--'}</span>
-      ${!inWL ? `<button onclick="addResearchWL('${safeS}')" style="background:none;border:1px solid var(--border2);color:var(--muted);font-family:var(--font);font-size:8px;padding:3px 8px;cursor:pointer;letter-spacing:0.1em;margin-left:4px" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">+ WL</button>` : ''}
+    <div class="ra-header">
+      <div class="ra-sym-row">
+        <span class="ra-symbol">${d.symbol}</span>
+        ${d.exchange ? `<span class="ra-exch">${d.exchange}</span>` : ''}
+      </div>
+      <div class="ra-name-row">${d.name||''}</div>
+      <div class="ra-price-row">
+        <span class="ra-price">${price != null ? '$'+fmtN(price,2) : '--'}</span>
+        ${chgStr ? `<span class="ra-change ${chgCls}">${chgStr}</span>` : ''}
+      </div>
+      ${prePost ? `<div class="ra-prepost">${prePost}</div>` : ''}
     </div>
-    <div class="research-ticker-meta">${d.sector||'--'} &middot; ${d.industry||'--'} &middot; ${_fmtMktCap(d.market_cap)}</div>
 
-    <div class="research-scores">
-      <div class="research-score-box"><div class="research-score-lbl">GRAHAM</div><div class="research-score-val" style="color:${gColor}">${gSc}/6</div></div>
-      <div class="research-score-box"><div class="research-score-lbl">BUFFETT</div><div class="research-score-val" style="color:${bColor}">${bSc}/6</div></div>
-      <div class="research-score-box"><div class="research-score-lbl">VALUE</div><div class="research-score-val" style="color:${vColor}">${vSc}</div><div class="research-score-sub">/100</div></div>
+    ${rangeHtml}
+
+    <div class="ra-verdict-row">
+      <span class="ra-verdict" style="border-color:${vC};color:${vC}">${d.verdict||'--'}</span>
+      <span class="ra-score-chip" style="color:${gChipC}">G ${gPass}/6</span>
+      <span class="ra-score-chip" style="color:${bChipC}">B ${bPass}/6</span>
+      <span class="ra-score-chip" style="color:${vScC}">${vScore}/100</span>
     </div>
 
-    <div class="research-verdict" style="border-color:${verdictColor};color:${verdictColor}">${d.verdict||'--'}</div>
+    <div class="ra-section">
+      <div class="ra-section-title">COMPANY</div>
+      ${desc ? `<div class="ra-desc">${desc}</div>` : ''}
+      ${metaParts.length ? `<div class="ra-meta-row">${metaParts.join(' · ')}</div>` : ''}
+      ${d.website ? `<a class="ra-website" href="${d.website}" target="_blank" rel="noopener noreferrer">${d.website.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} &#8599;</a>` : ''}
+    </div>
 
-    ${grahamHtml}
+    ${earningsHtml}
     ${fitHtml}
 
-    <div class="research-metrics">${metrics.map(m=>`<div class="research-metric"><div class="research-metric-lbl">${m.l}</div><div class="research-metric-val">${m.v}</div></div>`).join('')}</div>
+    <div class="ra-section">
+      <div class="ra-section-title">VALUATION</div>
+      <div class="ra-grid-2">${valuation}</div>
+    </div>
+    <div class="ra-section">
+      <div class="ra-section-title">PROFITABILITY</div>
+      <div class="ra-grid-2">${profitability}</div>
+    </div>
+    <div class="ra-section">
+      <div class="ra-section-title">FINANCIAL HEALTH</div>
+      <div class="ra-grid-2">${health}</div>
+    </div>
+    <div class="ra-section">
+      <div class="ra-section-title">GROWTH &amp; OVERVIEW</div>
+      <div class="ra-grid-2">${growth}</div>
+    </div>
+    <div class="ra-section">
+      <div class="ra-section-title">PER SHARE &amp; ANALYST</div>
+      <div class="ra-grid-2">${perShare}</div>
+    </div>
 
-    <div class="research-criteria-title">GRAHAM CRITERIA</div>
-    <div class="research-notes">${(d.graham_notes||[]).map(n=>`<div class="${n.includes('\u2713')?'research-note-pass':'research-note-fail'}">${n}</div>`).join('')||'<span class="research-note-fail">--</span>'}</div>
-
-    <div class="research-criteria-title">BUFFETT CRITERIA</div>
-    <div class="research-notes">${(d.buffett_notes||[]).map(n=>`<div class="${n.includes('\u2713')?'research-note-pass':'research-note-fail'}">${n}</div>`).join('')||'<span class="research-note-fail">--</span>'}</div>
-
-    ${d.analyst_target ? `<div style="font-size:9px;color:var(--muted);margin-top:6px">ANALYST TARGET <span style="color:var(--white);font-weight:700">$${d.analyst_target.toFixed(2)}</span>${d.recommendation?' &middot; '+d.recommendation:''}</div>` : ''}
-    ${d['52w_high'] && d['52w_low'] ? `<div style="font-size:9px;color:var(--muted);margin-top:4px">52W RANGE <span style="color:var(--white)">$${d['52w_low'].toFixed(2)} &ndash; $${d['52w_high'].toFixed(2)}</span></div>` : ''}
-
-    ${tickerNews.length ? `<div class="research-news-list">
-      <div class="research-news-title">RELATED NEWS</div>
-      ${tickerNews.map(a=>`<div class="research-news-item"><a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">${a.title||''}</a><div class="research-news-time">${fmtRelTime(a.publishedAt||a.timestamp)} &middot; ${(a.source||'').toUpperCase()}</div></div>`).join('')}
+    ${ivRows ? `<div class="ra-section">
+      <div class="ra-section-title">INTRINSIC VALUE</div>
+      <div class="ra-iv-box">${ivRows}</div>
     </div>` : ''}
 
-    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px">
-      <a href="https://finance.yahoo.com/quote/${d.symbol}" target="_blank" rel="noopener noreferrer" style="color:var(--muted2);text-decoration:none;font-size:7px;letter-spacing:0.08em">VIEW ON YAHOO FINANCE &#8599;</a>
+    <div class="ra-section">
+      <div class="ra-section-title">GRAHAM SCORECARD (${gPass}/6)</div>
+      ${grahamSc || '<div style="font-size:9px;color:var(--muted)">Insufficient data</div>'}
+    </div>
+    <div class="ra-section">
+      <div class="ra-section-title">BUFFETT SCORECARD (${bPass}/6)</div>
+      ${buffettSc || '<div style="font-size:9px;color:var(--muted)">Insufficient data</div>'}
+    </div>
+
+    <div class="ra-news-panel" id="ra-news-panel" style="display:none"></div>
+
+    <div class="ra-btn-strip">
+      <button id="ra-wl-btn" class="ra-btn${inWL ? ' ra-btn-wl-active' : ''}" onclick="toggleRaWL('${safeS}')">${inWL ? '✓ WATCHLIST' : '+ WATCHLIST'}</button>
+      <button class="ra-btn" onclick="toggleRaNews('${safeS}','${(d.name||'').replace(/'/g,'')}')">VIEW NEWS</button>
+      <a class="ra-btn" href="${tenKUrl}" target="_blank" rel="noopener noreferrer">10-K</a>
+      <a class="ra-btn" href="${earningsUrl}" target="_blank" rel="noopener noreferrer">EARNINGS</a>
+      <a class="ra-btn" href="${edgarUrl}" target="_blank" rel="noopener noreferrer">EDGAR</a>
     </div>
   </div>`;
 }
