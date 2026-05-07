@@ -298,7 +298,12 @@
 
     /* ── AI BRIEFING ── */
     .briefing-section { background: rgba(245,158,11,0.03); border: 1px solid rgba(245,158,11,0.2); border-radius: 4px; margin: 12px 14px 0; }
-    .briefing-section .section-header { border-top: none; border-radius: 4px 4px 0 0; background: rgba(245,158,11,0.06); }
+    .briefing-section .section-header { border-top: none; border-radius: 4px 4px 0 0; background: rgba(245,158,11,0.06); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .briefing-section.collapsed { border-radius: 4px; }
+    .briefing-section.collapsed .section-header { border-radius: 4px; }
+    .briefing-section.collapsed #briefing-body { display: none; }
+    .briefing-collapse-btn { background: transparent; border: none; color: var(--amber); font-size: 11px; cursor: pointer; padding: 0 4px; line-height: 1; transition: transform 0.2s; font-family: var(--font); }
+    .briefing-section.collapsed .briefing-collapse-btn { transform: rotate(-90deg); }
     .briefing-content { font-family: var(--font); font-size: 12px; line-height: 1.7; color: var(--white); white-space: pre-wrap; word-break: normal; overflow-wrap: break-word; padding: 14px 16px; }
     .briefing-hdr-strong { color: var(--amber); font-weight: 700; font-size: 10px; letter-spacing: 0.18em; display: block; margin-top: 10px; margin-bottom: 2px; }
     .briefing-hdr-strong:first-child { margin-top: 0; }
@@ -712,16 +717,19 @@
 
     <!-- AI MORNING BRIEFING -->
     <section id="ai-briefing-section" class="briefing-section">
-      <div class="section-header">
+      <div class="section-header" onclick="toggleBriefing()">
+        <button class="briefing-collapse-btn" title="Collapse">&#9660;</button>
         <span class="section-title">&#11045; AI MORNING BRIEFING</span>
         <div class="section-line"></div>
-        <div class="briefing-meta">
+        <div class="briefing-meta" onclick="event.stopPropagation()">
           <span id="briefing-timestamp">Loading...</span>
           <button id="briefing-refresh" class="briefing-refresh-btn" title="Regenerate briefing">&#8635;</button>
         </div>
       </div>
-      <div id="briefing-content">
-        <div class="briefing-loading">GENERATING BRIEFING...</div>
+      <div id="briefing-body">
+        <div id="briefing-content">
+          <div class="briefing-loading">GENERATING BRIEFING...</div>
+        </div>
       </div>
     </section>
 
@@ -3455,8 +3463,17 @@ async function refreshBriefing() {
   }
 }
 
-// Wire refresh button
+function toggleBriefing() {
+  const sec = document.getElementById('ai-briefing-section');
+  if (!sec) return;
+  const collapsed = sec.classList.toggle('collapsed');
+  localStorage.setItem('briefing_collapsed', collapsed ? '1' : '0');
+}
+
+// Restore collapsed state and wire refresh button
 (function() {
+  const sec = document.getElementById('ai-briefing-section');
+  if (sec && localStorage.getItem('briefing_collapsed') === '1') sec.classList.add('collapsed');
   const btn = document.getElementById('briefing-refresh');
   if (btn) btn.addEventListener('click', refreshBriefing);
 })();
