@@ -1170,7 +1170,7 @@ const LAGGING_IDS  = new Set(['gdp','cpi','pce','unemployment','retail','savings
 // ════════════════════════════════════════════════════════════
 function updateClock() {
   document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ET';
 }
 setInterval(updateClock, 1000);
 updateClock();

@@ -4,12 +4,19 @@
 import os
 import json
 import logging
+import pytz
 from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
 
 CACHE_FILE  = "briefing_cache.json"
 CACHE_HOURS = 6
+EASTERN     = pytz.timezone("America/New_York")
+
+
+def _now_et():
+    """Current datetime in Eastern Time."""
+    return datetime.now(pytz.UTC).astimezone(EASTERN)
 
 
 # ── TECHNICAL INDICATORS ──────────────────────────────────────
@@ -180,7 +187,7 @@ def _calculate_key_levels(tech):
 
 def _build_economic_calendar():
     """Return today's and tomorrow's known recurring economic events."""
-    now      = datetime.now()
+    now      = _now_et()
     tomorrow = now + timedelta(days=1)
     dow      = now.strftime("%A")
     dom      = now.day
@@ -269,9 +276,9 @@ def get_briefing():
     ]
 
     context = {
-        "current_date":      datetime.now().strftime("%A, %B %d %Y"),
-        "current_time":      datetime.now().strftime("%I:%M %p ET"),
-        "day_of_week":       datetime.now().strftime("%A"),
+        "current_date":      _now_et().strftime("%A, %B %d %Y"),
+        "current_time":      _now_et().strftime("%I:%M %p ET"),
+        "day_of_week":       _now_et().strftime("%A"),
         "current_regime":    regime_label,
         "internal_regime":   regime_internal,
         "regime_confidence": regime_confidence,
@@ -308,6 +315,8 @@ def get_briefing():
         client = Anthropic(api_key=api_key)
 
         system_prompt = """You are a senior macro and technical analyst briefing financial advisor Ryan Chapman.
+
+ALL TIMES IN THIS BRIEFING ARE EASTERN TIME (ET) — the financial industry standard. NYSE hours: 9:30 AM–4:00 PM ET. Reference all market times in ET.
 
 CRITICAL CONTEXT:
 - Ryan has held a stagflation thesis since 2021
@@ -486,7 +495,7 @@ Generate the briefing now. Be specific, reference actual numbers, address the ac
         return {
             "status":       "success",
             "briefing":     briefing_text,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": _now_et().isoformat(),
             "from_cache":   False,
         }
 
@@ -518,11 +527,14 @@ def _load_cache():
 
 def _save_cache(briefing_text):
     with open(CACHE_FILE, "w") as f:
-        json.dump({"briefing": briefing_text, "generated_at": datetime.now().isoformat()}, f)
+        json.dump({"briefing": briefing_text, "generated_at": _now_et().isoformat()}, f)
 
 
 def _cache_valid(cached):
     if not cached or "generated_at" not in cached:
         return False
-    age = datetime.now() - datetime.fromisoformat(cached["generated_at"])
+    cached_time = datetime.fromisoformat(cached["generated_at"])
+    if cached_time.tzinfo is None:
+        cached_time = EASTERN.localize(cached_time)
+    age = _now_et() - cached_time
     return age < timedelta(hours=CACHE_HOURS)
