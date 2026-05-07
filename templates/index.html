@@ -16,6 +16,7 @@
       --red: #ef4444; --red-dim: #7f1d1d;
       --blue: #38bdf8; --orange: #f97316;
       --white: #e5e7eb; --muted: #4b5563; --muted2: #374151;
+      --text-secondary: #6b7280;
       --font: 'Courier New', Courier, monospace;
     }
     html, body { background: var(--bg); color: var(--white); font-family: var(--font); font-size: 12px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
@@ -705,6 +706,66 @@
       .briefing-refresh-btn { min-height: 44px; min-width: 44px; padding: 0 14px; }
       .briefing-setup { font-size: 12px; }
     }
+
+    /* ── CHART MODAL ── */
+    .chart-modal { position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box; }
+    .chart-modal-overlay { position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px); }
+    .chart-modal-content { position:relative;background:#0a0a0a;border:1px solid rgba(245,158,11,0.4);border-radius:6px;width:95%;max-width:1400px;height:90vh;max-height:900px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(245,158,11,0.15);animation:modalFadeIn 0.2s ease; }
+    @keyframes modalFadeIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .modal-header { display:flex;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(245,158,11,0.2);gap:24px; }
+    .modal-title-section { flex:1;display:flex;align-items:baseline;gap:12px; }
+    .modal-ticker { font-size:24px;font-weight:700;color:var(--amber);font-family:monospace;letter-spacing:1px; }
+    .modal-company-name { font-size:13px;color:var(--text-secondary);font-family:monospace; }
+    .modal-price-section { display:flex;align-items:baseline;gap:12px; }
+    .modal-current-price { font-size:26px;font-weight:700;color:var(--white);font-family:monospace; }
+    .modal-price-change { font-size:13px;font-weight:600;font-family:monospace; }
+    .modal-close { background:transparent;border:1px solid rgba(255,255,255,0.25);color:var(--text-secondary);width:34px;height:34px;border-radius:4px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0; }
+    .modal-close:hover { border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.1); }
+    .modal-quick-stats { display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:rgba(245,158,11,0.1);border-bottom:1px solid rgba(245,158,11,0.2); }
+    .quick-stat { background:#0a0a0a;padding:9px 8px;display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center; }
+    .qs-label { font-size:8px;color:var(--text-secondary);font-family:monospace;letter-spacing:1px;font-weight:600; }
+    .qs-value { font-size:12px;color:var(--white);font-family:monospace;font-weight:600; }
+    .modal-controls { display:flex;justify-content:space-between;align-items:center;padding:10px 24px;border-bottom:1px solid rgba(245,158,11,0.1);flex-wrap:wrap;gap:10px; }
+    .modal-period-selector { display:flex;gap:4px; }
+    .modal-period-btn { background:transparent;border:1px solid rgba(245,158,11,0.2);color:var(--text-secondary);padding:5px 10px;font-size:10px;font-family:monospace;cursor:pointer;border-radius:3px;font-weight:600;transition:all 0.15s; }
+    .modal-period-btn:hover { border-color:var(--amber);color:var(--amber); }
+    .modal-period-btn.active { background:rgba(245,158,11,0.15);border-color:var(--amber);color:var(--amber); }
+    .modal-chart-toggles { display:flex;gap:14px; }
+    .modal-toggle { display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;font-size:10px;font-family:monospace;font-weight:600;letter-spacing:1px; }
+    .modal-toggle input[type="checkbox"] { accent-color:var(--amber);cursor:pointer;width:13px;height:13px; }
+    .modal-chart-wrapper { flex:1;padding:14px 20px;background:#050505;overflow:hidden;min-height:0; }
+    .modal-chart-svg { width:100%;height:100%;cursor:crosshair;display:block; }
+    .modal-summary-stats { display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(245,158,11,0.1);border-top:1px solid rgba(245,158,11,0.2); }
+    .summary-stat { background:#0a0a0a;padding:10px;display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center; }
+    .ss-label { font-size:9px;color:var(--text-secondary);font-family:monospace;text-transform:uppercase;letter-spacing:1px; }
+    .ss-value { font-size:13px;color:var(--white);font-family:monospace;font-weight:600; }
+    .modal-action-buttons { display:flex;gap:7px;padding:14px 20px;border-top:1px solid rgba(245,158,11,0.2);flex-wrap:wrap; }
+    .modal-action-btn { background:transparent;border:1px solid rgba(245,158,11,0.35);color:var(--amber);padding:8px 16px;font-size:11px;font-family:monospace;font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;border-radius:3px;transition:all 0.15s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center; }
+    .modal-action-btn:hover { background:rgba(245,158,11,0.12);border-color:var(--amber);transform:translateY(-1px); }
+    @media (max-width:1024px) { .modal-quick-stats{grid-template-columns:repeat(4,1fr)} .modal-summary-stats{grid-template-columns:repeat(3,1fr)} }
+    @media (max-width:768px) {
+      .chart-modal{padding:6px}
+      .chart-modal-content{width:100%;height:97vh;max-height:none}
+      .modal-header{padding:10px 14px;flex-wrap:wrap;gap:8px}
+      .modal-ticker{font-size:18px} .modal-current-price{font-size:18px}
+      .modal-quick-stats{grid-template-columns:repeat(4,1fr)}
+      .qs-value{font-size:11px} .qs-label{font-size:7px}
+      .modal-controls{padding:7px 10px}
+      .modal-period-btn{padding:4px 7px;font-size:9px}
+      .modal-chart-toggles{gap:8px}
+      .modal-chart-wrapper{padding:6px 10px}
+      .modal-summary-stats{grid-template-columns:repeat(2,1fr)}
+      .modal-action-buttons{padding:10px 14px}
+      .modal-action-btn{padding:7px 10px;font-size:10px;flex:1;min-width:70px}
+    }
+
+    /* ── TICKER SYMBOL CLICK HINTS ── */
+    .watchlist-ticker-symbol, .search-result-ticker { cursor:pointer;transition:color 0.15s; }
+    .watchlist-ticker-symbol:hover, .search-result-ticker:hover { color:var(--amber);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px; }
+    .company-analysis-ticker { cursor:pointer;transition:filter 0.15s; }
+    .company-analysis-ticker:hover { filter:brightness(1.3); }
+    .company-analysis-ticker::after { content:" ⤢";font-size:0.65em;opacity:0;transition:opacity 0.2s; }
+    .company-analysis-ticker:hover::after { opacity:0.7; }
   </style>
 </head>
 <body>
@@ -1148,6 +1209,70 @@
     <div class="pin-btns">
       <button id="pinSubmit" class="pin-btn">CONFIRM</button>
       <button id="pinCancel" class="pin-btn">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHART MODAL -->
+<div id="chart-modal" class="chart-modal" style="display:none">
+  <div class="chart-modal-overlay"></div>
+  <div class="chart-modal-content">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <span class="modal-ticker" id="modal-ticker">--</span>
+        <span class="modal-company-name" id="modal-company-name">--</span>
+      </div>
+      <div class="modal-price-section">
+        <span class="modal-current-price" id="modal-current-price">$--</span>
+        <span class="modal-price-change" id="modal-price-change">--</span>
+      </div>
+      <button class="modal-close" id="modal-close">&#215;</button>
+    </div>
+    <div class="modal-quick-stats">
+      <div class="quick-stat"><span class="qs-label">OPEN</span><span class="qs-value" id="modal-open">--</span></div>
+      <div class="quick-stat"><span class="qs-label">HIGH</span><span class="qs-value" id="modal-high">--</span></div>
+      <div class="quick-stat"><span class="qs-label">LOW</span><span class="qs-value" id="modal-low">--</span></div>
+      <div class="quick-stat"><span class="qs-label">VOL</span><span class="qs-value" id="modal-volume">--</span></div>
+      <div class="quick-stat"><span class="qs-label">52W H</span><span class="qs-value" id="modal-52w-high">--</span></div>
+      <div class="quick-stat"><span class="qs-label">52W L</span><span class="qs-value" id="modal-52w-low">--</span></div>
+      <div class="quick-stat"><span class="qs-label">MKT CAP</span><span class="qs-value" id="modal-mktcap">--</span></div>
+      <div class="quick-stat"><span class="qs-label">P/E</span><span class="qs-value" id="modal-pe">--</span></div>
+    </div>
+    <div class="modal-controls">
+      <div class="modal-period-selector">
+        <button class="modal-period-btn" data-period="1d">1D</button>
+        <button class="modal-period-btn" data-period="5d">5D</button>
+        <button class="modal-period-btn" data-period="1mo">1M</button>
+        <button class="modal-period-btn" data-period="3mo">3M</button>
+        <button class="modal-period-btn" data-period="6mo">6M</button>
+        <button class="modal-period-btn active" data-period="1y">1Y</button>
+        <button class="modal-period-btn" data-period="2y">2Y</button>
+        <button class="modal-period-btn" data-period="5y">5Y</button>
+        <button class="modal-period-btn" data-period="max">MAX</button>
+      </div>
+      <div class="modal-chart-toggles">
+        <label class="modal-toggle"><input type="checkbox" id="modal-show-ma50" checked><span style="color:#00aaff">50MA</span></label>
+        <label class="modal-toggle"><input type="checkbox" id="modal-show-ma200" checked><span style="color:#ff00aa">200MA</span></label>
+        <label class="modal-toggle"><input type="checkbox" id="modal-show-volume"><span>VOL</span></label>
+        <label class="modal-toggle"><input type="checkbox" id="modal-show-grid" checked><span>GRID</span></label>
+      </div>
+    </div>
+    <div class="modal-chart-wrapper">
+      <svg id="modal-price-chart" viewBox="0 0 1200 500" preserveAspectRatio="none" class="modal-chart-svg"></svg>
+    </div>
+    <div class="modal-summary-stats">
+      <div class="summary-stat"><span class="ss-label">Period High</span><span class="ss-value" id="modal-period-high">--</span></div>
+      <div class="summary-stat"><span class="ss-label">Period Low</span><span class="ss-value" id="modal-period-low">--</span></div>
+      <div class="summary-stat"><span class="ss-label">Period Change</span><span class="ss-value" id="modal-period-change">--</span></div>
+      <div class="summary-stat"><span class="ss-label">vs 50MA</span><span class="ss-value" id="modal-vs-50ma">--</span></div>
+      <div class="summary-stat"><span class="ss-label">vs 200MA</span><span class="ss-value" id="modal-vs-200ma">--</span></div>
+    </div>
+    <div class="modal-action-buttons">
+      <button class="modal-action-btn" id="modal-add-watchlist">+ WATCHLIST</button>
+      <button class="modal-action-btn" id="modal-view-analysis">VIEW ANALYSIS</button>
+      <button class="modal-action-btn" id="modal-view-news">NEWS</button>
+      <a class="modal-action-btn" id="modal-edgar-link" href="#" target="_blank" rel="noopener noreferrer">SEC EDGAR</a>
+      <a class="modal-action-btn" id="modal-yahoo-link" href="#" target="_blank" rel="noopener noreferrer">YAHOO</a>
     </div>
   </div>
 </div>
@@ -2956,6 +3081,16 @@ let _researchWL = [];
 let _lastRegimeData = null;
 let _openPositioningAsset = null;
 let _rwlPriceInterval = null;
+
+// ── Chart Modal state ─────────────────────────────────────────
+let _modalTicker = null;
+let _modalData   = null;
+let _modalPeriod = "1y";
+// Double-tap state for watchlist and search
+let _wlTapTimer  = null;
+let _wlTapSym    = null;
+let _srTapTimer  = null;
+let _srTapSym    = null;
 let _searchDebounce = null;
 let _catCollapsed = { tickers: false, news: false, fred: false, sec: false };
 
@@ -3051,7 +3186,7 @@ async function doResearchSearch(q) {
       tickers.forEach(r => {
         const sym = r.symbol.replace(/'/g,'');
         html += `<div class="research-result-item" onclick="analyzeResearchTicker('${sym}')">
-          <span class="research-result-sym">${r.symbol}</span>
+          <span class="research-result-sym search-result-ticker" data-ticker="${sym}" title="Double-tap for full chart">${r.symbol}</span>
           <span class="research-result-name">${r.name||''}</span>
           <span class="research-result-type">${(r.type||'').toUpperCase()}</span>
         </div>`;
@@ -3111,7 +3246,7 @@ function renderResearchWL() {
   el.innerHTML = _researchWL.map(t => {
     const safe = t.replace(/'/g,'');
     return `<div class="research-wl-row">
-      <span class="research-wl-sym" onclick="analyzeResearchTicker('${safe}')">${t}</span>
+      <span class="research-wl-sym watchlist-ticker-symbol" data-ticker="${safe}" title="Double-tap for full chart">${t}</span>
       <span class="research-wl-price c-muted" id="rwlp-${t}">--</span>
       <span class="research-wl-pct c-muted" id="rwlpct-${t}">--</span>
       <span class="research-wl-analyze" onclick="analyzeResearchTicker('${safe}')">ANALYZE</span>
@@ -3420,7 +3555,7 @@ function renderCompanyAnalysis(d) {
   card.innerHTML = `<div class="research-analysis">
     <div class="ra-header">
       <div class="ra-sym-row">
-        <span class="ra-symbol">${d.symbol}</span>
+        <span class="ra-symbol company-analysis-ticker" data-ticker="${safeS}" title="Click to open expanded chart">${d.symbol}</span>
         ${d.exchange ? `<span class="ra-exch">${d.exchange}</span>` : ''}
       </div>
       <div class="ra-name-row">${d.name||''}</div>
@@ -3593,6 +3728,327 @@ function toggleBriefing() {
 
 // Auto-reload every 6 hours
 setInterval(loadBriefing, 6 * 60 * 60 * 1000);
+
+// ════════════════════════════════════════════════════════════
+// CHART MODAL
+// ════════════════════════════════════════════════════════════
+function _modalFmtVol(v) {
+  if (!v) return '--';
+  if (v >= 1e9) return (v/1e9).toFixed(2)+'B';
+  if (v >= 1e6) return (v/1e6).toFixed(2)+'M';
+  if (v >= 1e3) return (v/1e3).toFixed(0)+'K';
+  return v.toString();
+}
+function _modalFmtCap(v) {
+  if (!v) return '--';
+  const a = Math.abs(v);
+  const s = v < 0 ? '-$' : '$';
+  if (a >= 1e12) return s+(a/1e12).toFixed(2)+'T';
+  if (a >= 1e9)  return s+(a/1e9).toFixed(2)+'B';
+  if (a >= 1e6)  return s+(a/1e6).toFixed(0)+'M';
+  return s+a.toLocaleString();
+}
+
+async function openChartModal(ticker) {
+  _modalTicker = ticker.toUpperCase();
+  _modalPeriod = "1y";
+  _modalData   = null;
+
+  const modal = document.getElementById('chart-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Reset period buttons
+  document.querySelectorAll('.modal-period-btn').forEach(b => b.classList.remove('active'));
+  const defBtn = document.querySelector('.modal-period-btn[data-period="1y"]');
+  if (defBtn) defBtn.classList.add('active');
+
+  document.getElementById('modal-ticker').textContent = _modalTicker;
+  document.getElementById('modal-company-name').textContent = 'Loading...';
+  document.getElementById('modal-current-price').textContent = '$--';
+  document.getElementById('modal-price-change').textContent = '--';
+  document.getElementById('modal-price-change').style.color = '';
+  ['modal-open','modal-high','modal-low','modal-volume','modal-52w-high','modal-52w-low','modal-mktcap','modal-pe'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '--'; });
+  ['modal-period-high','modal-period-low','modal-period-change','modal-vs-50ma','modal-vs-200ma'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = '--'; el.style.color = ''; } });
+  document.getElementById('modal-price-chart').innerHTML = '<text x="600" y="250" fill="#6b7280" font-size="14" font-family="monospace" text-anchor="middle">LOADING CHART...</text>';
+
+  const yahoo = document.getElementById('modal-yahoo-link');
+  if (yahoo) yahoo.href = 'https://finance.yahoo.com/quote/' + _modalTicker;
+  const edgar = document.getElementById('modal-edgar-link');
+  if (edgar) edgar.href = 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + _modalTicker + '&type=10-K&dateb=&owner=include&count=10';
+
+  await _loadModalInfo(_modalTicker);
+  await _loadModalChart(_modalTicker, _modalPeriod);
+}
+
+function closeChartModal() {
+  const modal = document.getElementById('chart-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+  _modalTicker = null;
+  _modalData   = null;
+}
+
+async function _loadModalInfo(ticker) {
+  try {
+    const d = await apiFetch('/api/research/company/' + ticker);
+    if (!d || d.error) return;
+    document.getElementById('modal-company-name').textContent = d.name || ticker;
+    const price = d.price;
+    document.getElementById('modal-current-price').textContent = price != null ? '$' + fmtN(price, 2) : '$--';
+    const chg = d.day_change;
+    const pct = d.day_pct;
+    const chgEl = document.getElementById('modal-price-change');
+    if (chg != null) {
+      const sign = chg >= 0 ? '+' : '';
+      chgEl.textContent = sign + fmtN(chg, 2) + ' (' + (pct >= 0 ? '+' : '') + fmtN(pct, 2) + '%)';
+      chgEl.style.color = chg >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+    const s = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v; };
+    s('modal-open',    d.open    != null ? '$'+fmtN(d.open, 2)      : '--');
+    s('modal-high',    d.day_high!= null ? '$'+fmtN(d.day_high, 2)  : '--');
+    s('modal-low',     d.day_low != null ? '$'+fmtN(d.day_low, 2)   : '--');
+    s('modal-volume',  _modalFmtVol(d.volume));
+    s('modal-52w-high',d['52w_high'] != null ? '$'+fmtN(d['52w_high'], 2) : '--');
+    s('modal-52w-low', d['52w_low']  != null ? '$'+fmtN(d['52w_low'],  2) : '--');
+    s('modal-mktcap',  _modalFmtCap(d.market_cap));
+    s('modal-pe',      d.pe != null ? d.pe.toFixed(1) : '--');
+  } catch(e) {
+    console.error('Modal info error:', e);
+  }
+}
+
+async function _loadModalChart(ticker, period) {
+  try {
+    const data = await apiFetch('/api/research/chart/' + ticker + '?period=' + period);
+    if (data.error) {
+      document.getElementById('modal-price-chart').innerHTML = '<text x="600" y="250" fill="#ef4444" font-size="13" font-family="monospace" text-anchor="middle">ERROR: ' + data.error + '</text>';
+      return;
+    }
+    _modalData = data;
+    _renderModalChart(data);
+    _updateModalStats(data);
+  } catch(e) {
+    document.getElementById('modal-price-chart').innerHTML = '<text x="600" y="250" fill="#ef4444" font-size="13" font-family="monospace" text-anchor="middle">CHART UNAVAILABLE</text>';
+  }
+}
+
+function _renderModalChart(data) {
+  const svg = document.getElementById('modal-price-chart');
+  if (!svg || !data.data || !data.data.length) return;
+
+  const showMA50   = document.getElementById('modal-show-ma50').checked;
+  const showMA200  = document.getElementById('modal-show-ma200').checked;
+  const showVolume = document.getElementById('modal-show-volume').checked;
+  const showGrid   = document.getElementById('modal-show-grid').checked;
+
+  svg.innerHTML = '';
+  const W = 1200, H = 500;
+  const pad = { top: 28, right: 82, bottom: 36, left: 14 };
+  const volH = showVolume ? 70 : 0;
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top  - pad.bottom - volH;
+
+  const closes  = data.data.map(d => d.close);
+  const minP    = Math.min(...closes) * 0.985;
+  const maxP    = Math.max(...closes) * 1.015;
+  const pRange  = maxP - minP;
+  const n       = data.data.length;
+  const xS = i => pad.left + (i / (n - 1)) * cW;
+  const yS = p => pad.top  + ((maxP - p) / pRange) * cH;
+
+  const posChange = data.stats.period_change >= 0;
+  const lineCol   = posChange ? '#00d964' : '#ef4444';
+  const fillCol   = posChange ? 'rgba(0,217,100,0.06)' : 'rgba(239,68,68,0.06)';
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const mk = tag => document.createElementNS(ns, tag);
+
+  function setA(el, attrs) { Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v)); return el; }
+
+  // Grid
+  if (showGrid) {
+    for (let i = 0; i <= 7; i++) {
+      const y = pad.top + (i/7)*cH;
+      const p = maxP - (i/7)*pRange;
+      svg.appendChild(setA(mk('line'), {x1:pad.left,y1:y,x2:pad.left+cW,y2:y,stroke:'rgba(245,158,11,0.07)','stroke-width':'1'}));
+      const t = mk('text');
+      setA(t, {x:pad.left+cW+5,y:y+4,fill:'rgba(245,158,11,0.65)','font-size':'10','font-family':'monospace'});
+      t.textContent = '$'+p.toFixed(2); svg.appendChild(t);
+    }
+    const numV = Math.min(6, n-1);
+    for (let i = 0; i <= numV; i++) {
+      const x = pad.left + (i/numV)*cW;
+      svg.appendChild(setA(mk('line'), {x1:x,y1:pad.top,x2:x,y2:pad.top+cH,stroke:'rgba(245,158,11,0.04)','stroke-width':'1'}));
+      const di = Math.round((i/numV)*(n-1));
+      const dt = new Date(data.data[di].timestamp);
+      const ds = dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const t = mk('text');
+      setA(t, {x:x,y:pad.top+cH+18,fill:'rgba(245,158,11,0.55)','font-size':'9','font-family':'monospace','text-anchor':'middle'});
+      t.textContent = ds; svg.appendChild(t);
+    }
+  }
+
+  // 200MA
+  if (showMA200) {
+    let d200 = '', started = false;
+    data.data.forEach((pt, i) => {
+      if (pt.ma200 != null) { d200 += (started?` L`:`M`) + ` ${xS(i)} ${yS(pt.ma200)}`; started=true; }
+    });
+    if (d200) svg.appendChild(setA(mk('path'),{d:d200,fill:'none',stroke:'#ff00aa','stroke-width':'1.5','stroke-dasharray':'4,3',opacity:'0.75'}));
+  }
+
+  // 50MA
+  if (showMA50) {
+    let d50 = '', started = false;
+    data.data.forEach((pt, i) => {
+      if (pt.ma50 != null) { d50 += (started?` L`:`M`) + ` ${xS(i)} ${yS(pt.ma50)}`; started=true; }
+    });
+    if (d50) svg.appendChild(setA(mk('path'),{d:d50,fill:'none',stroke:'#00aaff','stroke-width':'1.5','stroke-dasharray':'6,3',opacity:'0.75'}));
+  }
+
+  // Area fill
+  let area = `M ${xS(0)} ${pad.top+cH}`;
+  data.data.forEach((pt,i) => { area += ` L ${xS(i)} ${yS(pt.close)}`; });
+  area += ` L ${xS(n-1)} ${pad.top+cH} Z`;
+  svg.appendChild(setA(mk('path'),{d:area,fill:fillCol}));
+
+  // Price line
+  let line = '';
+  data.data.forEach((pt,i) => { line += (i===0?'M':'L') + ` ${xS(i)} ${yS(pt.close)} `; });
+  svg.appendChild(setA(mk('path'),{d:line,fill:'none',stroke:lineCol,'stroke-width':'2'}));
+
+  // Volume bars
+  if (showVolume) {
+    const vols = data.data.map(d => d.volume);
+    const maxV = Math.max(...vols);
+    const vY   = pad.top + cH + 18;
+    const bW   = cW / n;
+    data.data.forEach((pt, i) => {
+      const bH = (pt.volume / maxV) * volH;
+      svg.appendChild(setA(mk('rect'),{x:xS(i)-bW/2,y:vY+(volH-bH),width:Math.max(1,bW-1),height:bH,fill:'rgba(245,158,11,0.25)'}));
+    });
+  }
+
+  // Crosshair group
+  const hg = mk('g'); hg.id = 'modal-crosshair'; hg.style.display = 'none'; svg.appendChild(hg);
+  const hvL = setA(mk('line'),{y1:pad.top,y2:pad.top+cH,stroke:'rgba(245,158,11,0.55)','stroke-width':'1','stroke-dasharray':'3,3'}); hg.appendChild(hvL);
+  const hhL = setA(mk('line'),{x1:pad.left,x2:pad.left+cW,stroke:'rgba(245,158,11,0.55)','stroke-width':'1','stroke-dasharray':'3,3'}); hg.appendChild(hhL);
+  const hdot = setA(mk('circle'),{r:'4',fill:lineCol,stroke:'white','stroke-width':'1.5'}); hg.appendChild(hdot);
+  const hbg  = setA(mk('rect'),{width:'190',height:'68',fill:'rgba(0,0,0,0.95)',stroke:'rgba(245,158,11,0.55)',rx:'3'}); hg.appendChild(hbg);
+  const htDate  = setA(mk('text'),{fill:'rgba(245,158,11,0.85)','font-size':'10','font-family':'monospace'}); hg.appendChild(htDate);
+  const htPrice = setA(mk('text'),{fill:'white','font-size':'15','font-family':'monospace','font-weight':'bold'}); hg.appendChild(htPrice);
+  const htOHL   = setA(mk('text'),{fill:'rgba(255,255,255,0.65)','font-size':'9','font-family':'monospace'}); hg.appendChild(htOHL);
+
+  svg.addEventListener('mousemove', e => {
+    const r = svg.getBoundingClientRect();
+    const mx = ((e.clientX - r.left) / r.width) * W;
+    if (mx < pad.left || mx > pad.left+cW) { hg.style.display='none'; return; }
+    const di = Math.round(((mx - pad.left) / cW) * (n-1));
+    const pt = data.data[di]; if (!pt) { hg.style.display='none'; return; }
+    const px = xS(di), py = yS(pt.close);
+    hg.style.display = 'block';
+    setA(hvL,{x1:px,x2:px}); setA(hhL,{y1:py,y2:py}); setA(hdot,{cx:px,cy:py});
+    const ix = px+16 > W-200 ? px-205 : px+16;
+    const iy = Math.max(pad.top, Math.min(py-34, pad.top+cH-72));
+    setA(hbg,{x:ix,y:iy});
+    const dt = new Date(pt.timestamp);
+    htDate.setAttribute('x', ix+10); htDate.setAttribute('y', iy+16);
+    htDate.textContent = dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    htPrice.setAttribute('x', ix+10); htPrice.setAttribute('y', iy+37);
+    htPrice.textContent = '$'+pt.close.toFixed(2);
+    htOHL.setAttribute('x', ix+10); htOHL.setAttribute('y', iy+55);
+    htOHL.textContent = `O:${pt.open.toFixed(2)} H:${pt.high.toFixed(2)} L:${pt.low.toFixed(2)}`;
+  });
+  svg.addEventListener('mouseleave', () => { hg.style.display='none'; });
+}
+
+function _updateModalStats(data) {
+  const st = data.stats;
+  const se = (id, txt, col) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = txt;
+    if (col !== undefined) el.style.color = col;
+  };
+  se('modal-period-high',   '$'+st.period_high.toFixed(2));
+  se('modal-period-low',    '$'+st.period_low.toFixed(2));
+  const sign = st.period_change >= 0 ? '+' : '';
+  se('modal-period-change', sign+st.period_change+'%', st.period_change >= 0 ? 'var(--green)' : 'var(--red)');
+  const last = data.data[data.data.length - 1];
+  if (last.ma50) {
+    const v = ((last.close - last.ma50) / last.ma50 * 100).toFixed(2);
+    se('modal-vs-50ma', (v>=0?'+':'')+v+'%', v>=0 ? 'var(--green)' : 'var(--red)');
+  }
+  if (last.ma200) {
+    const v = ((last.close - last.ma200) / last.ma200 * 100).toFixed(2);
+    se('modal-vs-200ma', (v>=0?'+':'')+v+'%', v>=0 ? 'var(--green)' : 'var(--red)');
+  }
+}
+
+// ── Modal event listeners ────────────────────────────────────
+document.getElementById('modal-close').addEventListener('click', closeChartModal);
+document.querySelector('.chart-modal-overlay').addEventListener('click', closeChartModal);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('chart-modal').style.display === 'flex') closeChartModal();
+});
+document.querySelectorAll('.modal-period-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    document.querySelectorAll('.modal-period-btn').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    _modalPeriod = e.currentTarget.dataset.period;
+    if (_modalTicker) _loadModalChart(_modalTicker, _modalPeriod);
+  });
+});
+['modal-show-ma50','modal-show-ma200','modal-show-volume','modal-show-grid'].forEach(id => {
+  const cb = document.getElementById(id);
+  if (cb) cb.addEventListener('change', () => { if (_modalData) _renderModalChart(_modalData); });
+});
+document.getElementById('modal-add-watchlist').addEventListener('click', () => {
+  if (_modalTicker) addResearchWL(_modalTicker);
+});
+document.getElementById('modal-view-analysis').addEventListener('click', () => {
+  if (_modalTicker) { closeChartModal(); openResearch(); analyzeResearchTicker(_modalTicker); }
+});
+document.getElementById('modal-view-news').addEventListener('click', () => {
+  if (!_modalTicker) return;
+  closeChartModal();
+  openResearch();
+  const inp = document.getElementById('researchSearchInput');
+  if (inp) { inp.value = _modalTicker; doResearchSearch(_modalTicker); }
+});
+
+// ── Double-tap delegation for watchlist ──────────────────────
+document.getElementById('researchWLList').addEventListener('click', e => {
+  const sym = e.target.closest('.watchlist-ticker-symbol');
+  if (!sym) return;
+  const ticker = sym.dataset.ticker;
+  if (_wlTapSym === ticker && _wlTapTimer) {
+    clearTimeout(_wlTapTimer); _wlTapTimer = null; _wlTapSym = null;
+    openChartModal(ticker);
+  } else {
+    _wlTapSym = ticker;
+    _wlTapTimer = setTimeout(() => {
+      _wlTapTimer = null; _wlTapSym = null;
+      analyzeResearchTicker(ticker);
+    }, 300);
+  }
+});
+
+// ── Double-tap delegation for search results ─────────────────
+document.getElementById('researchSearchResults').addEventListener('dblclick', e => {
+  const sym = e.target.closest('.search-result-ticker');
+  if (!sym) return;
+  e.stopPropagation();
+  openChartModal(sym.dataset.ticker);
+});
+
+// ── Single-tap on analysis card ticker ───────────────────────
+document.getElementById('researchAnalysisCard').addEventListener('click', e => {
+  const sym = e.target.closest('.company-analysis-ticker');
+  if (!sym) return;
+  openChartModal(sym.dataset.ticker);
+});
 
 // ── Boot ──────────────────────────────────────────────────────
 applyAppSettings();

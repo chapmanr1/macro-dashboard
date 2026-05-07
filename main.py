@@ -66,7 +66,8 @@ except ImportError:
 try:
     from research import (search_tickers, search_fred, search_edgar,
                           get_ticker_analysis, get_company_analysis,
-                          get_watchlist_prices as research_prices)
+                          get_watchlist_prices as research_prices,
+                          get_chart_data)
 except ImportError:
     def search_tickers(q): return []
     def search_fred(q): return []
@@ -74,6 +75,7 @@ except ImportError:
     def get_ticker_analysis(s): return {"symbol": s, "error": "Research module not loaded"}
     def get_company_analysis(s): return {"symbol": s, "error": "Research module not loaded"}
     def research_prices(t): return []
+    def get_chart_data(s, p="1y"): return {"error": "Research module not loaded", "symbol": s}
 
 app = Flask(__name__)
 
@@ -185,6 +187,20 @@ def api_research_company(symbol):
         return jsonify(get_company_analysis(sym))
     except Exception as e:
         log.error(f"Research company error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "symbol": symbol}), 500
+
+@app.route("/api/research/chart/<symbol>")
+def api_research_chart(symbol):
+    try:
+        sym = symbol.strip().upper()
+        if not sym.replace(".", "").replace("-", "").replace("^", "").isalnum():
+            return jsonify({"error": "Invalid symbol"}), 400
+        period = request.args.get("period", "1y")
+        if period not in ("1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "max"):
+            period = "1y"
+        return jsonify(get_chart_data(sym, period))
+    except Exception as e:
+        log.error(f"Chart error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "symbol": symbol}), 500
 
 @app.route("/api/research/prices", methods=["POST"])

@@ -376,6 +376,11 @@ def get_company_analysis(symbol):
 
         hq = ", ".join(filter(None, [info.get("city", ""), info.get("country", "")]))
 
+        open_price = info.get("open") or info.get("regularMarketOpen")
+        day_high   = info.get("dayHigh") or info.get("regularMarketDayHigh")
+        day_low    = info.get("dayLow") or info.get("regularMarketDayLow")
+        volume_val = info.get("volume") or info.get("regularMarketVolume")
+
         result = {
             "symbol":          sym,
             "name":            info.get("shortName") or info.get("longName", sym),
@@ -389,6 +394,10 @@ def get_company_analysis(symbol):
             "market_cap":      info.get("marketCap"),
             "price":           round(float(price), 2) if price else None,
             "prev_close":      round(float(prev), 2) if prev else None,
+            "open":            round(float(open_price), 2) if open_price else None,
+            "day_high":        round(float(day_high), 2) if day_high else None,
+            "day_low":         round(float(day_low), 2) if day_low else None,
+            "volume":          int(volume_val) if volume_val else None,
             "day_change":      day_chg,
             "day_pct":         day_pct,
             "pre_market":      round(float(pre_mkt), 2) if pre_mkt else None,
@@ -449,6 +458,83 @@ def get_company_analysis(symbol):
 
 def get_ticker_analysis(symbol):
     return get_company_analysis(symbol)
+
+
+_chart_cache = {}
+CHART_TTL = 300  # 5 minutes
+
+def get_chart_data(symbol, period="1y"):
+    sym = symbol.strip().upper()
+    cache_key = f"{sym}_{period}"
+    now = time.time()
+    if cache_key in _chart_cache and (now - _chart_cache[cache_key]["ts"]) < CHART_TTL:
+        return _chart_cache[cache_key]["data"]
+    try:
+        import yfinance as yf
+        interval_map = {
+            "1d":  ("1d",  "5m"),
+            "5d":  ("5d",  "15m"),
+            "1mo": ("1mo", "1d"),
+            "3mo": ("3mo", "1d"),
+            "6mo": ("6mo", "1d"),
+            "1y":  ("1y",  "1d"),
+            "2y":  ("2y",  "1d"),
+            "5y":  ("5y",  "1wk"),
+            "max": ("max", "1mo"),
+        }
+        yf_period, interval = interval_map.get(period, ("1y", "1d"))
+        t = yf.Ticker(sym)
+        hist = t.history(period=yf_period, interval=interval)
+        if hist.empty:
+            return {"error": "No data available", "symbol": sym}
+
+        closes = hist["Close"].tolist()
+        n = len(closes)
+
+        # Rolling MA50 and MA200
+        ma50_vals  = [None] * n
+        ma200_vals = [None] * n
+        for i in range(n):
+            if i >= 49:
+                ma50_vals[i]  = round(sum(closes[i-49:i+1]) / 50, 2)
+            if i >= 199:
+                ma200_vals[i] = round(sum(closes[i-199:i+1]) / 200, 2)
+
+        data_points = []
+        for i, (ts, row) in enumerate(hist.iterrows()):
+            data_points.append({
+                "timestamp": ts.isoformat(),
+                "open":   round(float(row["Open"]),  2),
+                "high":   round(float(row["High"]),  2),
+                "low":    round(float(row["Low"]),   2),
+                "close":  round(float(row["Close"]), 2),
+                "volume": int(row["Volume"]),
+                "ma50":   ma50_vals[i],
+                "ma200":  ma200_vals[i],
+            })
+
+        if not data_points:
+            return {"error": "No data points", "symbol": sym}
+
+        close_prices = [d["close"] for d in data_points]
+        first_close  = close_prices[0]
+        period_chg   = round((close_prices[-1] - first_close) / first_close * 100, 2) if first_close else 0
+
+        result = {
+            "symbol": sym,
+            "period": period,
+            "data":   data_points,
+            "stats": {
+                "period_high":   max(close_prices),
+                "period_low":    min(close_prices),
+                "period_change": period_chg,
+            },
+        }
+        _chart_cache[cache_key] = {"data": result, "ts": now}
+        return result
+    except Exception as e:
+        log.warning(f"Chart data failed for {symbol} ({period}): {e}")
+        return {"error": str(e), "symbol": sym}
 
 
 def get_watchlist_prices(tickers):
