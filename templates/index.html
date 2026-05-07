@@ -86,11 +86,33 @@
     .regime-positioning { margin-top: 10px; }
     .regime-pos-title { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; }
     .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-    .pos-item { font-size: 9px; padding: 4px 8px; border: 1px solid var(--border); letter-spacing: 0.05em; text-decoration: none; display: block; transition: opacity 0.15s; }
+    .pos-item { font-size: 9px; padding: 4px 8px; border: 1px solid var(--border); letter-spacing: 0.05em; text-decoration: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: opacity 0.15s; user-select: none; }
     .pos-item.OW { border-color:var(--green-dim);color:var(--green);background:rgba(0,217,100,0.04) }
     .pos-item.UW { border-color:var(--red-dim);color:var(--red);background:rgba(239,68,68,0.04) }
     .pos-item.N { border-color:var(--border2);color:var(--muted) }
-    a.pos-item { cursor: pointer; } a.pos-item:hover { opacity: 0.7; }
+    .pos-item:hover { opacity: 0.7; }
+    .pos-item.active { opacity: 1; filter: brightness(1.3); }
+    .pos-item-arrow { font-size: 7px; opacity: 0.6; transition: transform 0.2s; margin-left: 4px; flex-shrink: 0; }
+    .pos-item.active .pos-item-arrow { transform: rotate(90deg); }
+    .positioning-detail { grid-column: 1 / -1; background: var(--bg-panel); border: 1px solid var(--border2); padding: 10px; margin-top: 2px; }
+    .pd-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .pd-title { font-size: 10px; letter-spacing: 0.1em; font-weight: 700; }
+    .pd-stance { font-size: 9px; padding: 1px 5px; border: 1px solid; letter-spacing: 0.05em; }
+    .pd-stance.OW { border-color:var(--green-dim);color:var(--green); }
+    .pd-stance.UW { border-color:var(--red-dim);color:var(--red); }
+    .pd-stance.N  { border-color:var(--border2);color:var(--muted); }
+    .pd-rationale { font-size: 9px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    .pd-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+    .pd-table th { color: var(--muted); font-size: 8px; letter-spacing: 0.1em; text-align: left; padding: 2px 6px; border-bottom: 1px solid var(--border); }
+    .pd-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .pd-table tr:last-child td { border-bottom: none; }
+    .pd-cell-sector { color: var(--fg); }
+    .pd-cell-etf { color: var(--amber); font-family: monospace; white-space: nowrap; }
+    .pd-cell-meta { color: var(--muted); white-space: nowrap; }
+    .pd-cell-rationale { color: var(--muted); }
+    .pd-close { float: right; cursor: pointer; color: var(--muted); font-size: 10px; padding: 0 2px; }
+    .pd-close:hover { color: var(--fg); }
+    @media (max-width: 700px) { .pd-col-rationale { display: none; } }
 
     /* ── OVERVIEW: EQUITY INDICES STRIP ── */
     .ov-indices { display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
@@ -1371,16 +1393,29 @@ function renderRegime(data) {
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
     const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
-    const etfUrl = ETF_URLS[p.asset_class] || '';
-    const tag = etfUrl ? `a` : `div`;
-    const attrs = etfUrl ? ` href="${etfUrl}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${tag} class="pos-item ${cls}"${attrs}>${pre}${p.asset_class||''}</${tag}>`;
+    const assetEsc = (p.asset_class||'').replace(/"/g,'&quot;');
+    return `<div class="pos-item ${cls}" data-asset="${assetEsc}">${pre}${p.asset_class||''}<span class="pos-item-arrow">&#9654;</span></div>`;
   }).join('');
 
   const centerEl = document.getElementById('regimeCenter');
-  if (centerEl) setEl('regimeCenter', `
-    <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
-    ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid">${posItems}</div></div>` : ''}`);
+  if (centerEl) {
+    setEl('regimeCenter', `
+      <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
+      ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
+    // re-attach event delegation
+    const grid = document.getElementById('posGrid');
+    if (grid) {
+      grid.addEventListener('click', e => {
+        const item = e.target.closest('.pos-item');
+        if (!item) return;
+        const asset = item.dataset.asset;
+        if (_openPositioningAsset === asset) { closePositioningDetail(); return; }
+        showPositioningDetail(asset);
+      });
+    }
+    // re-open panel if one was open before re-render
+    if (_openPositioningAsset) showPositioningDetail(_openPositioningAsset);
+  }
 
   // RIGHT: key risks
   const riskItems = risks.length
@@ -1393,6 +1428,77 @@ function renderRegime(data) {
     ${riskItems}`);
 
   checkAlerts('regime', data);
+}
+
+async function showPositioningDetail(asset) {
+  _openPositioningAsset = asset;
+  const grid = document.getElementById('posGrid');
+  if (!grid) return;
+
+  // mark active item
+  grid.querySelectorAll('.pos-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.asset === asset);
+  });
+
+  // remove old detail panel
+  const old = grid.querySelector('.positioning-detail');
+  if (old) old.remove();
+
+  // insert loading placeholder after the active item
+  const activeItem = grid.querySelector(`.pos-item[data-asset="${CSS.escape(asset)}"]`);
+  const placeholder = document.createElement('div');
+  placeholder.className = 'positioning-detail';
+  placeholder.innerHTML = '<div class="c-muted" style="font-size:9px">LOADING...</div>';
+  if (activeItem) activeItem.insertAdjacentElement('afterend', placeholder);
+  else grid.appendChild(placeholder);
+
+  try {
+    const encoded = asset.split('/').map(encodeURIComponent).join('/');
+    const data = await apiFetch(`/api/positioning/detail/${encoded}`);
+    if (_openPositioningAsset !== asset) return; // stale
+
+    const stanceCls = data.stance === 'OW' ? 'OW' : data.stance === 'UW' ? 'UW' : 'N';
+    const rows = (data.sub_positions || []).map(sp => {
+      const sc = sp.stance === 'OW' ? 'OW' : sp.stance === 'UW' ? 'UW' : 'N';
+      const pre = sp.stance === 'OW' ? '▲' : sp.stance === 'UW' ? '▼' : '–';
+      const meta = [sp.duration ? sp.duration : null, sp.yld ? sp.yld : null].filter(Boolean).join(' · ');
+      return `<tr>
+        <td class="pd-cell-sector">${sp.sector||''}</td>
+        <td><span class="pd-stance ${sc}">${pre} ${sp.stance||''}</span></td>
+        <td class="pd-cell-etf">${sp.etf||''}</td>
+        ${meta ? `<td class="pd-cell-meta pd-col-rationale">${meta}</td>` : '<td class="pd-col-rationale"></td>'}
+        <td class="pd-cell-rationale pd-col-rationale">${sp.rationale||''}</td>
+      </tr>`;
+    }).join('');
+
+    placeholder.innerHTML = `
+      <div class="pd-header">
+        <span class="pd-title">${asset}</span>
+        <span class="pd-stance ${stanceCls}">${data.stance === 'OW' ? '▲ OVERWEIGHT' : data.stance === 'UW' ? '▼ UNDERWEIGHT' : '– NEUTRAL'}</span>
+        <span class="pd-close" onclick="closePositioningDetail()">✕</span>
+      </div>
+      <div class="pd-rationale">${data.rationale||''}</div>
+      <table class="pd-table">
+        <thead><tr>
+          <th>SECTOR / INSTRUMENT</th><th>STANCE</th><th>ETF</th>
+          <th class="pd-col-rationale">META</th>
+          <th class="pd-col-rationale">RATIONALE</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) {
+    if (_openPositioningAsset !== asset) return;
+    placeholder.innerHTML = `<div class="c-red" style="font-size:9px">ERROR: ${e.message}</div>`;
+  }
+}
+
+function closePositioningDetail() {
+  _openPositioningAsset = null;
+  const grid = document.getElementById('posGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.pos-item').forEach(el => el.classList.remove('active'));
+  const panel = grid.querySelector('.positioning-detail');
+  if (panel) panel.remove();
 }
 
 function renderMacro(data) {
@@ -2848,6 +2954,7 @@ function _td(){return new Date().toISOString().slice(0,10);}
 const RWL_KEY = 'macroterm_research_wl';
 let _researchWL = [];
 let _lastRegimeData = null;
+let _openPositioningAsset = null;
 let _rwlPriceInterval = null;
 let _searchDebounce = null;
 let _catCollapsed = { tickers: false, news: false, fred: false, sec: false };

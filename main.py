@@ -236,6 +236,27 @@ def api_briefing():
         log.error(f"Briefing error: {e}\n{traceback.format_exc()}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/api/positioning/detail/<path:asset_class>")
+def api_positioning_detail(asset_class):
+    try:
+        from config import DETAILED_POSITIONING
+        regime_data = get_regime()
+        regime_label = regime_data.get("label", "")
+        regime_detail = DETAILED_POSITIONING.get(regime_label, {})
+        asset_detail = regime_detail.get(asset_class)
+        if asset_detail is None:
+            return jsonify({"error": "Not found", "asset_class": asset_class, "regime": regime_label}), 404
+        return jsonify({
+            "asset_class": asset_class,
+            "regime": regime_label,
+            "stance": asset_detail.get("stance"),
+            "rationale": asset_detail.get("rationale"),
+            "sub_positions": asset_detail.get("sub_positions", []),
+        })
+    except Exception as e:
+        log.error(f"Positioning detail error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/briefing/refresh", methods=["POST"])
 def api_briefing_refresh():
     try:
