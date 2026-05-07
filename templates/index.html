@@ -305,6 +305,9 @@
     .briefing-collapse-btn { background: transparent; border: none; color: var(--amber); font-size: 11px; cursor: pointer; padding: 0 4px; line-height: 1; transition: transform 0.2s; font-family: var(--font); }
     .briefing-section.collapsed .briefing-collapse-btn { transform: rotate(-90deg); }
     .briefing-content { font-family: var(--font); font-size: 12px; line-height: 1.7; color: var(--white); white-space: pre-wrap; word-break: normal; overflow-wrap: break-word; padding: 14px 16px; }
+    .briefing-section-hdr { color: var(--amber); font-weight: 700; font-size: 10px; letter-spacing: 0.18em; display: block; margin-top: 16px; margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px solid rgba(245,158,11,0.2); }
+    .briefing-section-hdr:first-child { margin-top: 0; }
+    .briefing-bold { color: var(--white); font-weight: 700; }
     .briefing-hdr-strong { color: var(--amber); font-weight: 700; font-size: 10px; letter-spacing: 0.18em; display: block; margin-top: 10px; margin-bottom: 2px; }
     .briefing-hdr-strong:first-child { margin-top: 0; }
     .briefing-meta { display: flex; align-items: center; gap: 10px; font-size: 9px; color: var(--muted); letter-spacing: 0.06em; }
@@ -676,7 +679,7 @@
       .driving-item { grid-template-columns: 44px 1fr; }
       .cal-event { grid-template-columns: 60px 1fr 54px; }
       .briefing-section { margin: 10px 10px 0; }
-      .briefing-content { font-size: 13px; padding: 12px 14px; }
+      .briefing-content { font-size: 13px !important; padding: 12px 14px; }
       .briefing-refresh-btn { min-height: 44px; min-width: 44px; padding: 0 14px; }
       .briefing-setup { font-size: 12px; }
     }
@@ -3391,10 +3394,13 @@ function renderCompanyAnalysis(d) {
 // AI MORNING BRIEFING
 // ════════════════════════════════════════════════════════════
 function _formatBriefingText(text) {
-  // Convert ALL-CAPS section headers (standalone line or ending with colon) to styled spans
   return text
-    .replace(/^([A-Z][A-Z\s\/\-]+):?$/gm, (_, h) => `<span class="briefing-hdr-strong">${h.replace(/:$/, '')}</span>`)
-    .replace(/^([A-Z][A-Z\s\/\-]+):/gm, (_, h) => `<span class="briefing-hdr-strong">${h}:</span>`);
+    // ═══ SECTION NAME ═══ headers
+    .replace(/═══\s*([^═]+?)\s*═══/g, (_, h) => `<span class="briefing-section-hdr">═ ${h.trim()} ═</span>`)
+    // **bold** markdown
+    .replace(/\*\*([^*]+)\*\*/g, '<span class="briefing-bold">$1</span>')
+    // Fallback: ALL-CAPS standalone headers (legacy)
+    .replace(/^([A-Z][A-Z\s\/\-]{4,}):?$/gm, (_, h) => `<span class="briefing-hdr-strong">${h.replace(/:$/, '')}</span>`);
 }
 
 async function loadBriefing() {
