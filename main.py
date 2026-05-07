@@ -19,6 +19,14 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 try:
+    from ai_briefing import get_briefing, force_regenerate
+except ImportError:
+    def get_briefing():
+        return {"status": "no_api_key", "message": "AI briefing module not loaded"}
+    def force_regenerate():
+        return {"status": "no_api_key", "message": "AI briefing module not loaded"}
+
+try:
     from regime_engine import get_regime
 except ImportError:
     def get_regime():
@@ -219,6 +227,22 @@ def api_watchlist():
     except Exception as e:
         log.error(f"Watchlist error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "items": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/briefing")
+def api_briefing():
+    try:
+        return jsonify(get_briefing())
+    except Exception as e:
+        log.error(f"Briefing error: {e}\n{traceback.format_exc()}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/briefing/refresh", methods=["POST"])
+def api_briefing_refresh():
+    try:
+        return jsonify(force_regenerate())
+    except Exception as e:
+        log.error(f"Briefing refresh error: {e}\n{traceback.format_exc()}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/health")
 def api_health():

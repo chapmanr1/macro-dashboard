@@ -296,6 +296,24 @@
     .news-headline { font-size: 11px; color: var(--white); line-height: 1.4; letter-spacing: 0.02em; white-space: normal; word-break: normal; overflow-wrap: break-word; display: block; width: 100%; }
     .news-source { font-size: 8px; color: var(--amber); letter-spacing: 0.08em; text-align: right; padding-top: 2px; }
 
+    /* ── AI BRIEFING ── */
+    .briefing-section { background: rgba(245,158,11,0.03); border: 1px solid rgba(245,158,11,0.2); border-radius: 4px; margin: 12px 14px 0; }
+    .briefing-section .section-header { border-top: none; border-radius: 4px 4px 0 0; background: rgba(245,158,11,0.06); }
+    .briefing-content { font-family: var(--font); font-size: 12px; line-height: 1.7; color: var(--white); white-space: pre-wrap; word-break: normal; overflow-wrap: break-word; padding: 14px 16px; }
+    .briefing-hdr-strong { color: var(--amber); font-weight: 700; font-size: 10px; letter-spacing: 0.18em; display: block; margin-top: 10px; margin-bottom: 2px; }
+    .briefing-hdr-strong:first-child { margin-top: 0; }
+    .briefing-meta { display: flex; align-items: center; gap: 10px; font-size: 9px; color: var(--muted); letter-spacing: 0.06em; }
+    .briefing-refresh-btn { background: transparent; border: 1px solid var(--amber); color: var(--amber); padding: 3px 10px; border-radius: 3px; cursor: pointer; font-family: var(--font); font-size: 13px; line-height: 1; transition: background 0.2s, color 0.2s; min-height: 28px; min-width: 28px; }
+    .briefing-refresh-btn:hover { background: var(--amber); color: #0a0a0a; }
+    .briefing-refresh-btn:disabled { opacity: 0.45; cursor: wait; }
+    .briefing-loading { color: var(--muted); font-style: italic; font-size: 11px; padding: 14px 16px; letter-spacing: 0.06em; }
+    .briefing-setup { padding: 12px 16px; font-size: 11px; line-height: 1.7; }
+    .briefing-setup-title { color: var(--amber); font-weight: 700; letter-spacing: 0.12em; font-size: 10px; display: block; margin-bottom: 6px; }
+    .briefing-setup ol { margin: 6px 0 0 18px; padding: 0; }
+    .briefing-setup a { color: var(--amber); text-decoration: underline; }
+    .briefing-setup p { margin: 4px 0; color: var(--muted); }
+    .briefing-error { color: var(--red); font-size: 11px; padding: 12px 16px; letter-spacing: 0.04em; }
+
     /* ── CALENDAR ── */
     .cal-day { border-bottom: 1px solid var(--border); }
     .cal-day-hdr { padding: 6px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
@@ -652,6 +670,10 @@
       .news-source { display: none; }
       .driving-item { grid-template-columns: 44px 1fr; }
       .cal-event { grid-template-columns: 60px 1fr 54px; }
+      .briefing-section { margin: 10px 10px 0; }
+      .briefing-content { font-size: 13px; padding: 12px 14px; }
+      .briefing-refresh-btn { min-height: 44px; min-width: 44px; padding: 0 14px; }
+      .briefing-setup { font-size: 12px; }
     }
   </style>
 </head>
@@ -687,6 +709,21 @@
   <!-- OVERVIEW TAB                                          -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel active" id="tab-overview">
+
+    <!-- AI MORNING BRIEFING -->
+    <section id="ai-briefing-section" class="briefing-section">
+      <div class="section-header">
+        <span class="section-title">&#11045; AI MORNING BRIEFING</span>
+        <div class="section-line"></div>
+        <div class="briefing-meta">
+          <span id="briefing-timestamp">Loading...</span>
+          <button id="briefing-refresh" class="briefing-refresh-btn" title="Regenerate briefing">&#8635;</button>
+        </div>
+      </div>
+      <div id="briefing-content">
+        <div class="briefing-loading">GENERATING BRIEFING...</div>
+      </div>
+    </section>
 
     <div class="section-header">
       <div class="section-title">REGIME STATUS</div>
@@ -1567,6 +1604,7 @@ async function fetchOverview() {
     apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
+    loadBriefing().catch(() => {}),
   ]);
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
@@ -3340,6 +3378,91 @@ function renderCompanyAnalysis(d) {
     </div>
   </div>`;
 }
+
+// ════════════════════════════════════════════════════════════
+// AI MORNING BRIEFING
+// ════════════════════════════════════════════════════════════
+function _formatBriefingText(text) {
+  // Convert ALL-CAPS section headers (standalone line or ending with colon) to styled spans
+  return text
+    .replace(/^([A-Z][A-Z\s\/\-]+):?$/gm, (_, h) => `<span class="briefing-hdr-strong">${h.replace(/:$/, '')}</span>`)
+    .replace(/^([A-Z][A-Z\s\/\-]+):/gm, (_, h) => `<span class="briefing-hdr-strong">${h}:</span>`);
+}
+
+async function loadBriefing() {
+  const content   = document.getElementById('briefing-content');
+  const timestamp = document.getElementById('briefing-timestamp');
+  if (!content || !timestamp) return;
+
+  try {
+    const data = await apiFetch('/api/briefing');
+
+    if (data.status === 'no_api_key') {
+      content.innerHTML = `<div class="briefing-setup">
+        <span class="briefing-setup-title">SETUP REQUIRED — ADD ANTHROPIC API KEY</span>
+        <p>The AI briefing requires an Anthropic API key (separate from Claude Pro).</p>
+        <p>Estimated cost: under $1/month at typical usage.</p>
+        <ol>
+          <li>Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></li>
+          <li>Create account and add payment method</li>
+          <li>Set monthly spending limit ($5 recommended)</li>
+          <li>Create API key (starts with sk-ant-)</li>
+          <li>In Replit: open Tools &gt; Secrets</li>
+          <li>Add secret: ANTHROPIC_API_KEY = your key</li>
+          <li>Restart app and refresh this page</li>
+        </ol>
+      </div>`;
+      timestamp.textContent = 'NOT CONFIGURED';
+      return;
+    }
+
+    if (data.status === 'success') {
+      content.innerHTML = `<div class="briefing-content">${_formatBriefingText(data.briefing)}</div>`;
+      const t = new Date(data.generated_at);
+      const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+      timestamp.textContent = `GENERATED ${timeStr}${data.from_cache ? ' (CACHED)' : ''}`;
+      return;
+    }
+
+    // data_error or api_error
+    content.innerHTML = `<div class="briefing-error">&#9888; ${data.message || 'Briefing unavailable'}</div>`;
+    timestamp.textContent = 'ERROR';
+
+  } catch (err) {
+    content.innerHTML = `<div class="briefing-error">&#9888; Failed to load briefing: ${err.message}</div>`;
+    timestamp.textContent = 'ERROR';
+  }
+}
+
+async function refreshBriefing() {
+  const btn       = document.getElementById('briefing-refresh');
+  const content   = document.getElementById('briefing-content');
+  const timestamp = document.getElementById('briefing-timestamp');
+  if (!btn || !content || !timestamp) return;
+
+  btn.disabled = true;
+  content.innerHTML = '<div class="briefing-loading">REGENERATING BRIEFING...</div>';
+  timestamp.textContent = 'GENERATING...';
+
+  try {
+    await fetch('/api/briefing/refresh', { method: 'POST' });
+    await loadBriefing();
+  } catch (err) {
+    content.innerHTML = `<div class="briefing-error">&#9888; Refresh failed: ${err.message}</div>`;
+    timestamp.textContent = 'ERROR';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Wire refresh button
+(function() {
+  const btn = document.getElementById('briefing-refresh');
+  if (btn) btn.addEventListener('click', refreshBriefing);
+})();
+
+// Auto-reload every 6 hours
+setInterval(loadBriefing, 6 * 60 * 60 * 1000);
 
 // ── Boot ──────────────────────────────────────────────────────
 applyAppSettings();
