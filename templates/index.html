@@ -2821,6 +2821,7 @@ function closeResearch() {
   document.getElementById('researchOverlay').classList.remove('open');
   document.getElementById('researchBtn').classList.remove('active');
   if (_rwlPriceInterval) { clearInterval(_rwlPriceInterval); _rwlPriceInterval = null; }
+  _activeAnalysisSym = null;
   clearResearchSearch();
 }
 
@@ -3011,11 +3012,23 @@ if (_rwlBtn && _rwlAdd) {
 }
 
 // ── Analysis ──────────────────────────────────────────────────
+let _activeAnalysisSym = null;
+
 async function analyzeResearchTicker(sym) {
-  clearResearchSearch();
   const sec  = document.getElementById('researchAnalysisSec');
   const card = document.getElementById('researchAnalysisCard');
   if (!card || !sec) return;
+
+  if (_activeAnalysisSym === sym && sec.style.display !== 'none') {
+    sec.style.display  = 'none';
+    card.style.display = 'none';
+    card.innerHTML = '';
+    _activeAnalysisSym = null;
+    return;
+  }
+
+  clearResearchSearch();
+  _activeAnalysisSym = sym;
   sec.style.display  = '';
   card.style.display = 'block';
   card.innerHTML = '<div class="research-loading">ANALYZING ' + sym + '...</div>';
