@@ -244,14 +244,16 @@ def get_briefing():
 
     # ── FETCH DASHBOARD DATA ──────────────────────────────────
     try:
-        import requests as req
-        base = "http://localhost:5000"
-        regime_data = req.get(f"{base}/api/regime", timeout=10).json()
-        macro_data  = req.get(f"{base}/api/macro",  timeout=10).json()
-        yields_data = req.get(f"{base}/api/yields", timeout=10).json()
-        credit_data = req.get(f"{base}/api/credit", timeout=10).json()
-        market_data = req.get(f"{base}/api/market", timeout=10).json()
-        news_data   = req.get(f"{base}/api/news",   timeout=10).json()
+        from regime_engine import get_regime
+        from fred_data import get_macro, get_yields, get_credit
+        from market_data import get_market
+        from news_feed import get_news
+        regime_data = get_regime()
+        macro_data  = get_macro()
+        yields_data = get_yields()
+        credit_data = get_credit()
+        market_data = get_market()
+        news_data   = get_news()
         top_news    = (news_data.get("articles") or [])[:10]
     except Exception as e:
         return {"status": "data_error", "message": f"Could not fetch dashboard data: {e}"}
