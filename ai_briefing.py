@@ -6,6 +6,7 @@ import json
 import logging
 import pytz
 from datetime import datetime, timedelta
+from proxy_config import proxy_session
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ def _calculate_technicals():
 
         # ── S&P 500 ───────────────────────────────────────────
         try:
-            spy = yf.Ticker("^GSPC")
+            spy = yf.Ticker("^GSPC", session=proxy_session)
             h = spy.history(period="1y")
             h = h.dropna(subset=["Close"])
             if len(h) >= 50:
@@ -56,7 +57,7 @@ def _calculate_technicals():
 
         # ── VIX ───────────────────────────────────────────────
         try:
-            vix = yf.Ticker("^VIX")
+            vix = yf.Ticker("^VIX", session=proxy_session)
             vh = vix.history(period="60d").dropna(subset=["Close"])
             if len(vh) >= 2:
                 vc = float(vh["Close"].iloc[-1])
@@ -79,7 +80,7 @@ def _calculate_technicals():
 
         # ── 10Y Treasury ──────────────────────────────────────
         try:
-            tnx = yf.Ticker("^TNX")
+            tnx = yf.Ticker("^TNX", session=proxy_session)
             th = tnx.history(period="60d").dropna(subset=["Close"])
             if len(th) >= 2:
                 tc = float(th["Close"].iloc[-1])
@@ -103,7 +104,7 @@ def _calculate_technicals():
         perf = {}
         for sym, name in sectors.items():
             try:
-                sh = yf.Ticker(sym).history(period="5d").dropna(subset=["Close"])
+                sh = yf.Ticker(sym, session=proxy_session).history(period="5d").dropna(subset=["Close"])
                 if len(sh) >= 2:
                     today_c = float(sh["Close"].iloc[-1])
                     prev_c  = float(sh["Close"].iloc[-2])

@@ -8,6 +8,7 @@ import urllib.request
 import urllib.parse
 import json as _json
 from datetime import datetime, timezone
+from proxy_config import proxy_session
 
 log = logging.getLogger(__name__)
 
@@ -167,7 +168,7 @@ def search_tickers(query):
         import yfinance as yf
         results = []
         try:
-            t = yf.Ticker(q)
+            t = yf.Ticker(q, session=proxy_session)
             fi = t.fast_info
             price = getattr(fi, "last_price", None)
             if price:
@@ -313,7 +314,7 @@ def get_company_analysis(symbol):
         return _company_cache[sym]["data"]
     try:
         import yfinance as yf
-        t    = yf.Ticker(sym)
+        t    = yf.Ticker(sym, session=proxy_session)
         info = t.info
 
         price = info.get("currentPrice") or info.get("regularMarketPrice")
@@ -483,7 +484,7 @@ def get_chart_data(symbol, period="1y"):
             "max": ("max", "1mo"),
         }
         yf_period, interval = interval_map.get(period, ("1y", "1d"))
-        t = yf.Ticker(sym)
+        t = yf.Ticker(sym, session=proxy_session)
         hist = t.history(period=yf_period, interval=interval)
         if hist.empty:
             return {"error": "No data available", "symbol": sym}
@@ -542,7 +543,7 @@ def get_watchlist_prices(tickers):
     for sym in tickers[:20]:
         try:
             import yfinance as yf
-            t  = yf.Ticker(sym)
+            t  = yf.Ticker(sym, session=proxy_session)
             fi = t.fast_info
             price = getattr(fi, "last_price", None)
             prev  = getattr(fi, "previous_close", None)

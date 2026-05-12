@@ -5,6 +5,7 @@
 import time
 import logging
 from datetime import datetime, timezone
+from proxy_config import proxy_session
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ def _fetch_ticker_stats(symbol, ytd=False):
     """
     try:
         import yfinance as yf
-        ticker = yf.Ticker(symbol)
+        ticker = yf.Ticker(symbol, session=proxy_session)
         hist = ticker.history(period="5d", auto_adjust=True)
         if hist.empty or len(hist) < 2:
             hist = ticker.history(period="1mo", auto_adjust=True)

@@ -11,6 +11,7 @@ import traceback
 import concurrent.futures
 from flask import Flask, jsonify, render_template, request
 from datetime import datetime
+from proxy_config import proxy_session
 
 logging.basicConfig(
     level=logging.INFO,
@@ -224,7 +225,7 @@ def api_watchlist():
         items = []
         for ticker in tickers:
             try:
-                t = yf.Ticker(ticker)
+                t = yf.Ticker(ticker, session=proxy_session)
                 info = t.fast_info
                 price = getattr(info, 'last_price', None)
                 prev  = getattr(info, 'previous_close', None)
