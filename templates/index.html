@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <title>MACRO TERMINAL</title>
+  <title>MACRO DASHBOARD</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -772,7 +772,7 @@
 <!-- FIXED TOP BAR -->
 <div class="topbar">
   <div class="topbar-left"></div>
-  <div class="topbar-brand">MACRO TERMINAL</div>
+  <div class="topbar-brand">MACRO DASHBOARD</div>
   <div class="topbar-right">
     <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
     <span id="clock">--:--:--</span>
@@ -2398,9 +2398,25 @@ startRefreshCountdown();
 // SETTINGS SYSTEM V3 — COMPREHENSIVE
 // ════════════════════════════════════════════════════════════
 
+// One-time migration: rename legacy macroterm_* keys to macrodash_*
+(function migrateLegacyKeys() {
+  const migrations = [
+    ['macroterm_settings_v3', 'macrodash_settings_v3'],
+    ['macroterm_sv2',         'macrodash_sv2'],
+    ['macroterm_research_wl', 'macrodash_research_wl'],
+  ];
+  migrations.forEach(([oldKey, newKey]) => {
+    const val = localStorage.getItem(oldKey);
+    if (val !== null && localStorage.getItem(newKey) === null) {
+      localStorage.setItem(newKey, val);
+    }
+    localStorage.removeItem(oldKey);
+  });
+})();
+
 // ST_KEY = all app settings; S_KEY = layout visibility/order
-const ST_KEY = 'macroterm_settings_v3';
-const S_KEY  = 'macroterm_sv2';
+const ST_KEY = 'macrodash_settings_v3';
+const S_KEY  = 'macrodash_sv2';
 
 const ST_DEF = {
   theme:'dark', fontSize:'normal', density:'normal',
@@ -3076,7 +3092,7 @@ function _td(){return new Date().toISOString().slice(0,10);}
 // ════════════════════════════════════════════════════════════
 // RESEARCH PANEL
 // ════════════════════════════════════════════════════════════
-const RWL_KEY = 'macroterm_research_wl';
+const RWL_KEY = 'macrodash_research_wl';
 let _researchWL = [];
 let _lastRegimeData = null;
 let _openPositioningAsset = null;

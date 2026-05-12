@@ -1,5 +1,5 @@
 # FILE: main.py
-# Bloomberg Macro Terminal — Flask Entry Point
+# Bloomberg Macro Dashboard — Flask Entry Point
 
 import os
 import sys
@@ -332,5 +332,5 @@ if __name__ == "__main__":
     threading.Thread(target=internal_keepalive, daemon=True).start()
     threading.Thread(target=health_monitor,     daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
-    log.info(f"Starting Macro Terminal on port {port}")
+    log.info(f"Starting Macro Dashboard on port {port}")
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)

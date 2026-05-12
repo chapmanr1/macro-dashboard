@@ -1,5 +1,5 @@
 # FILE: fred_data.py
-# Bloomberg Macro Terminal — FRED Data Pipeline
+# Bloomberg Macro Dashboard — FRED Data Pipeline
 # Fetches, calculates, caches, and serves all macro indicator data.
 
 import os

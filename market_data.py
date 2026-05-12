@@ -1,5 +1,5 @@
 # FILE: market_data.py
-# Bloomberg Macro Terminal — Market Data via Yahoo Finance
+# Bloomberg Macro Dashboard — Market Data via Yahoo Finance
 # Fetches equities, futures, VIX, sectors, commodities, currencies.
 
 import time

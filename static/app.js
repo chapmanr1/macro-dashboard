@@ -1,5 +1,5 @@
 // FILE: static/app.js
-// Bloomberg Macro Terminal — Frontend JS Scaffold
+// Bloomberg Macro Dashboard — Frontend JS Scaffold
 // Core rendering logic lives in index.html.
 // This file handles utilities and optional extensions.
 
@@ -38,7 +38,7 @@ window.TerminalUtils = {
 };
 
 // ── Log terminal version to console ──────────────────────────
-console.log('%cMACRO TERMINAL',
+console.log('%cMACRO DASHBOARD',
   'color:#f59e0b;font-family:monospace;font-size:14px;font-weight:bold;');
 console.log('%cv1.0 — Bloomberg-style macro dashboard',
   'color:#4b5563;font-family:monospace;font-size:10px;');

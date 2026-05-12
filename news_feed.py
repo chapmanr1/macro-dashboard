@@ -1,5 +1,5 @@
 # FILE: news_feed.py
-# Bloomberg Macro Terminal — RSS News Feed
+# Bloomberg Macro Dashboard — RSS News Feed
 # Real-time headlines from free RSS feeds.
 # Fixed: date parsing and chronological sorting.
 

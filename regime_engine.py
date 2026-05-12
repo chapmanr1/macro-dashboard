@@ -1,5 +1,5 @@
 # FILE: regime_engine.py
-# Bloomberg Macro Terminal — Regime Assessment Engine
+# Bloomberg Macro Dashboard — Regime Assessment Engine
 # Classifies the current macro environment using live FRED data.
 # Internal regimes: GOLDILOCKS / REFLATION / OVERHEATING / STAGFLATION_RISK / STAGFLATION / RECESSION
 # GOLDILOCKS displays as "STRONG GROWTH". All other labels are unchanged.

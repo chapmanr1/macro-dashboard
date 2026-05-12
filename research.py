@@ -1,5 +1,5 @@
 # FILE: research.py
-# Bloomberg Macro Terminal — Research Panel Backend
+# Bloomberg Macro Dashboard — Research Panel Backend
 
 import math
 import time

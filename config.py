@@ -1,5 +1,5 @@
 # FILE: config.py
-# Bloomberg Macro Terminal — Central Configuration
+# Bloomberg Macro Dashboard — Central Configuration
 # Thresholds auto-calibrate monthly from live FRED data.
 # Edit floors/ceilings or positioning here; never touch core logic.
 

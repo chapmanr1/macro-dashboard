@@ -1,5 +1,5 @@
 # FILE: ai_briefing.py
-# Bloomberg Macro Terminal — AI Morning Briefing via Anthropic
+# Bloomberg Macro Dashboard — AI Morning Briefing via Anthropic
 
 import os
 import json
