@@ -7,7 +7,6 @@ import time
 import logging
 import requests
 from datetime import datetime, timedelta, timezone, date as date_type
-import calendar as cal_module
 
 log = logging.getLogger(__name__)
 

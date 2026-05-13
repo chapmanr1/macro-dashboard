@@ -332,7 +332,6 @@ def _deduplicate(articles):
 # ── FALLBACK ──────────────────────────────────────────────────
 def _fallback(error=""):
     ts  = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    now = datetime.now(timezone.utc)
     return {
         "articles": [{
             "title":       "NEWS FEED TEMPORARILY UNAVAILABLE",

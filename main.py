@@ -163,9 +163,9 @@ def api_research_search():
             ft = ex.submit(search_tickers, q)
             ff = ex.submit(search_fred, q)
             fe = ex.submit(search_edgar, q)
-            tickers = ft.result(timeout=10) if True else []
-            fred    = ff.result(timeout=5)  if True else []
-            sec     = fe.result(timeout=12) if True else []
+            tickers = ft.result(timeout=10)
+            fred    = ff.result(timeout=5)
+            sec     = fe.result(timeout=12)
         return jsonify({"tickers": tickers, "fred": fred, "sec_filings": sec})
     except Exception as e:
         log.error(f"Research search error: {e}\n{traceback.format_exc()}")
