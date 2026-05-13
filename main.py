@@ -11,13 +11,13 @@ import traceback
 import concurrent.futures
 from flask import Flask, jsonify, render_template, request
 from datetime import datetime
-from proxy_config import proxy_session
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 log = logging.getLogger(__name__)
+
+from proxy_config import proxy_session
 
 try:
     from ai_briefing import get_briefing, force_regenerate
