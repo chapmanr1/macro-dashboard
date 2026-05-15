@@ -15,8 +15,18 @@ _pass = os.environ.get("PROXY_PASS", "")
 
 proxy_session = requests.Session()
 
+def _mask(s: str) -> str:
+    return s[:2] + "*" * (len(s) - 4) + s[-2:] if len(s) > 4 else "****"
+
+log.warning(f"PROXY DEBUG: HOST='{_host}' (len={len(_host)})")
+log.warning(f"PROXY DEBUG: PORT='{_port}' (len={len(_port)})")
+log.warning(f"PROXY DEBUG: USER='{_user}' (len={len(_user)})")
+log.warning(f"PROXY DEBUG: PASS='{_mask(_pass)}' (len={len(_pass)})")
+
 if _host and _port and _user and _pass:
     _proxy_url = f"http://{_user}:{_pass}@{_host}:{_port}"
+    _masked_url = f"http://{_user}:{_mask(_pass)}@{_host}:{_port}"
+    log.warning(f"PROXY DEBUG: Full URL='{_masked_url}'")
     proxy_session.proxies = {"http": _proxy_url, "https": _proxy_url}
     os.environ["HTTP_PROXY"]  = _proxy_url
     os.environ["HTTPS_PROXY"] = _proxy_url
