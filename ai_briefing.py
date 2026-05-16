@@ -27,7 +27,7 @@ def _calculate_technicals():
 
     # ── S&P 500 ───────────────────────────────────────────────
     try:
-        bars = get_time_series("SPX", "1day", 365)
+        bars = get_time_series("SPY", "1day", 365)
         if len(bars) >= 50:
             closes = [float(b["close"]) for b in bars]
             highs  = [float(b["high"])  for b in bars]
@@ -56,7 +56,7 @@ def _calculate_technicals():
 
     # ── VIX ───────────────────────────────────────────────────
     try:
-        vbars = get_time_series("VIX", "1day", 60)
+        vbars = get_time_series("VIXY", "1day", 60)
         if len(vbars) >= 2:
             vc_list = [float(b["close"]) for b in vbars]
             vc  = vc_list[-1]

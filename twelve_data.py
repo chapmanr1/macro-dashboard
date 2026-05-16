@@ -15,22 +15,28 @@ BASE_URL = "https://api.twelvedata.com"
 # ── SYMBOL MAP (yfinance → Twelve Data) ───────────────────────
 # Equity ETFs and common stocks are identical; only special symbols differ.
 SYMBOL_MAP: dict[str, str] = {
-    "^GSPC":     "SPX",
-    "^DJI":      "DJI",
-    "^IXIC":     "IXIC",
-    "^RUT":      "RUT",
-    "^VIX":      "VIX",
-    "ES=F":      "ES:CME",
-    "NQ=F":      "NQ:CME",
-    "YM=F":      "YM:CME",
-    "CL=F":      "WTI/USD",
-    "GC=F":      "XAU/USD",
-    "SI=F":      "XAG/USD",
-    "HG=F":      "COPPER",
-    "NG=F":      "NG:NYMEX",
-    "DX-Y.NYB":  "DXY",
-    "DX=F":      "DXY",
-    "EURUSD=X":  "EUR/USD",
+    # Indices: direct TD index symbols require Pro tier; use ETF proxies instead.
+    # QQQ tracks Nasdaq-100 (not composite), which diverges slightly from IXIC.
+    # VIXY tracks front-month VIX futures (~15-25% below spot VIX in contango).
+    "^GSPC":    "SPY",
+    "^DJI":     "DIA",
+    "^IXIC":    "QQQ",
+    "^RUT":     "IWM",
+    "^VIX":     "VIXY",
+    # Futures: CME futures unavailable on free tier; ETF proxies trade extended
+    # hours and reflect pre-market direction, which is the purpose of this data.
+    "ES=F":     "SPY",
+    "NQ=F":     "QQQ",
+    "YM=F":     "DIA",
+    # Commodities and currencies (unchanged — confirmed working)
+    "CL=F":     "WTI/USD",
+    "GC=F":     "XAU/USD",
+    "SI=F":     "XAG/USD",
+    "HG=F":     "COPPER",
+    "NG=F":     "NG:NYMEX",
+    "DX-Y.NYB": "DXY",
+    "DX=F":     "DXY",
+    "EURUSD=X": "EUR/USD",
 }
 
 def to_td_symbol(symbol: str) -> str:
