@@ -11,6 +11,9 @@ from datetime import datetime
 
 log = logging.getLogger(__name__)
 
+# ── API KEYS ──────────────────────────────────────────────────
+TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY", "")
+
 # ── CALIBRATION SETTINGS ──────────────────────────────────────
 _CALIB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".thresholds.json")
 _CALIB_TTL  = 30 * 24 * 3600   # 30 days in seconds
