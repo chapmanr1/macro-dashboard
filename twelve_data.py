@@ -94,13 +94,18 @@ def get_quotes(symbols: list[str]) -> dict[str, dict]:
     """
     if not symbols:
         return {}
-    td_syms = [to_td_symbol(s) for s in symbols]
-    orig_by_td = {to_td_symbol(s): s for s in symbols}
+    # Build TD→[originals] map before deduplicating, so multiple original
+    # symbols that share a TD proxy (e.g. ^GSPC and ES=F both → SPY) all
+    # receive the quote in the result dict.
+    td_to_origs: dict[str, list] = {}
+    for s in symbols:
+        td_to_origs.setdefault(to_td_symbol(s), []).append(s)
+    td_syms_deduped = list(td_to_origs.keys())
     try:
-        data = _get("quote", {"symbol": ",".join(td_syms)})
-        # Single-symbol response is a dict; multi-symbol is {symbol: dict}
-        if td_syms and len(td_syms) == 1:
-            data = {td_syms[0]: data}
+        data = _get("quote", {"symbol": ",".join(td_syms_deduped)})
+        # Single-symbol response is a bare dict; multi-symbol is {symbol: dict}
+        if len(td_syms_deduped) == 1:
+            data = {td_syms_deduped[0]: data}
         result: dict[str, dict] = {}
         for td_sym, quote in data.items():
             if not isinstance(quote, dict):
@@ -108,8 +113,8 @@ def get_quotes(symbols: list[str]) -> dict[str, dict]:
             if quote.get("status") == "error":
                 log.warning(f"TD quote error for {td_sym}: {quote.get('message', '')}")
                 continue
-            orig = orig_by_td.get(td_sym, td_sym)
-            result[orig] = quote
+            for orig in td_to_origs.get(td_sym, [td_sym]):
+                result[orig] = quote
         return result
     except Exception as e:
         log.warning(f"get_quotes failed: {e}")
