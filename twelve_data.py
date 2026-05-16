@@ -34,8 +34,8 @@ SYMBOL_MAP: dict[str, str] = {
     "SI=F":     "XAG/USD",
     "HG=F":     "HG1",
     "NG=F":     "NG/USD",
-    "DX-Y.NYB": "DXY",
-    "DX=F":     "DXY",
+    "DX-Y.NYB": "UUP",
+    "DX=F":     "UUP",
     "EURUSD=X": "EUR/USD",
 }
 

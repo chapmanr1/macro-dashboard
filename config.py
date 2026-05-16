@@ -313,8 +313,10 @@ CREDIT_THRESHOLDS = {
 
 # ── DOLLAR INDEX THRESHOLDS ───────────────────────────────────
 DOLLAR_THRESHOLDS = {
-    "very_strong": 108, "strong": 104, "neutral_hi": 100,
-    "neutral_lo":   96, "weak":    92,
+    # Calibrated to UUP (DB USD Bullish ETF) ≈ DXY × 0.26
+    # DXY 108→UUP 28, 104→27, 100→26, 96→25, 92→24
+    "very_strong": 28, "strong": 27, "neutral_hi": 26,
+    "neutral_lo":  25, "weak":   24,
 }
 
 # ── RECESSION PROBABILITY SCORING ────────────────────────────

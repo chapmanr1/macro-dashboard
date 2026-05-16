@@ -54,7 +54,7 @@ COMMODITIES = [
 ]
 
 CURRENCIES = [
-    {"symbol": "DX-Y.NYB", "label": "DXY",     "description": "US Dollar Index", "decimals": 2},
+    {"symbol": "DX-Y.NYB", "label": "UUP",     "description": "US Dollar Index (UUP ETF proxy)", "decimals": 2},
     {"symbol": "EURUSD=X", "label": "EUR/USD",  "description": "Euro / US Dollar","decimals": 4},
 ]
 VIX_SYMBOL = "^VIX"
@@ -211,19 +211,19 @@ def _sector_signal(sectors_data):
 def _dollar_signal(dxy_value):
     from config import DOLLAR_THRESHOLDS as D
     if dxy_value is None:
-        return "UNKNOWN", "DXY data unavailable."
+        return "UNKNOWN", "USD index data unavailable."
     if dxy_value >= D["very_strong"]:
-        return "USD VERY STRONG", f"DXY at {dxy_value:.1f} is significantly elevated — meaningful headwind for commodities, EM assets, and multinational earnings."
+        return "USD VERY STRONG", "US dollar is significantly elevated — meaningful headwind for commodities, EM assets, and multinational earnings."
     elif dxy_value >= D["strong"]:
-        return "USD STRONG", f"DXY at {dxy_value:.1f} reflects dollar demand — watch for drag on commodity prices and export-sensitive earnings."
+        return "USD STRONG", "US dollar reflects strong demand — watch for drag on commodity prices and export-sensitive earnings."
     elif dxy_value >= D["neutral_hi"]:
-        return "USD FIRM", f"DXY at {dxy_value:.1f} is near-neutral but tilted toward dollar strength — balanced currency conditions."
+        return "USD FIRM", "US dollar is near-neutral but tilted toward strength — balanced currency conditions."
     elif dxy_value >= D["neutral_lo"]:
-        return "USD NEUTRAL", f"DXY at {dxy_value:.1f} is in neutral territory — no outsized currency headwinds or tailwinds."
+        return "USD NEUTRAL", "US dollar is in neutral territory — no outsized currency headwinds or tailwinds."
     elif dxy_value >= D["weak"]:
-        return "USD SOFT", f"DXY at {dxy_value:.1f} is mildly weak — modest tailwind for commodities and international risk assets."
+        return "USD SOFT", "US dollar is mildly weak — modest tailwind for commodities and international risk assets."
     else:
-        return "USD WEAK", f"DXY at {dxy_value:.1f} is meaningfully depressed — significant tailwind for commodities, EM, and international equities."
+        return "USD WEAK", "US dollar is meaningfully depressed — significant tailwind for commodities, EM, and international equities."
 
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
@@ -347,7 +347,7 @@ def _fetch_market_data() -> dict:
                 "pct_change": stats["pct_change"],
                 "direction":  stats["direction"],
             })
-            if cur["label"] == "DXY":
+            if cur["label"] == "UUP":
                 dxy_value = stats["price"]
         else:
             entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
