@@ -6,7 +6,7 @@ import time
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from twelve_data import get_quotes, get_time_series, to_td_symbol
+from twelve_data import get_quotes
 
 log = logging.getLogger(__name__)
 
@@ -60,11 +60,6 @@ CURRENCIES = [
 VIX_SYMBOL = "^VIX"
 VIX_DISPLAY_MAX = 50
 
-# YTD cache: {td_symbol: {"jan_close": float, "ts": float}}
-_ytd_cache: dict = {}
-_YTD_TTL = 24 * 3600  # refresh Jan close once per day
-
-
 # ── QUOTE PARSING ─────────────────────────────────────────────
 
 def _parse_quote(quote: dict) -> Optional[dict]:
@@ -82,39 +77,6 @@ def _parse_quote(quote: dict) -> Optional[dict]:
         }
     except (KeyError, TypeError, ValueError):
         return None
-
-
-def _ytd_pct(symbol: str, current_price: float) -> Optional[float]:
-    """
-    Return year-to-date % change for a symbol. Uses a 24h cache of the
-    Jan 1 close so we don't burn API calls on every market refresh.
-    Fetches via /time_series on cache miss.
-    """
-    td_sym = to_td_symbol(symbol)
-    now = time.time()
-    cached = _ytd_cache.get(td_sym)
-    if cached and (now - cached["ts"]) < _YTD_TTL:
-        jan_close = cached["jan_close"]
-    else:
-        try:
-            # 1 bar from the start of the year — ask for enough history to cover Jan 1
-            bars = get_time_series(td_sym, "1month", 14)  # ~14 months of monthly bars
-            if not bars:
-                return None
-            # Find the bar whose datetime starts with the current year
-            year = str(datetime.now().year)
-            jan_bar = next((b for b in bars if b.get("datetime", "").startswith(year)), None)
-            if jan_bar is None:
-                # Fall back: oldest available bar
-                jan_bar = bars[0]
-            jan_close = float(jan_bar["open"])  # open of first bar ≈ Jan 1 level
-            _ytd_cache[td_sym] = {"jan_close": jan_close, "ts": now}
-        except Exception as e:
-            log.debug(f"YTD fetch failed for {td_sym}: {e}")
-            return None
-    if jan_close and jan_close != 0:
-        return round((current_price - jan_close) / jan_close * 100, 2)
-    return None
 
 
 def _null_instrument(label, symbol=""):
@@ -271,7 +233,6 @@ def _fetch_market_data() -> dict:
         q = all_quotes.get(idx["symbol"])
         stats = _parse_quote(q) if q else None
         if stats:
-            stats["ytd_pct"] = _ytd_pct(idx["symbol"], stats["price"])
             indices_out.append({**idx, **stats})
         else:
             indices_out.append({**idx, **_null_instrument(idx["label"], idx["symbol"])})
@@ -309,7 +270,6 @@ def _fetch_market_data() -> dict:
         q = all_quotes.get(sec["symbol"])
         stats = _parse_quote(q) if q else None
         if stats:
-            stats["ytd_pct"] = _ytd_pct(sec["symbol"], stats["price"])
             sectors_out.append({**sec, **stats})
         else:
             sectors_out.append({**sec, **_null_instrument(sec["label"], sec["symbol"])})
