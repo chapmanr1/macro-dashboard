@@ -8,7 +8,7 @@ import urllib.request
 import urllib.parse
 import json as _json
 from datetime import datetime, timezone
-from proxy_config import proxy_session
+from twelve_data import get_quotes, get_time_series, get_profile, get_statistics, search_symbols, to_td_symbol
 
 log = logging.getLogger(__name__)
 
@@ -157,7 +157,7 @@ def search_edgar(query):
         return []
 
 
-def search_tickers(query):
+def search_tickers(query: str) -> list:
     q = query.strip().upper()
     if not q:
         return []
@@ -165,39 +165,35 @@ def search_tickers(query):
     if q in _search_cache and (now - _search_cache[q]["ts"]) < SEARCH_TTL:
         return _search_cache[q]["data"]
     try:
-        import yfinance as yf
+        # Try to get price for an exact symbol match
+        price_map: dict = {}
+        try:
+            quotes = get_quotes([q])
+            qdata = quotes.get(q, {})
+            if qdata.get("close"):
+                price_map[q] = round(float(qdata["close"]), 2)
+        except Exception:
+            pass
+
+        # Broad symbol search
+        found = search_symbols(q, max_results=8)
+        seen = set()
         results = []
-        try:
-            t = yf.Ticker(q, session=proxy_session)
-            fi = t.fast_info
-            price = getattr(fi, "last_price", None)
-            if price:
-                info = t.info
-                results.append({
-                    "symbol":   q,
-                    "name":     info.get("shortName") or info.get("longName", q),
-                    "exchange": info.get("exchange", ""),
-                    "type":     info.get("quoteType", ""),
-                    "price":    round(price, 2),
-                })
-        except Exception:
-            pass
-        try:
-            search = yf.Search(q, max_results=8)
-            for item in (search.quotes or []):
-                sym = item.get("symbol", "")
-                if sym and sym not in [r["symbol"] for r in results]:
-                    results.append({
-                        "symbol":   sym,
-                        "name":     item.get("shortname") or item.get("longname", ""),
-                        "exchange": item.get("exchange", ""),
-                        "type":     item.get("quoteType", ""),
-                        "price":    None,
-                    })
-                if len(results) >= 8:
-                    break
-        except Exception:
-            pass
+        for item in found:
+            sym = item.get("symbol", "")
+            if not sym or sym in seen:
+                continue
+            seen.add(sym)
+            results.append({
+                "symbol":   sym,
+                "name":     item.get("name", ""),
+                "exchange": item.get("exchange", ""),
+                "type":     item.get("type", ""),
+                "price":    price_map.get(sym),
+            })
+            if len(results) >= 8:
+                break
+
         _search_cache[q] = {"data": results, "ts": now}
         return results
     except Exception as e:
@@ -307,55 +303,107 @@ def build_buffett_scorecard(info, price):
 
 # ── COMPANY ANALYSIS ─────────────────────────────────────────
 
-def get_company_analysis(symbol):
+def _sf(d: dict, *keys):
+    """Safely traverse nested dict and return a float, or None."""
+    for k in keys:
+        if not isinstance(d, dict):
+            return None
+        d = d.get(k)
+    try:
+        return float(d) if d is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def get_company_analysis(symbol: str) -> dict:
+    """
+    Fetch company data from Twelve Data (/quote + /profile + /statistics).
+    Fields not available on the free tier degrade gracefully to None.
+    """
     sym = symbol.strip().upper()
     now = time.time()
     if sym in _company_cache and (now - _company_cache[sym]["ts"]) < COMPANY_TTL:
         return _company_cache[sym]["data"]
     try:
-        import yfinance as yf
-        t    = yf.Ticker(sym, session=proxy_session)
-        info = t.info
+        quotes  = get_quotes([sym])
+        q       = quotes.get(sym, {})
+        prof    = get_profile(sym)
+        stats   = get_statistics(sym)
 
-        price = info.get("currentPrice") or info.get("regularMarketPrice")
-        if not price:
-            fi    = t.fast_info
-            price = getattr(fi, "last_price", None)
+        # ── Price fields from /quote ──────────────────────────
+        price    = _sf(q, "close")
+        prev     = _sf(q, "previous_close")
+        day_chg  = round(price - prev, 2) if price and prev else None
+        day_pct  = round(day_chg / prev * 100, 2) if day_chg and prev else None
 
-        prev      = info.get("previousClose") or info.get("regularMarketPreviousClose")
-        day_chg   = round(float(price) - float(prev), 2) if price and prev else None
-        day_pct   = round(day_chg / float(prev) * 100, 2) if day_chg and prev else None
-
-        pre_mkt   = info.get("preMarketPrice")
-        post_mkt  = info.get("postMarketPrice")
-
-        w52h = info.get("fiftyTwoWeekHigh")
-        w52l = info.get("fiftyTwoWeekLow")
+        w52 = q.get("fifty_two_week") or {}
+        w52h = _sf(w52, "high")
+        w52l = _sf(w52, "low")
         w52pos = None
         if w52h and w52l and price and (w52h - w52l) > 0:
-            w52pos = round((float(price) - float(w52l)) / (float(w52h) - float(w52l)) * 100, 1)
+            w52pos = round((price - w52l) / (w52h - w52l) * 100, 1)
 
-        next_earn_ts = info.get("earningsTimestamp") or info.get("earningsTimestampStart")
-        next_earn_dt = None
-        earn_days    = None
-        if next_earn_ts:
-            try:
-                ndt       = datetime.fromtimestamp(int(next_earn_ts), tz=timezone.utc)
-                earn_days = (ndt - datetime.now(timezone.utc)).days
-                next_earn_dt = ndt.strftime("%Y-%m-%d")
-            except Exception:
-                pass
+        # ── Profile fields ────────────────────────────────────
+        city    = prof.get("city", "") or ""
+        country = prof.get("country", "") or ""
+        hq      = ", ".join(filter(None, [city, country]))
 
-        eps   = info.get("trailingEps")
-        bvps  = info.get("bookValue")
+        # ── Statistics fields (may all be None on free tier) ──
+        vm    = stats.get("valuations_metrics") or {}
+        fin   = stats.get("financials") or {}
+        sinfo = stats.get("statistics") or {}
+        divs  = stats.get("dividends_and_splits") or {}
+
+        eps  = _sf(fin, "diluted_eps_ttm")
+        bvps = _sf(fin, "book_value_per_share_mrq")
+
+        # debtToEquity: TD gives ratio (e.g. 1.52), yfinance gives ×100 (152).
+        # Helper functions check de < 50, so keep TD's value and adjust the
+        # Buffett scorecard threshold comment — value already in same scale.
+        de_ratio = _sf(fin, "total_debt_to_equity_mrq")
+
+        # Build a flat info dict for the valuation helpers
+        info: dict = {
+            "trailingPE":                   _sf(vm, "trailing_pe"),
+            "forwardPE":                    _sf(vm, "forward_pe"),
+            "priceToBook":                  _sf(vm, "price_to_book_mrq"),
+            "priceToSalesTrailing12Months": _sf(vm, "price_to_sales_ttm"),
+            "enterpriseToEbitda":           _sf(vm, "enterprise_to_ebitda"),
+            "pegRatio":                     _sf(vm, "peg_ratio"),
+            "profitMargins":                _sf(fin, "profit_margin"),
+            "operatingMargins":             _sf(fin, "operating_margin_ttm"),
+            "grossMargins":                 None,  # TD gives $ not ratio; not available
+            "returnOnEquity":               _sf(fin, "return_on_equity_ttm"),
+            "returnOnAssets":               _sf(fin, "return_on_assets_ttm"),
+            "trailingEps":                  eps,
+            "forwardEps":                   None,  # not in TD free stats
+            "bookValue":                    bvps,
+            "totalCash":                    _sf(fin, "total_cash_mrq"),
+            "freeCashflow":                 None,  # not in TD free stats
+            "debtToEquity":                 de_ratio * 100 if de_ratio is not None else None,
+            "currentRatio":                 _sf(fin, "current_ratio_mrq"),
+            "quickRatio":                   None,  # not in TD free stats
+            "revenueGrowth":                _sf(fin, "quarterly_revenue_growth_yoy"),
+            "earningsGrowth":               _sf(fin, "quarterly_earnings_growth_yoy"),
+            "marketCap":                    _sf(vm, "market_capitalization"),
+            "beta":                         _sf(sinfo, "beta"),
+            "dividendYield":                _sf(divs, "forward_annual_dividend_yield"),
+            "sharesOutstanding":            None,
+            "totalAssets":                  None,
+            "totalLiab":                    None,
+            "totalCurrentAssets":           None,
+            "totalCurrentLiabilities":      None,
+            "longTermDebt":                 None,
+            "targetMeanPrice":              None,
+            "recommendationKey":            "",
+        }
+
         gnum  = calculate_graham_number(eps, bvps)
-        gmgn  = round((gnum - float(price)) / float(price) * 100, 1) if gnum and price else None
-
+        gmgn  = round((gnum - price) / price * 100, 1) if gnum and price else None
         dcf   = calculate_dcf(info)
-        dcfmgn = round((dcf - float(price)) / float(price) * 100, 1) if dcf and price else None
-
+        dcfmgn = round((dcf - price) / price * 100, 1) if dcf and price else None
         nav   = calculate_nav(info)
-        navmgn = round((nav - float(price)) / float(price) * 100, 1) if nav and price else None
+        navmgn = round((nav - price) / price * 100, 1) if nav and price else None
 
         gsc   = build_graham_scorecard(info, price, gnum)
         bsc   = build_buffett_scorecard(info, price)
@@ -369,72 +417,65 @@ def get_company_analysis(symbol):
             mos = min(dcfmgn / 50, 1.0)
         vscore = round((gpass / len(gsc)) * 40 + (bpass / len(bsc)) * 40 + mos * 20)
 
-        if vscore >= 80:    verdict, vcolor = "STRONG BUY",    "green"
-        elif vscore >= 60:  verdict, vcolor = "BUY",           "green"
-        elif vscore >= 40:  verdict, vcolor = "HOLD",          "amber"
-        elif vscore >= 20:  verdict, vcolor = "AVOID",         "red"
-        else:               verdict, vcolor = "STRONG AVOID",  "red"
-
-        hq = ", ".join(filter(None, [info.get("city", ""), info.get("country", "")]))
-
-        open_price = info.get("open") or info.get("regularMarketOpen")
-        day_high   = info.get("dayHigh") or info.get("regularMarketDayHigh")
-        day_low    = info.get("dayLow") or info.get("regularMarketDayLow")
-        volume_val = info.get("volume") or info.get("regularMarketVolume")
+        if vscore >= 80:    verdict, vcolor = "STRONG BUY",   "green"
+        elif vscore >= 60:  verdict, vcolor = "BUY",          "green"
+        elif vscore >= 40:  verdict, vcolor = "HOLD",         "amber"
+        elif vscore >= 20:  verdict, vcolor = "AVOID",        "red"
+        else:               verdict, vcolor = "STRONG AVOID", "red"
 
         result = {
             "symbol":          sym,
-            "name":            info.get("shortName") or info.get("longName", sym),
-            "sector":          info.get("sector", "--"),
-            "industry":        info.get("industry", "--"),
-            "exchange":        info.get("exchange", ""),
-            "employees":       info.get("fullTimeEmployees"),
+            "name":            prof.get("name") or q.get("name") or sym,
+            "sector":          prof.get("sector") or "--",
+            "industry":        prof.get("industry") or "--",
+            "exchange":        prof.get("exchange") or q.get("exchange") or "",
+            "employees":       prof.get("employees"),
             "hq":              hq,
-            "website":         info.get("website", ""),
-            "description":     info.get("longBusinessSummary", ""),
-            "market_cap":      info.get("marketCap"),
-            "price":           round(float(price), 2) if price else None,
-            "prev_close":      round(float(prev), 2) if prev else None,
-            "open":            round(float(open_price), 2) if open_price else None,
-            "day_high":        round(float(day_high), 2) if day_high else None,
-            "day_low":         round(float(day_low), 2) if day_low else None,
-            "volume":          int(volume_val) if volume_val else None,
+            "website":         prof.get("website") or "",
+            "description":     prof.get("description") or "",
+            "market_cap":      info["marketCap"],
+            "price":           round(price, 2) if price else None,
+            "prev_close":      round(prev, 2) if prev else None,
+            "open":            round(_sf(q, "open"), 2) if _sf(q, "open") else None,
+            "day_high":        round(_sf(q, "high"), 2) if _sf(q, "high") else None,
+            "day_low":         round(_sf(q, "low"), 2) if _sf(q, "low") else None,
+            "volume":          int(float(q["volume"])) if q.get("volume") else None,
             "day_change":      day_chg,
             "day_pct":         day_pct,
-            "pre_market":      round(float(pre_mkt), 2) if pre_mkt else None,
-            "post_market":     round(float(post_mkt), 2) if post_mkt else None,
+            "pre_market":      None,   # not on free tier
+            "post_market":     None,   # not on free tier
             "52w_high":        w52h,
             "52w_low":         w52l,
             "52w_pos":         w52pos,
-            "next_earnings":   next_earn_dt,
-            "earnings_days":   earn_days,
-            "eps_est":         info.get("forwardEps"),
+            "next_earnings":   None,   # not in TD free stats
+            "earnings_days":   None,
+            "eps_est":         info["forwardEps"],
             "eps_actual":      eps,
-            "pe":              info.get("trailingPE"),
-            "forward_pe":      info.get("forwardPE"),
-            "pb":              info.get("priceToBook"),
-            "ps":              info.get("priceToSalesTrailing12Months"),
-            "ev_ebitda":       info.get("enterpriseToEbitda"),
-            "peg":             info.get("pegRatio"),
-            "gross_margins":   info.get("grossMargins"),
-            "op_margins":      info.get("operatingMargins"),
-            "profit_margins":  info.get("profitMargins"),
-            "roe":             info.get("returnOnEquity"),
-            "roa":             info.get("returnOnAssets"),
-            "current_ratio":   info.get("currentRatio"),
-            "quick_ratio":     info.get("quickRatio"),
-            "debt_equity":     info.get("debtToEquity"),
-            "total_cash":      info.get("totalCash"),
-            "free_cashflow":   info.get("freeCashflow"),
-            "revenue_growth":  info.get("revenueGrowth"),
-            "earnings_growth": info.get("earningsGrowth"),
+            "pe":              info["trailingPE"],
+            "forward_pe":      info["forwardPE"],
+            "pb":              info["priceToBook"],
+            "ps":              info["priceToSalesTrailing12Months"],
+            "ev_ebitda":       info["enterpriseToEbitda"],
+            "peg":             info["pegRatio"],
+            "gross_margins":   info["grossMargins"],
+            "op_margins":      info["operatingMargins"],
+            "profit_margins":  info["profitMargins"],
+            "roe":             info["returnOnEquity"],
+            "roa":             info["returnOnAssets"],
+            "current_ratio":   info["currentRatio"],
+            "quick_ratio":     info["quickRatio"],
+            "debt_equity":     info["debtToEquity"],
+            "total_cash":      info["totalCash"],
+            "free_cashflow":   info["freeCashflow"],
+            "revenue_growth":  info["revenueGrowth"],
+            "earnings_growth": info["earningsGrowth"],
             "eps":             eps,
-            "forward_eps":     info.get("forwardEps"),
+            "forward_eps":     info["forwardEps"],
             "bvps":            bvps,
-            "div_yield":       info.get("dividendYield"),
-            "beta":            info.get("beta"),
-            "analyst_target":  info.get("targetMeanPrice"),
-            "recommendation":  info.get("recommendationKey", "").upper(),
+            "div_yield":       info["dividendYield"],
+            "beta":            info["beta"],
+            "analyst_target":  info["targetMeanPrice"],
+            "recommendation":  info["recommendationKey"].upper() if info["recommendationKey"] else "",
             "graham_number":   gnum,
             "graham_margin":   gmgn,
             "dcf_value":       dcf,
@@ -448,7 +489,7 @@ def get_company_analysis(symbol):
             "value_score":       vscore,
             "verdict":           verdict,
             "verdict_color":     vcolor,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp":         datetime.now(timezone.utc).isoformat(),
         }
         _company_cache[sym] = {"data": result, "ts": now}
         return result
@@ -464,32 +505,32 @@ def get_ticker_analysis(symbol):
 _chart_cache = {}
 CHART_TTL = 300  # 5 minutes
 
-def get_chart_data(symbol, period="1y"):
+# TD interval + outputsize per requested period
+_CHART_INTERVAL_MAP = {
+    "1d":  ("5min",   78),
+    "5d":  ("15min", 130),
+    "1mo": ("1day",   30),
+    "3mo": ("1day",   90),
+    "6mo": ("1day",  180),
+    "1y":  ("1day",  365),
+    "2y":  ("1day",  730),
+    "5y":  ("1week", 260),
+    "max": ("1month",500),
+}
+
+def get_chart_data(symbol: str, period: str = "1y") -> dict:
     sym = symbol.strip().upper()
     cache_key = f"{sym}_{period}"
     now = time.time()
     if cache_key in _chart_cache and (now - _chart_cache[cache_key]["ts"]) < CHART_TTL:
         return _chart_cache[cache_key]["data"]
     try:
-        import yfinance as yf
-        interval_map = {
-            "1d":  ("1d",  "5m"),
-            "5d":  ("5d",  "15m"),
-            "1mo": ("1mo", "1d"),
-            "3mo": ("3mo", "1d"),
-            "6mo": ("6mo", "1d"),
-            "1y":  ("1y",  "1d"),
-            "2y":  ("2y",  "1d"),
-            "5y":  ("5y",  "1wk"),
-            "max": ("max", "1mo"),
-        }
-        yf_period, interval = interval_map.get(period, ("1y", "1d"))
-        t = yf.Ticker(sym, session=proxy_session)
-        hist = t.history(period=yf_period, interval=interval)
-        if hist.empty:
+        interval, outputsize = _CHART_INTERVAL_MAP.get(period, ("1day", 365))
+        bars = get_time_series(sym, interval, outputsize)
+        if not bars:
             return {"error": "No data available", "symbol": sym}
 
-        closes = hist["Close"].tolist()
+        closes = [float(b["close"]) for b in bars]
         n = len(closes)
 
         # Rolling MA50 and MA200
@@ -502,14 +543,14 @@ def get_chart_data(symbol, period="1y"):
                 ma200_vals[i] = round(sum(closes[i-199:i+1]) / 200, 2)
 
         data_points = []
-        for i, (ts, row) in enumerate(hist.iterrows()):
+        for i, bar in enumerate(bars):
             data_points.append({
-                "timestamp": ts.isoformat(),
-                "open":   round(float(row["Open"]),  2),
-                "high":   round(float(row["High"]),  2),
-                "low":    round(float(row["Low"]),   2),
-                "close":  round(float(row["Close"]), 2),
-                "volume": int(row["Volume"]),
+                "timestamp": bar["datetime"],
+                "open":   round(float(bar["open"]),   2),
+                "high":   round(float(bar["high"]),   2),
+                "low":    round(float(bar["low"]),    2),
+                "close":  round(float(bar["close"]),  2),
+                "volume": int(float(bar.get("volume", 0))),
                 "ma50":   ma50_vals[i],
                 "ma200":  ma200_vals[i],
             })
@@ -538,24 +579,29 @@ def get_chart_data(symbol, period="1y"):
         return {"error": str(e), "symbol": sym}
 
 
-def get_watchlist_prices(tickers):
+def get_watchlist_prices(tickers: list) -> list:
+    """Batch /quote for up to 20 watchlist tickers."""
+    syms = [s.strip().upper() for s in tickers[:20] if s.strip()]
+    if not syms:
+        return []
+    quotes = get_quotes(syms)
     results = []
-    for sym in tickers[:20]:
-        try:
-            import yfinance as yf
-            t  = yf.Ticker(sym, session=proxy_session)
-            fi = t.fast_info
-            price = getattr(fi, "last_price", None)
-            prev  = getattr(fi, "previous_close", None)
-            chg   = round(price - prev, 2) if price and prev else None
-            pct   = round(chg / prev * 100, 2) if chg and prev else None
-            results.append({
-                "symbol":     sym,
-                "price":      round(price, 2) if price else None,
-                "change":     chg,
-                "pct_change": pct,
-                "direction":  "UP" if chg and chg > 0 else "DOWN" if chg and chg < 0 else "FLAT",
-            })
-        except Exception as e:
-            results.append({"symbol": sym, "error": str(e)[:60]})
+    for sym in syms:
+        q = quotes.get(sym)
+        if q and q.get("close"):
+            try:
+                price = round(float(q["close"]), 2)
+                chg   = round(float(q["change"]), 2)
+                pct   = round(float(q["percent_change"]), 3)
+                results.append({
+                    "symbol":     sym,
+                    "price":      price,
+                    "change":     chg,
+                    "pct_change": pct,
+                    "direction":  "UP" if chg > 0 else "DOWN" if chg < 0 else "FLAT",
+                })
+            except (KeyError, TypeError, ValueError) as e:
+                results.append({"symbol": sym, "error": str(e)[:60]})
+        else:
+            results.append({"symbol": sym, "error": "no data"})
     return results
