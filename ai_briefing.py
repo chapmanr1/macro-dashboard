@@ -64,13 +64,13 @@ def _calculate_technicals():
             tech["vix_current"]  = round(vc, 2)
             tech["vix_30d_avg"]  = round(v30, 2)
             tech["vix_vs_avg"]   = round(vc - v30, 2)
-            if vc < 15:
+            if vc < 11:
                 tech["vix_signal"] = "COMPLACENT — elevated complacency, watch for reversal"
-            elif vc < 18:
+            elif vc < 14:
                 tech["vix_signal"] = "CALM — normal conditions"
-            elif vc < 25:
+            elif vc < 19:
                 tech["vix_signal"] = "CAUTIOUS — elevated awareness"
-            elif vc < 30:
+            elif vc < 23:
                 tech["vix_signal"] = "FEARFUL — significant uncertainty"
             else:
                 tech["vix_signal"] = "PANIC — crisis territory"

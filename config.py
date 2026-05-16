@@ -290,20 +290,21 @@ POSITIONING = {
 
 # ── VIX REGIME LEVELS ─────────────────────────────────────────
 VIX_LEVELS = [
-    {"max": 12,   "label": "COMPLACENT",  "color": "green",
+    # Thresholds calibrated to VIXY (VIX short-term futures ETF, ~0.75× spot VIX)
+    {"max": 9,    "label": "COMPLACENT",  "color": "green",
      "description": "Markets pricing near-zero fear — historically precedes volatility spikes."},
-    {"max": 17,   "label": "CALM",        "color": "green",
+    {"max": 13,   "label": "CALM",        "color": "green",
      "description": "Low volatility with bullish sentiment — risk assets broadly well-bid."},
-    {"max": 22,   "label": "CAUTIOUS",    "color": "amber",
+    {"max": 17,   "label": "CAUTIOUS",    "color": "amber",
      "description": "Elevated uncertainty — investors hedging against potential downside."},
-    {"max": 28,   "label": "FEARFUL",     "color": "amber",
+    {"max": 21,   "label": "FEARFUL",     "color": "amber",
      "description": "Significant market stress — de-risking underway across portfolios."},
-    {"max": 35,   "label": "PANIC",       "color": "red",
+    {"max": 26,   "label": "PANIC",       "color": "red",
      "description": "Acute fear selling — forced liquidations and margin calls likely."},
     {"max": 9999, "label": "EXTREME FEAR","color": "red",
      "description": "Crisis-level volatility — generational buying opportunities historically emerge here."},
 ]
-VIX_DISPLAY_MAX = 50
+VIX_DISPLAY_MAX = 38  # ~50 VIX equivalent via VIXY 0.75× ratio
 
 # ── CREDIT SPREAD THRESHOLDS ──────────────────────────────────
 CREDIT_THRESHOLDS = {
