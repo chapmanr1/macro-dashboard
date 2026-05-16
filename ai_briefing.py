@@ -6,7 +6,7 @@ import json
 import logging
 import pytz
 from datetime import datetime, timedelta
-from proxy_config import proxy_session
+from twelve_data import get_time_series, get_quotes
 
 log = logging.getLogger(__name__)
 
@@ -22,103 +22,97 @@ def _now_et():
 
 # ── TECHNICAL INDICATORS ──────────────────────────────────────
 def _calculate_technicals():
-    """Calculate S&P, VIX, 10Y, and sector technicals via yfinance."""
+    """Calculate S&P, VIX, 10Y, and sector technicals via Twelve Data and FRED."""
     tech = {}
 
+    # ── S&P 500 ───────────────────────────────────────────────
     try:
-        import yfinance as yf
+        bars = get_time_series("SPX", "1day", 365)
+        if len(bars) >= 50:
+            closes = [float(b["close"]) for b in bars]
+            highs  = [float(b["high"])  for b in bars]
+            lows   = [float(b["low"])   for b in bars]
+            n = len(closes)
+            c     = closes[-1]
+            ma50  = sum(closes[n-50:n]) / 50
+            ma200 = sum(closes[n-200:n]) / 200 if n >= 200 else None
+            high_10 = closes[-10] if n >= 10 else closes[0]
+            high_30 = closes[-30] if n >= 30 else closes[0]
+            hi52 = max(highs)
+            lo52 = min(lows)
+            tech["spy_current"]       = round(c, 2)
+            tech["spy_vs_50dma"]      = round((c - ma50)  / ma50  * 100, 2)
+            tech["spy_vs_200dma"]     = round((c - ma200) / ma200 * 100, 2) if ma200 else None
+            tech["spy_50dma_level"]   = round(ma50, 2)
+            tech["spy_200dma_level"]  = round(ma200, 2) if ma200 else None
+            tech["spy_10d_momentum"]  = round((c - high_10) / high_10 * 100, 2)
+            tech["spy_30d_momentum"]  = round((c - high_30) / high_30 * 100, 2)
+            tech["spy_52w_high"]      = round(hi52, 2)
+            tech["spy_52w_low"]       = round(lo52, 2)
+            tech["spy_pct_from_high"] = round((c - hi52) / hi52 * 100, 2)
+            tech["spy_pct_from_low"]  = round((c - lo52) / lo52 * 100, 2)
+    except Exception as e:
+        tech["spy_error"] = str(e)[:120]
 
-        # ── S&P 500 ───────────────────────────────────────────
-        try:
-            spy = yf.Ticker("^GSPC", session=proxy_session)
-            h = spy.history(period="1y")
-            h = h.dropna(subset=["Close"])
-            if len(h) >= 50:
-                c = float(h["Close"].iloc[-1])
-                ma50  = float(h["Close"].rolling(50).mean().iloc[-1])
-                ma200 = float(h["Close"].rolling(200).mean().iloc[-1]) if len(h) >= 200 else None
-                high_10 = float(h["Close"].iloc[-10]) if len(h) >= 10 else c
-                high_30 = float(h["Close"].iloc[-30]) if len(h) >= 30 else c
-                hi52 = float(h["High"].max())
-                lo52 = float(h["Low"].min())
-                tech["spy_current"]       = round(c, 2)
-                tech["spy_vs_50dma"]      = round((c - ma50)  / ma50  * 100, 2)
-                tech["spy_vs_200dma"]     = round((c - ma200) / ma200 * 100, 2) if ma200 else None
-                tech["spy_50dma_level"]   = round(ma50, 2)
-                tech["spy_200dma_level"]  = round(ma200, 2) if ma200 else None
-                tech["spy_10d_momentum"]  = round((c - high_10) / high_10 * 100, 2)
-                tech["spy_30d_momentum"]  = round((c - high_30) / high_30 * 100, 2)
-                tech["spy_52w_high"]      = round(hi52, 2)
-                tech["spy_52w_low"]       = round(lo52, 2)
-                tech["spy_pct_from_high"] = round((c - hi52) / hi52 * 100, 2)
-                tech["spy_pct_from_low"]  = round((c - lo52) / lo52 * 100, 2)
-        except Exception as e:
-            tech["spy_error"] = str(e)[:120]
+    # ── VIX ───────────────────────────────────────────────────
+    try:
+        vbars = get_time_series("VIX", "1day", 60)
+        if len(vbars) >= 2:
+            vc_list = [float(b["close"]) for b in vbars]
+            vc  = vc_list[-1]
+            v30 = sum(vc_list) / len(vc_list)
+            tech["vix_current"]  = round(vc, 2)
+            tech["vix_30d_avg"]  = round(v30, 2)
+            tech["vix_vs_avg"]   = round(vc - v30, 2)
+            if vc < 15:
+                tech["vix_signal"] = "COMPLACENT — elevated complacency, watch for reversal"
+            elif vc < 18:
+                tech["vix_signal"] = "CALM — normal conditions"
+            elif vc < 25:
+                tech["vix_signal"] = "CAUTIOUS — elevated awareness"
+            elif vc < 30:
+                tech["vix_signal"] = "FEARFUL — significant uncertainty"
+            else:
+                tech["vix_signal"] = "PANIC — crisis territory"
+    except Exception as e:
+        tech["vix_error"] = str(e)[:120]
 
-        # ── VIX ───────────────────────────────────────────────
-        try:
-            vix = yf.Ticker("^VIX", session=proxy_session)
-            vh = vix.history(period="60d").dropna(subset=["Close"])
-            if len(vh) >= 2:
-                vc = float(vh["Close"].iloc[-1])
-                v30 = float(vh["Close"].mean())
-                tech["vix_current"]  = round(vc, 2)
-                tech["vix_30d_avg"]  = round(v30, 2)
-                tech["vix_vs_avg"]   = round(vc - v30, 2)
-                if vc < 15:
-                    tech["vix_signal"] = "COMPLACENT — elevated complacency, watch for reversal"
-                elif vc < 18:
-                    tech["vix_signal"] = "CALM — normal conditions"
-                elif vc < 25:
-                    tech["vix_signal"] = "CAUTIOUS — elevated awareness"
-                elif vc < 30:
-                    tech["vix_signal"] = "FEARFUL — significant uncertainty"
-                else:
-                    tech["vix_signal"] = "PANIC — crisis territory"
-        except Exception as e:
-            tech["vix_error"] = str(e)[:120]
+    # ── 10Y Treasury — sourced from FRED (already cached) ─────
+    try:
+        from fred_data import get_yields
+        yields_data = get_yields()
+        ten_yr = next(
+            (y for y in yields_data.get("yields", []) if y.get("id") == "dgs10"),
+            None,
+        )
+        if ten_yr and ten_yr.get("value") is not None:
+            ty = float(ten_yr["value"])
+            tech["ten_year_yield"] = round(ty, 3)
+            # 30d range not available from cached FRED snapshot; AI will work without it
+    except Exception as e:
+        tech["ten_year_error"] = str(e)[:120]
 
-        # ── 10Y Treasury ──────────────────────────────────────
-        try:
-            tnx = yf.Ticker("^TNX", session=proxy_session)
-            th = tnx.history(period="60d").dropna(subset=["Close"])
-            if len(th) >= 2:
-                tc = float(th["Close"].iloc[-1])
-                tech["ten_year_yield"]     = round(tc / 10, 3)  # ^TNX is quoted ×10 in yfinance history
-                tech["ten_year_30d_high"]  = round(float(th["High"].max()) / 10, 3)
-                tech["ten_year_30d_low"]   = round(float(th["Low"].min()) / 10, 3)
-                tech["ten_year_range"]     = (
-                    f"{round(float(th['Low'].min())/10, 2)}% — "
-                    f"{round(float(th['High'].max())/10, 2)}%"
-                )
-        except Exception as e:
-            tech["ten_year_error"] = str(e)[:120]
-
-        # ── SECTOR PERFORMANCE ────────────────────────────────
-        sectors = {
+    # ── SECTOR PERFORMANCE ────────────────────────────────────
+    try:
+        sector_map = {
             "XLK": "Technology", "XLF": "Financials", "XLE": "Energy",
             "XLV": "Healthcare", "XLI": "Industrials", "XLY": "Cons Discretionary",
             "XLP": "Cons Staples", "XLU": "Utilities", "XLRE": "Real Estate",
             "XLB": "Materials", "XLC": "Communications",
         }
+        quotes = get_quotes(list(sector_map.keys()))
         perf = {}
-        for sym, name in sectors.items():
-            try:
-                sh = yf.Ticker(sym, session=proxy_session).history(period="5d").dropna(subset=["Close"])
-                if len(sh) >= 2:
-                    today_c = float(sh["Close"].iloc[-1])
-                    prev_c  = float(sh["Close"].iloc[-2])
-                    perf[name] = round((today_c - prev_c) / prev_c * 100, 2)
-            except Exception:
-                pass
+        for sym, name in sector_map.items():
+            q = quotes.get(sym)
+            if q and q.get("percent_change") is not None:
+                perf[name] = round(float(q["percent_change"]), 2)
         if perf:
             sorted_p = sorted(perf.items(), key=lambda x: x[1], reverse=True)
             tech["sector_performance"] = dict(sorted_p)
             tech["sector_leaders"]  = [s[0] for s in sorted_p[:3]]
             tech["sector_laggards"] = [s[0] for s in sorted_p[-3:]]
-
     except Exception as e:
-        tech["global_error"] = str(e)[:120]
+        tech["sector_error"] = str(e)[:120]
 
     return tech
 
