@@ -1,11 +1,12 @@
 # FILE: market_data.py
-# Bloomberg Macro Dashboard — Market Data via Yahoo Finance
+# Bloomberg Macro Dashboard — Market Data via Twelve Data
 # Fetches equities, futures, VIX, sectors, commodities, currencies.
 
 import time
 import logging
 from datetime import datetime, timezone
-from proxy_config import proxy_session
+from typing import Optional
+from twelve_data import get_quotes, get_time_series, to_td_symbol
 
 log = logging.getLogger(__name__)
 
@@ -59,56 +60,61 @@ CURRENCIES = [
 VIX_SYMBOL = "^VIX"
 VIX_DISPLAY_MAX = 50
 
+# YTD cache: {td_symbol: {"jan_close": float, "ts": float}}
+_ytd_cache: dict = {}
+_YTD_TTL = 24 * 3600  # refresh Jan close once per day
 
-# ── YFINANCE FETCH ────────────────────────────────────────────
-def _fetch_ticker_stats(symbol, ytd=False):
-    """
-    Fetch price, daily change, pct_change for a symbol.
-    If ytd=True, also compute year-to-date % change.
-    Returns dict or None on failure.
-    """
+
+# ── QUOTE PARSING ─────────────────────────────────────────────
+
+def _parse_quote(quote: dict) -> Optional[dict]:
+    """Extract price, change, pct_change, direction from a TD /quote response."""
     try:
-        import yfinance as yf
-        ticker = yf.Ticker(symbol, session=proxy_session)
-        hist = ticker.history(period="5d", auto_adjust=True)
-        if hist.empty or len(hist) < 2:
-            hist = ticker.history(period="1mo", auto_adjust=True)
-        if hist.empty:
-            return None
-
-        hist = hist.dropna(subset=["Close"])
-        if len(hist) < 1:
-            return None
-
-        current = float(hist["Close"].iloc[-1])
-        prior   = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else current
-        change     = current - prior
-        pct_change = (change / prior * 100) if prior != 0 else 0.0
-
-        result = {
-            "price":      round(current, 4),
+        price  = float(quote["close"])
+        change = float(quote["change"])
+        pct    = float(quote["percent_change"])
+        return {
+            "price":      round(price,  4),
             "change":     round(change, 4),
-            "pct_change": round(pct_change, 3),
+            "pct_change": round(pct,    3),
             "direction":  "UP" if change > 0.0005 else "DOWN" if change < -0.0005 else "FLAT",
             "ytd_pct":    None,
         }
-
-        if ytd:
-            try:
-                year_start = f"{datetime.now().year}-01-01"
-                hist_ytd = ticker.history(start=year_start, auto_adjust=True).dropna(subset=["Close"])
-                if not hist_ytd.empty:
-                    jan_price = float(hist_ytd["Close"].iloc[0])
-                    if jan_price != 0:
-                        result["ytd_pct"] = round((current - jan_price) / jan_price * 100, 2)
-            except Exception as e:
-                log.warning(f"YTD calc failed for {symbol}: {e}")
-
-        return result
-
-    except Exception as e:
-        log.warning(f"yfinance fetch failed [{symbol}]: {e}")
+    except (KeyError, TypeError, ValueError):
         return None
+
+
+def _ytd_pct(symbol: str, current_price: float) -> Optional[float]:
+    """
+    Return year-to-date % change for a symbol. Uses a 24h cache of the
+    Jan 1 close so we don't burn API calls on every market refresh.
+    Fetches via /time_series on cache miss.
+    """
+    td_sym = to_td_symbol(symbol)
+    now = time.time()
+    cached = _ytd_cache.get(td_sym)
+    if cached and (now - cached["ts"]) < _YTD_TTL:
+        jan_close = cached["jan_close"]
+    else:
+        try:
+            # 1 bar from the start of the year — ask for enough history to cover Jan 1
+            bars = get_time_series(td_sym, "1month", 14)  # ~14 months of monthly bars
+            if not bars:
+                return None
+            # Find the bar whose datetime starts with the current year
+            year = str(datetime.now().year)
+            jan_bar = next((b for b in bars if b.get("datetime", "").startswith(year)), None)
+            if jan_bar is None:
+                # Fall back: oldest available bar
+                jan_bar = bars[0]
+            jan_close = float(jan_bar["open"])  # open of first bar ≈ Jan 1 level
+            _ytd_cache[td_sym] = {"jan_close": jan_close, "ts": now}
+        except Exception as e:
+            log.debug(f"YTD fetch failed for {td_sym}: {e}")
+            return None
+    if jan_close and jan_close != 0:
+        return round((current_price - jan_close) / jan_close * 100, 2)
+    return None
 
 
 def _null_instrument(label, symbol=""):
@@ -221,12 +227,12 @@ def _dollar_signal(dxy_value):
 
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
-def get_market():
+def get_market() -> dict:
     if _cache_valid():
         log.info("Market: returning cached data.")
         return _cache["data"]
 
-    log.info("Market: fetching fresh yfinance data...")
+    log.info("Market: fetching fresh data from Twelve Data...")
     ts = datetime.now(timezone.utc).isoformat()
     try:
         return _fetch_market_data()
@@ -238,14 +244,34 @@ def get_market():
         return {"indices": [], "futures": [], "sectors": [], "commodities": [], "currencies": [],
                 "timestamp": ts, "error": str(e)}
 
-def _fetch_market_data():
+
+def _fetch_market_data() -> dict:
     ts = datetime.now(timezone.utc).isoformat()
+
+    # Collect all symbols into three batches (one API call each)
+    index_syms     = [i["symbol"] for i in INDICES]
+    futures_syms   = [f["symbol"] for f in FUTURES]
+    vix_syms       = [VIX_SYMBOL]
+    sector_syms    = [s["symbol"] for s in SECTORS]
+    commodity_syms = [c["symbol"] for c in COMMODITIES]
+    currency_syms  = [c["symbol"] for c in CURRENCIES]
+
+    # Batch 1: indices + futures + VIX
+    batch1 = get_quotes(index_syms + futures_syms + vix_syms)
+    # Batch 2: sectors
+    batch2 = get_quotes(sector_syms)
+    # Batch 3: commodities + currencies
+    batch3 = get_quotes(commodity_syms + currency_syms)
+
+    all_quotes = {**batch1, **batch2, **batch3}
 
     # ── INDICES ───────────────────────────────────────────────
     indices_out = []
     for idx in INDICES:
-        stats = _fetch_ticker_stats(idx["symbol"], ytd=True)
+        q = all_quotes.get(idx["symbol"])
+        stats = _parse_quote(q) if q else None
         if stats:
+            stats["ytd_pct"] = _ytd_pct(idx["symbol"], stats["price"])
             indices_out.append({**idx, **stats})
         else:
             indices_out.append({**idx, **_null_instrument(idx["label"], idx["symbol"])})
@@ -253,7 +279,8 @@ def _fetch_market_data():
     # ── FUTURES ───────────────────────────────────────────────
     futures_out = []
     for fut in FUTURES:
-        stats = _fetch_ticker_stats(fut["symbol"])
+        q = all_quotes.get(fut["symbol"])
+        stats = _parse_quote(q) if q else None
         if stats:
             futures_out.append({**fut, **stats})
         else:
@@ -262,24 +289,27 @@ def _fetch_market_data():
     futures_signal, futures_detail = _futures_signal(futures_out)
 
     # ── VIX ───────────────────────────────────────────────────
-    vix_stats  = _fetch_ticker_stats(VIX_SYMBOL)
-    vix_value  = vix_stats["price"] if vix_stats else None
-    vix_info   = _vix_signal(vix_value)
-    vix_out    = {
-        "symbol":    VIX_SYMBOL,
-        "label":     "VIX",
-        "value":     vix_value,
-        "change":    vix_stats["change"]     if vix_stats else None,
-        "pct_change":vix_stats["pct_change"] if vix_stats else None,
-        "direction": vix_stats["direction"]  if vix_stats else "FLAT",
+    vix_q     = all_quotes.get(VIX_SYMBOL)
+    vix_stats = _parse_quote(vix_q) if vix_q else None
+    vix_value = vix_stats["price"] if vix_stats else None
+    vix_info  = _vix_signal(vix_value)
+    vix_out   = {
+        "symbol":     VIX_SYMBOL,
+        "label":      "VIX",
+        "value":      vix_value,
+        "change":     vix_stats["change"]     if vix_stats else None,
+        "pct_change": vix_stats["pct_change"] if vix_stats else None,
+        "direction":  vix_stats["direction"]  if vix_stats else "FLAT",
         **vix_info,
     }
 
     # ── SECTORS ───────────────────────────────────────────────
     sectors_out = []
     for sec in SECTORS:
-        stats = _fetch_ticker_stats(sec["symbol"], ytd=True)
+        q = all_quotes.get(sec["symbol"])
+        stats = _parse_quote(q) if q else None
         if stats:
+            stats["ytd_pct"] = _ytd_pct(sec["symbol"], stats["price"])
             sectors_out.append({**sec, **stats})
         else:
             sectors_out.append({**sec, **_null_instrument(sec["label"], sec["symbol"])})
@@ -289,7 +319,8 @@ def _fetch_market_data():
     # ── COMMODITIES ───────────────────────────────────────────
     commodities_out = []
     for com in COMMODITIES:
-        stats = _fetch_ticker_stats(com["symbol"])
+        q = all_quotes.get(com["symbol"])
+        stats = _parse_quote(q) if q else None
         entry = {**com}
         if stats:
             entry.update({
@@ -306,17 +337,8 @@ def _fetch_market_data():
     currencies_out = []
     dxy_value = None
     for cur in CURRENCIES:
-        # Fallback: try DX=F if DX-Y.NYB fails for DXY
-        symbols_to_try = [cur["symbol"]]
-        if cur["symbol"] == "DX-Y.NYB":
-            symbols_to_try.append("DX=F")
-
-        stats = None
-        for sym in symbols_to_try:
-            stats = _fetch_ticker_stats(sym)
-            if stats:
-                break
-
+        q = all_quotes.get(cur["symbol"])
+        stats = _parse_quote(q) if q else None
         entry = {**cur}
         if stats:
             entry.update({
