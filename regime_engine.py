@@ -432,7 +432,7 @@ def get_regime():
         _cache["data"] = result
         _cache["ts"]   = time.time()
 
-        log.info(f"Regime classified: {label} ({confidence}% confidence)")
+        log.info(f"Regime classified: {display_label} ({confidence}% confidence)")
         return result
 
     except Exception as e:
