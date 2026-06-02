@@ -363,9 +363,9 @@
     .settings-gear { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 15px; padding: 2px 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; line-height: 1; }
     .settings-gear:hover, .settings-gear.active { color: var(--amber); }
     .settings-overlay { display: none; }
-    .settings-drawer { display: none; position: fixed; top: 52px; right: 16px; width: 320px; max-height: calc(100vh - 68px); background: #0d0d0d; border: 1px solid var(--border2); border-radius: 8px; z-index: 201; -webkit-flex-direction: column; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.6); overflow: hidden; -webkit-display: flex; }
+    .settings-drawer { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 380px; height: 480px; background: #0d0d0d; border: 1px solid var(--border2); border-radius: 14px; z-index: 1100; -webkit-flex-direction: column; flex-direction: column; box-shadow: 0 16px 48px rgba(0,0,0,0.7); overflow: hidden; -webkit-display: flex; }
     .settings-drawer.open { display: -webkit-flex; display: flex; }
-    .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; cursor: move; user-select: none; border-radius: 8px 8px 0 0; }
+    .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; cursor: move; user-select: none; border-radius: 14px 14px 0 0; }
     .settings-title-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
     .settings-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px 6px; -webkit-tap-highlight-color: transparent; line-height: 1; font-family: var(--font); }
     .settings-close:hover { color: var(--white); }
@@ -383,7 +383,7 @@
     .tog-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
     .tog input:checked + .tog-track { background: rgba(0,217,100,0.18); }
     .tog input:checked + .tog-track::after { transform: translateX(16px); background: var(--green); }
-    .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; border-radius: 0 0 8px 8px; }
+    .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; border-radius: 0 0 14px 14px; }
     .settings-reset { width: 100%; padding: 8px; background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 9px; letter-spacing: 0.14em; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
     .settings-reset:hover { border-color: var(--amber); color: var(--amber); }
     /* Drawer row drag handle */
@@ -3023,6 +3023,8 @@ function _bindDrawer(){
 // ── Open / Close ──────────────────────────────────────────────
 function openSettings(){
   const d = document.getElementById('settingsDrawer');
+  // Re-center if not yet manually dragged
+  if (!d.style.left) { d.style.transform = ''; d.style.top = ''; d.style.left = ''; }
   d.classList.add('open');
   document.getElementById('settingsGear').classList.add('active');
   renderDrawer();
@@ -3046,11 +3048,12 @@ document.getElementById('settingsClose').addEventListener('click',closeSettings)
     active = true;
     startX = cx; startY = cy;
     origL = r.left; origT = r.top;
+    // Collapse the CSS transform-based centering to explicit px coords
+    drawer.style.transform = 'none';
     drawer.style.right = 'auto';
     drawer.style.bottom = 'auto';
     drawer.style.left = origL + 'px';
     drawer.style.top  = origT + 'px';
-    drawer.style.transition = 'none';
   }
   function dragMove(cx, cy) {
     if (!active) return;
