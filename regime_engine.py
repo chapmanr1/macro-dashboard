@@ -28,7 +28,7 @@ SERIES = {
     "gdp_growth":     "GDPC1",
     "fed_funds":      "FEDFUNDS",
     "t10y2y":         "T10Y2Y",
-    "ism_pmi":        "MANEMP",
+    "ism_pmi":        "MPMINDX",
     "m2":             "M2SL",
 }
 
@@ -51,11 +51,17 @@ def _fetch_series(series_id, limit=13):
         "limit":         limit,
         "observation_start": (datetime.utcnow() - timedelta(days=730)).strftime("%Y-%m-%d"),
     }
-    resp = requests.get(FRED_BASE, params=params, timeout=10)
-    resp.raise_for_status()
-    obs = resp.json().get("observations", [])
-    # Filter out missing values
-    return [o for o in obs if o.get("value") not in (".", "", None)]
+    for attempt in range(3):
+        resp = requests.get(FRED_BASE, params=params, timeout=10)
+        if resp.status_code == 429:
+            wait = 2 ** attempt  # 1s, 2s, 4s
+            log.warning(f"FRED rate limit on {series_id} (attempt {attempt+1}), retrying in {wait}s")
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        obs = resp.json().get("observations", [])
+        return [o for o in obs if o.get("value") not in (".", "", None)]
+    raise RuntimeError(f"FRED rate limited after 3 attempts: {series_id}")
 
 def _latest(obs):
     """Return the most recent valid float value."""
