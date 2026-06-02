@@ -10,7 +10,7 @@ from twelve_data import get_quotes
 
 log = logging.getLogger(__name__)
 
-CACHE_TTL = 300  # 5 minutes for market data
+CACHE_TTL = 1200  # 20 minutes — conserves Twelve Data free-tier credits (800/day)
 
 _cache = {"data": None, "ts": 0}
 
