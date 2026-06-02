@@ -362,11 +362,10 @@
     /* ── SETTINGS DRAWER ── */
     .settings-gear { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 15px; padding: 2px 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; line-height: 1; }
     .settings-gear:hover, .settings-gear.active { color: var(--amber); }
-    .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; }
-    .settings-overlay.open { display: block; }
-    .settings-drawer { position: fixed; top: 0; right: -330px; width: 320px; height: 100vh; height: -webkit-fill-available; background: #0d0d0d; border-left: 1px solid var(--border2); z-index: 201; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
-    .settings-drawer.open { right: 0; }
-    .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; }
+    .settings-overlay { display: none; }
+    .settings-drawer { display: none; position: fixed; top: 52px; right: 16px; width: 320px; max-height: calc(100vh - 68px); background: #0d0d0d; border: 1px solid var(--border2); border-radius: 8px; z-index: 201; -webkit-flex-direction: column; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.6); overflow: hidden; -webkit-display: flex; }
+    .settings-drawer.open { display: -webkit-flex; display: flex; }
+    .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; cursor: move; user-select: none; border-radius: 8px 8px 0 0; }
     .settings-title-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
     .settings-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px 6px; -webkit-tap-highlight-color: transparent; line-height: 1; font-family: var(--font); }
     .settings-close:hover { color: var(--white); }
@@ -384,7 +383,7 @@
     .tog-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
     .tog input:checked + .tog-track { background: rgba(0,217,100,0.18); }
     .tog input:checked + .tog-track::after { transform: translateX(16px); background: var(--green); }
-    .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; }
+    .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; border-radius: 0 0 8px 8px; }
     .settings-reset { width: 100%; padding: 8px; background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 9px; letter-spacing: 0.14em; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
     .settings-reset:hover { border-color: var(--amber); color: var(--amber); }
     /* Drawer row drag handle */
@@ -402,15 +401,108 @@
     .sdrag { cursor: grab; color: transparent; font-size: 14px; padding: 0 6px 0 0; user-select: none; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
     .section-header:hover .sdrag { color: var(--muted); }
     .sdrag:hover { color: var(--amber) !important; }
-    @media (max-width: 640px) { .settings-drawer { width: 100%; right: -100%; } }
+    @media (max-width: 640px) { .settings-drawer { width: calc(100vw - 16px); right: 8px; top: 52px; } }
 
     /* ── THEMES ── */
-    html[data-theme="ultra-dark"] { --bg:#000;--bg2:#050505;--bg3:#0a0a0a;--border:#111;--border2:#1c1c1c; }
-    html[data-theme="light"] { --bg:#f0f0ec;--bg2:#e8e8e4;--bg3:#e0e0db;--border:#ccc;--border2:#bbb;--white:#1a1a1a;--muted:#888;--muted2:#666;--green:#1a6a30;--green-dim:#2a8a40;--amber:#b86a00;--amber-dim:#8a4a00;--red:#b02020;--red-dim:#801010;--blue:#1a70b0;--orange:#b05010; }
-    html[data-theme="high-contrast"] { --bg:#000;--bg2:#050505;--bg3:#080808;--border:#333;--border2:#444;--white:#fff;--muted:#aaa;--muted2:#888;--amber:#ffd700;--green:#00ff7f;--red:#ff4444;--blue:#00cfff; }
-    html[data-theme="light"] body { color:var(--white); }
-    html[data-theme="light"] .topbar, html[data-theme="light"] .settings-drawer,
-    html[data-theme="light"] .settings-hdr, html[data-theme="light"] .settings-footer { background:var(--bg2); }
+    /* original: uses :root — no overrides needed */
+    html[data-theme="original"] {}
+
+    /* Terminal: GitHub-inspired dark */
+    html[data-theme="dark"] {
+      --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;
+      --border:#30363d;--border2:#21262d;
+      --white:#e6edf3;--muted:#7d8590;--muted2:#484f58;
+    }
+
+    /* Stifel Light: white background, Stifel navy accents */
+    html[data-theme="light"] {
+      --bg:#ffffff;--bg2:#f6f8fa;--bg3:#eef1f5;
+      --border:#d0d7de;--border2:#e5e8ec;
+      --white:#1a2332;--muted:#636e7b;--muted2:#a0a9b4;
+      --amber:#003366;--amber-dim:#1a5499;
+      --green:#1a7a3c;--green-dim:#145e2e;
+      --red:#c0392b;--red-dim:#922b21;
+      --blue:#1565c0;--orange:#e67e22;
+    }
+
+    /* Midnight: deep navy with blue accent */
+    html[data-theme="midnight"] {
+      --bg:#050d1a;--bg2:#091525;--bg3:#0e1e36;
+      --border:#1a2d4a;--border2:#243d60;
+      --white:#cdd9ed;--muted:#5a7394;--muted2:#3d5270;
+      --amber:#4da3ff;--amber-dim:#2b7bd4;
+      --green:#00d964;--green-dim:#00873e;
+      --red:#ef4444;--red-dim:#7f1d1d;
+      --blue:#93c5fd;--orange:#fb923c;
+    }
+
+    /* High Contrast */
+    html[data-theme="high-contrast"] {
+      --bg:#000000;--bg2:#0a0a0a;--bg3:#111111;
+      --border:#2a2a2a;--border2:#3a3a3a;
+      --white:#ffffff;--muted:#9ca3af;--muted2:#6b7280;
+      --amber:#fbbf24;--amber-dim:#d97706;
+      --green:#22c55e;--green-dim:#16a34a;
+      --red:#f87171;--red-dim:#b91c1c;
+      --blue:#60a5fa;--orange:#fb923c;
+    }
+
+    /* ── Light theme overrides (hardcoded dark values) ── */
+    html[data-theme="light"] body { color: var(--white); }
+    html[data-theme="light"] .topbar { background: var(--bg2); border-bottom-color: var(--border); }
+    html[data-theme="light"] .settings-drawer { background: var(--bg); border-color: var(--border); box-shadow: 0 8px 32px rgba(0,51,102,0.15); }
+    html[data-theme="light"] .settings-hdr,html[data-theme="light"] .settings-footer { background: var(--bg2); border-color: var(--border); }
+    html[data-theme="light"] .sset-section summary { background: var(--bg3); }
+    html[data-theme="light"] .research-panel { background: var(--bg); border-left-color: var(--border); }
+    html[data-theme="light"] .research-hdr,html[data-theme="light"] .research-search-wrap,html[data-theme="light"] .ra-btn-strip { background: var(--bg2); }
+    html[data-theme="light"] .research-search-results { background: var(--bg); border-color: var(--blue); }
+    html[data-theme="light"] .driving-item { background: var(--bg); }
+    html[data-theme="light"] .tab-btn.active { background: rgba(0,51,102,0.06); }
+    html[data-theme="light"] .regime-tag { background: rgba(0,51,102,0.06); }
+    html[data-theme="light"] .signal-badge.amber { background: rgba(0,51,102,0.05); }
+    html[data-theme="light"] .briefing-section { background: rgba(0,51,102,0.03); border-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .briefing-section .section-header { background: rgba(0,51,102,0.05); }
+    html[data-theme="light"] .briefing-section-hdr { border-bottom-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .briefing-refresh-btn:hover { color: #ffffff; }
+    html[data-theme="light"] .alert-banner { background: rgba(0,51,102,0.07); }
+    html[data-theme="light"] .chart-modal-content { background: var(--bg); border-color: rgba(0,51,102,0.35); box-shadow: 0 0 40px rgba(0,51,102,0.12); }
+    html[data-theme="light"] .modal-chart-wrapper { background: var(--bg2); }
+    html[data-theme="light"] .quick-stat,html[data-theme="light"] .summary-stat { background: var(--bg); }
+    html[data-theme="light"] .modal-header { border-bottom-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .modal-quick-stats { background: rgba(0,51,102,0.06); border-bottom-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .modal-controls { border-bottom-color: rgba(0,51,102,0.08); }
+    html[data-theme="light"] .modal-period-btn { border-color: rgba(0,51,102,0.2); color: var(--muted); }
+    html[data-theme="light"] .modal-period-btn.active { background: rgba(0,51,102,0.08); }
+    html[data-theme="light"] .modal-summary-stats { background: rgba(0,51,102,0.06); border-top-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .modal-action-buttons { border-top-color: rgba(0,51,102,0.15); }
+    html[data-theme="light"] .modal-action-btn { border-color: rgba(0,51,102,0.25); }
+    html[data-theme="light"] .modal-action-btn:hover { background: rgba(0,51,102,0.06); }
+
+    /* ── Midnight theme overrides (hardcoded dark values) ── */
+    html[data-theme="midnight"] .settings-drawer { background: var(--bg); border-color: var(--border2); }
+    html[data-theme="midnight"] .settings-hdr,html[data-theme="midnight"] .settings-footer { background: var(--bg2); }
+    html[data-theme="midnight"] .sset-section summary { background: var(--bg2); }
+    html[data-theme="midnight"] .research-panel,html[data-theme="midnight"] .driving-item { background: var(--bg); }
+    html[data-theme="midnight"] .research-hdr,html[data-theme="midnight"] .research-search-wrap,html[data-theme="midnight"] .ra-btn-strip { background: var(--bg2); }
+    html[data-theme="midnight"] .chart-modal-content { background: var(--bg); border-color: rgba(77,163,255,0.4); box-shadow: 0 0 40px rgba(77,163,255,0.15); }
+    html[data-theme="midnight"] .modal-chart-wrapper { background: var(--bg2); }
+    html[data-theme="midnight"] .quick-stat,html[data-theme="midnight"] .summary-stat { background: var(--bg); }
+    html[data-theme="midnight"] .tab-btn.active { background: rgba(77,163,255,0.07); }
+    html[data-theme="midnight"] .regime-tag { background: rgba(77,163,255,0.07); }
+    html[data-theme="midnight"] .signal-badge.amber { background: rgba(77,163,255,0.05); }
+    html[data-theme="midnight"] .briefing-section { background: rgba(77,163,255,0.03); border-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .briefing-section .section-header { background: rgba(77,163,255,0.06); }
+    html[data-theme="midnight"] .briefing-section-hdr { border-bottom-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .chart-modal-content { border-color: rgba(77,163,255,0.4); }
+    html[data-theme="midnight"] .modal-header { border-bottom-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .modal-quick-stats { background: rgba(77,163,255,0.06); border-bottom-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .modal-controls { border-bottom-color: rgba(77,163,255,0.1); }
+    html[data-theme="midnight"] .modal-period-btn { border-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .modal-period-btn.active { background: rgba(77,163,255,0.12); }
+    html[data-theme="midnight"] .modal-summary-stats { background: rgba(77,163,255,0.06); border-top-color: rgba(77,163,255,0.2); }
+    html[data-theme="midnight"] .modal-action-btn { border-color: rgba(77,163,255,0.3); }
+    html[data-theme="midnight"] .modal-action-btn:hover { background: rgba(77,163,255,0.1); }
+    html[data-theme="midnight"] .alert-banner { background: rgba(77,163,255,0.10); }
 
     /* ── FONT SIZES ── */
     html[data-fontsize="compact"] body { font-size:11px; }
@@ -1160,8 +1252,8 @@
 <!-- SETTINGS OVERLAY + DRAWER -->
 <div class="settings-overlay" id="settingsOverlay"></div>
 <div class="settings-drawer" id="settingsDrawer">
-  <div class="settings-hdr">
-    <div class="settings-title-lbl">SETTINGS</div>
+  <div class="settings-hdr" id="settingsHdr">
+    <div class="settings-title-lbl">⠿ SETTINGS</div>
     <button class="settings-close" id="settingsClose">✕</button>
   </div>
   <div class="settings-body" id="settingsBody"></div>
@@ -2419,7 +2511,7 @@ const ST_KEY = 'macrodash_settings_v3';
 const S_KEY  = 'macrodash_sv2';
 
 const ST_DEF = {
-  theme:'dark', fontSize:'normal', density:'normal',
+  theme:'original', fontSize:'normal', density:'normal',
   refreshRate:120, numFormat:'abbreviated', decimals:2,
   inflationThreshold:3.5, growthThreshold:2.0,
   bullProb:33, baseProb:34, bearProb:33,
@@ -2470,7 +2562,7 @@ let _appRefreshInt = null;
 function applyAppSettings() {
   const d = stLoad();
   const h = document.documentElement;
-  h.setAttribute('data-theme',    d.theme    || 'dark');
+  h.setAttribute('data-theme',    d.theme    || 'original');
   h.setAttribute('data-fontsize', d.fontSize || 'normal');
   h.setAttribute('data-density',  d.density  || 'normal');
   h.setAttribute('data-client',   d.clientMode ? 'true' : 'false');
@@ -2604,7 +2696,7 @@ function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
   return _sh('01','DISPLAY &amp; APPEARANCE',true)+
-    _sf('Theme',_ss('stTheme',[['dark','DARK'],['ultra-dark','ULTRA DARK'],['light','LIGHT'],['high-contrast','HIGH CONTRAST']],d.theme))+
+    _sf('Theme',_ss('stTheme',[['original','ORIGINAL'],['dark','TERMINAL'],['light','STIFEL LIGHT'],['midnight','MIDNIGHT'],['high-contrast','HIGH CONTRAST']],d.theme))+
     _sf('Font Size',_ss('stFontSize',[['compact','COMPACT'],['normal','NORMAL'],['large','LARGE']],d.fontSize))+
     _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
     _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
@@ -2930,20 +3022,53 @@ function _bindDrawer(){
 
 // ── Open / Close ──────────────────────────────────────────────
 function openSettings(){
-  document.getElementById('settingsDrawer').classList.add('open');
-  document.getElementById('settingsOverlay').classList.add('open');
+  const d = document.getElementById('settingsDrawer');
+  d.classList.add('open');
   document.getElementById('settingsGear').classList.add('active');
   renderDrawer();
 }
 function closeSettings(){
   document.getElementById('settingsDrawer').classList.remove('open');
-  document.getElementById('settingsOverlay').classList.remove('open');
   document.getElementById('settingsGear').classList.remove('active');
 }
 document.getElementById('settingsGear').addEventListener('click',()=>
   document.getElementById('settingsDrawer').classList.contains('open')?closeSettings():openSettings());
 document.getElementById('settingsClose').addEventListener('click',closeSettings);
-document.getElementById('settingsOverlay').addEventListener('click',closeSettings);
+
+// ── Drag logic ────────────────────────────────────────────────
+(function(){
+  const drawer = document.getElementById('settingsDrawer');
+  const handle = document.getElementById('settingsHdr');
+  let active = false, startX = 0, startY = 0, origL = 0, origT = 0;
+
+  function dragStart(cx, cy) {
+    const r = drawer.getBoundingClientRect();
+    active = true;
+    startX = cx; startY = cy;
+    origL = r.left; origT = r.top;
+    drawer.style.right = 'auto';
+    drawer.style.bottom = 'auto';
+    drawer.style.left = origL + 'px';
+    drawer.style.top  = origT + 'px';
+    drawer.style.transition = 'none';
+  }
+  function dragMove(cx, cy) {
+    if (!active) return;
+    const dx = cx - startX, dy = cy - startY;
+    const maxL = window.innerWidth  - drawer.offsetWidth;
+    const maxT = window.innerHeight - drawer.offsetHeight;
+    drawer.style.left = Math.max(0, Math.min(maxL, origL + dx)) + 'px';
+    drawer.style.top  = Math.max(0, Math.min(maxT, origT + dy)) + 'px';
+  }
+  function dragEnd() { active = false; }
+
+  handle.addEventListener('mousedown',  e => { dragStart(e.clientX, e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', e => dragMove(e.clientX, e.clientY));
+  document.addEventListener('mouseup',   dragEnd);
+  handle.addEventListener('touchstart',  e => { dragStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+  document.addEventListener('touchmove',  e => { if(active) { dragMove(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, {passive:false});
+  document.addEventListener('touchend',  dragEnd);
+})();
 document.getElementById('settingsReset').addEventListener('click',()=>{
   if(!confirm('Reset ALL settings to defaults?'))return;
   localStorage.removeItem(ST_KEY);localStorage.removeItem(S_KEY);
