@@ -60,6 +60,16 @@ CURRENCIES = [
 VIX_SYMBOL = "^VIX"
 VIX_DISPLAY_MAX = 50
 
+BREADTH_SYMBOLS = [
+    {"symbol": "RSP", "label": "S&P EQL-WT", "description": "Equal-weight S&P 500"},
+]
+
+# VIX term structure ETFs (VIXY = front-month, already in VIX_SYMBOL mapping)
+VIX_TERM_SYMBOLS = [
+    {"symbol": "VIXM", "label": "VIX MID",  "months": "5M",  "description": "~5-month VIX futures"},
+    {"symbol": "VXZ",  "label": "VIX LONG", "months": "7M+", "description": "~7-month VIX futures"},
+]
+
 # ── QUOTE PARSING ─────────────────────────────────────────────
 
 def _parse_quote(quote: dict) -> Optional[dict]:
@@ -170,6 +180,60 @@ def _sector_signal(sectors_data):
         return "MIXED — NO CLEAR SIGNAL", "Sector performance is balanced with no dominant rotation signal — wait for confirmation."
 
 
+def _breadth_signal(breadth: dict) -> tuple[str, str]:
+    diff = breadth.get("differential")
+    up   = breadth.get("sectors_up", 0)
+    down = breadth.get("sectors_down", 0)
+    if diff is None:
+        return "UNKNOWN", "Market breadth data unavailable."
+    if diff > 0.3 and up >= 8:
+        return "BROAD ADVANCE", f"Equal-weight outpacing cap-weight by {diff:+.2f}% — rally has wide participation."
+    elif diff > 0.15:
+        return "IMPROVING BREADTH", f"Equal-weight outperforming — breadth expanding. {up} of 11 sectors advancing."
+    elif diff < -0.3 and down >= 8:
+        return "NARROW RALLY", f"Cap-weight outpacing equal-weight by {abs(diff):.2f}% — mega-cap concentration risk."
+    elif diff < -0.15:
+        return "DETERIORATING BREADTH", f"Cap-weight leading — breadth narrowing. {down} of 11 sectors declining."
+    else:
+        return "NEUTRAL BREADTH", f"Cap- and equal-weight S&P roughly in line. {up} sectors up, {down} down."
+
+
+def _vix_term_signal(vix_term: list[dict]) -> tuple[str, str]:
+    front = next((v for v in vix_term if v.get("months") == "1M"), None)
+    mid   = next((v for v in vix_term if v.get("months") == "5M"), None)
+    if not front or not mid or front.get("price") is None or mid.get("price") is None:
+        return "UNKNOWN", "VIX term structure data unavailable."
+    fp, mp = front["price"], mid["price"]
+    ratio  = mp / fp if fp > 0 else 1.0
+    if ratio > 1.12:
+        return "CONTANGO — STEEP", f"Front-month VIX well below mid-term ({fp:.2f} vs {mp:.2f}) — market calm; complacency risk building."
+    elif ratio > 1.03:
+        return "CONTANGO", f"Normal term structure — mid-term VIX ({mp:.2f}) above front ({fp:.2f}). Low systemic stress."
+    elif ratio > 0.97:
+        return "FLAT", f"VIX term structure flattening ({fp:.2f} vs {mp:.2f}) — subtle shift in risk perception."
+    elif ratio > 0.90:
+        return "BACKWARDATION", f"Near-term VIX ({fp:.2f}) above mid-term ({mp:.2f}) — elevated current fear vs future expectations."
+    else:
+        return "STEEP BACKWARDATION", f"VIX strongly inverted ({fp:.2f} vs {mp:.2f}) — acute near-term fear spike. Monitor for capitulation."
+
+
+def _cu_au_signal(ratio: Optional[float]) -> tuple[str, str]:
+    """
+    Copper/gold ratio: copper in $/lb (HG), gold in $/oz (XAU).
+    Typical range ~0.0015–0.0030. Rising ratio = growth positive.
+    """
+    if ratio is None:
+        return "UNKNOWN", "Copper/gold ratio data unavailable."
+    if ratio > 0.0026:
+        return "GROWTH POSITIVE", f"Copper/gold ratio {ratio:.4f} — industrial demand strong, growth outlook constructive."
+    elif ratio > 0.0020:
+        return "NEUTRAL — MODEST GROWTH", f"Copper/gold ratio {ratio:.4f} — balanced cyclical vs safe-haven demand."
+    elif ratio > 0.0015:
+        return "RISK AVERSE", f"Copper/gold ratio {ratio:.4f} — gold outperforming copper, growth concerns elevated."
+    else:
+        return "GROWTH CONCERN", f"Copper/gold ratio {ratio:.4f} depressed — gold bid vs copper signals macro risk-off."
+
+
 def _dollar_signal(dxy_value):
     from config import DOLLAR_THRESHOLDS as D
     if dxy_value is None:
@@ -217,9 +281,11 @@ def _fetch_market_data() -> dict:
     sector_syms    = [s["symbol"] for s in SECTORS]
     commodity_syms = [c["symbol"] for c in COMMODITIES]
     currency_syms  = [c["symbol"] for c in CURRENCIES]
+    breadth_syms   = [b["symbol"] for b in BREADTH_SYMBOLS]
+    vix_term_syms  = [v["symbol"] for v in VIX_TERM_SYMBOLS]
 
-    # Batch 1: indices + futures + VIX
-    batch1 = get_quotes(index_syms + futures_syms + vix_syms)
+    # Batch 1: indices + futures + VIX + breadth + VIX term structure
+    batch1 = get_quotes(index_syms + futures_syms + vix_syms + breadth_syms + vix_term_syms)
     # Batch 2: sectors
     batch2 = get_quotes(sector_syms)
     # Batch 3: commodities + currencies
@@ -264,6 +330,35 @@ def _fetch_market_data() -> dict:
         **vix_info,
     }
 
+    # ── VIX TERM STRUCTURE ────────────────────────────────────
+    # Front-month (VIXY proxy) already captured in vix_value above
+    vix_term_out = []
+    vixy_entry = {
+        "symbol":      "VIXY",
+        "label":       "VIX FRONT",
+        "months":      "1M",
+        "description": "~1-month VIX futures",
+        "price":       vix_value,
+        "pct_change":  vix_stats["pct_change"] if vix_stats else None,
+        "direction":   vix_stats["direction"]  if vix_stats else "FLAT",
+    }
+    vix_term_out.append(vixy_entry)
+    for vt in VIX_TERM_SYMBOLS:
+        q     = all_quotes.get(vt["symbol"])
+        stats = _parse_quote(q) if q else None
+        entry = {**vt}
+        if stats:
+            entry.update({
+                "price":      stats["price"],
+                "pct_change": stats["pct_change"],
+                "direction":  stats["direction"],
+            })
+        else:
+            entry.update({"price": None, "pct_change": None, "direction": "FLAT"})
+        vix_term_out.append(entry)
+
+    vix_term_signal, vix_term_detail = _vix_term_signal(vix_term_out)
+
     # ── SECTORS ───────────────────────────────────────────────
     sectors_out = []
     for sec in SECTORS:
@@ -275,6 +370,31 @@ def _fetch_market_data() -> dict:
             sectors_out.append({**sec, **_null_instrument(sec["label"], sec["symbol"])})
 
     sector_signal, sector_detail = _sector_signal(sectors_out)
+
+    # ── MARKET BREADTH ────────────────────────────────────────
+    # RSP (equal-weight S&P) vs SPY (cap-weight, proxied by ^GSPC)
+    spy_q     = all_quotes.get("^GSPC")
+    rsp_q     = all_quotes.get("RSP")
+    spy_stats = _parse_quote(spy_q) if spy_q else None
+    rsp_stats = _parse_quote(rsp_q) if rsp_q else None
+
+    sectors_up   = sum(1 for s in sectors_out if (s.get("pct_change") or 0) >  0.2)
+    sectors_down = sum(1 for s in sectors_out if (s.get("pct_change") or 0) < -0.2)
+
+    breadth_out = {
+        "spy_pct":      spy_stats["pct_change"] if spy_stats else None,
+        "rsp_pct":      rsp_stats["pct_change"] if rsp_stats else None,
+        "rsp_price":    rsp_stats["price"]      if rsp_stats else None,
+        "differential": None,
+        "sectors_up":   sectors_up,
+        "sectors_down": sectors_down,
+    }
+    if spy_stats and rsp_stats:
+        breadth_out["differential"] = round(rsp_stats["pct_change"] - spy_stats["pct_change"], 3)
+
+    breadth_signal, breadth_detail = _breadth_signal(breadth_out)
+    breadth_out["signal"] = breadth_signal
+    breadth_out["detail"] = breadth_detail
 
     # ── COMMODITIES ───────────────────────────────────────────
     commodities_out = []
@@ -292,6 +412,14 @@ def _fetch_market_data() -> dict:
         else:
             entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
         commodities_out.append(entry)
+
+    # ── COPPER / GOLD RATIO ───────────────────────────────────
+    copper_entry = next((c for c in commodities_out if c["symbol"] == "HG=F"), None)
+    gold_entry   = next((c for c in commodities_out if c["symbol"] == "GC=F"), None)
+    cu_au_ratio  = None
+    if copper_entry and gold_entry and copper_entry.get("price") and gold_entry.get("price"):
+        cu_au_ratio = round(copper_entry["price"] / gold_entry["price"], 5)
+    cu_au_signal, cu_au_detail = _cu_au_signal(cu_au_ratio)
 
     # ── CURRENCIES ────────────────────────────────────────────
     currencies_out = []
@@ -316,19 +444,26 @@ def _fetch_market_data() -> dict:
     dollar_signal, dollar_detail = _dollar_signal(dxy_value)
 
     result = {
-        "indices":        indices_out,
-        "futures":        futures_out,
-        "futures_signal": futures_signal,
-        "futures_detail": futures_detail,
-        "vix":            vix_out,
-        "sectors":        sectors_out,
-        "sector_signal":  sector_signal,
-        "sector_detail":  sector_detail,
-        "commodities":    commodities_out,
-        "currencies":     currencies_out,
-        "dollar_signal":  dollar_signal,
-        "dollar_detail":  dollar_detail,
-        "timestamp":      ts,
+        "indices":          indices_out,
+        "futures":          futures_out,
+        "futures_signal":   futures_signal,
+        "futures_detail":   futures_detail,
+        "vix":              vix_out,
+        "vix_term":         vix_term_out,
+        "vix_term_signal":  vix_term_signal,
+        "vix_term_detail":  vix_term_detail,
+        "sectors":          sectors_out,
+        "sector_signal":    sector_signal,
+        "sector_detail":    sector_detail,
+        "breadth":          breadth_out,
+        "commodities":      commodities_out,
+        "cu_au_ratio":      cu_au_ratio,
+        "cu_au_signal":     cu_au_signal,
+        "cu_au_detail":     cu_au_detail,
+        "currencies":       currencies_out,
+        "dollar_signal":    dollar_signal,
+        "dollar_detail":    dollar_detail,
+        "timestamp":        ts,
     }
 
     _cache["data"] = result

@@ -26,12 +26,20 @@ except ImportError:
         return {"status": "no_api_key", "message": "AI briefing module not loaded"}
 
 try:
-    from regime_engine import get_regime
+    from regime_engine import get_regime, get_regime_history
 except ImportError:
     def get_regime():
         return {"label": "UNAVAILABLE", "confidence_score": 0,
                 "indicator_breakdown": [], "key_risks": ["Regime engine not loaded"],
                 "asset_class_positioning": [], "timestamp": datetime.utcnow().isoformat()}
+    def get_regime_history():
+        return []
+
+try:
+    from fed_watch import get_fed_watch
+except ImportError:
+    def get_fed_watch():
+        return {"error": "FedWatch module not loaded", "timestamp": datetime.utcnow().isoformat()}
 
 try:
     from fred_data import get_macro, get_yields, get_economy, get_credit, get_economic_calendar
@@ -262,6 +270,22 @@ def api_briefing_refresh():
     except Exception as e:
         log.error(f"Briefing refresh error: {e}\n{traceback.format_exc()}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/fedwatch")
+def api_fedwatch():
+    try:
+        return jsonify(get_fed_watch())
+    except Exception as e:
+        log.error(f"FedWatch error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/regime/history")
+def api_regime_history():
+    try:
+        return jsonify({"history": get_regime_history(), "timestamp": datetime.utcnow().isoformat()})
+    except Exception as e:
+        log.error(f"Regime history error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "history": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/health")
 def api_health():

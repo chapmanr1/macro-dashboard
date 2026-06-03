@@ -15,10 +15,11 @@ FRED_BASE    = "https://api.stlouisfed.org/fred/series/observations"
 CACHE_TTL    = 3600
 
 _cache = {
-    "macro":    {"data": None, "ts": 0},
-    "yields":   {"data": None, "ts": 0},
-    "economy":  {"data": None, "ts": 0},
-    "credit":   {"data": None, "ts": 0},
+    "macro":     {"data": None, "ts": 0},
+    "yields":    {"data": None, "ts": 0},
+    "economy":   {"data": None, "ts": 0},
+    "credit":    {"data": None, "ts": 0},
+    "surprises": {"data": None, "ts": 0},
 }
 
 def _cache_valid(key):
@@ -631,14 +632,105 @@ def _eval_falsification_triggers():
     return results
 
 
+# ── MACRO SURPRISE ACTUALS ────────────────────────────────────
+# Maps calendar event names → (FRED series, calc_type, direction_pref)
+# direction_pref: "lower_better" (inflation/claims) or "higher_better" (jobs/growth/ISM)
+_SURPRISE_MAP = {
+    "CPI RELEASE":            ("CPIAUCSL", "yoy",     "lower_better"),
+    "CORE CPI":               ("CPILFESL", "yoy",     "lower_better"),
+    "NONFARM PAYROLLS":       ("PAYEMS",   "mom_k",   "higher_better"),
+    "UNEMPLOYMENT RATE":      ("UNRATE",   "latest",  "lower_better"),
+    "ISM MANUFACTURING":      ("MPMINDX",  "latest",  "higher_better"),
+    "ISM SERVICES":           ("NMFCI",    "latest",  "higher_better"),
+    "CORE PCE INFLATION":     ("PCEPILFE", "yoy",     "lower_better"),
+    "INITIAL JOBLESS CLAIMS": ("ICSA",     "latest",  "lower_better"),
+    "RETAIL SALES":           ("RSAFS",    "mom_pct", "higher_better"),
+    "PPI RELEASE":            ("PPIACO",   "yoy",     "lower_better"),
+}
+
+
+def _fetch_surprise_data() -> dict:
+    """Fetch latest 2 observations for key calendar series. Returns {} on failure."""
+    if _cache_valid("surprises"):
+        return _cache["surprises"]["data"]
+
+    result: dict = {}
+    for event_name, (series_id, calc, direction) in _SURPRISE_MAP.items():
+        try:
+            obs = _fetch_series(series_id, limit=14)
+            if not obs:
+                continue
+            current = _latest_val(obs)
+            if calc == "yoy":
+                current_yoy, _ = _yoy_pct(obs)
+                prior_yoy = None
+                if len(obs) >= 2:
+                    prior_yoy, _ = _yoy_pct(obs[1:])
+                val_str  = f"{current_yoy:.1f}% YoY" if current_yoy is not None else None
+                val_curr = current_yoy
+                val_prev = prior_yoy
+            elif calc == "mom_k":
+                # Change in thousands (PAYEMS is in thousands)
+                prior = _prior_val(obs, offset=1)
+                if current is not None and prior is not None:
+                    chg   = current - prior
+                    val_str  = f"{int(chg):+,}K"
+                    val_curr = chg
+                    val_prev = None
+                else:
+                    val_str = val_curr = val_prev = None
+            elif calc == "mom_pct":
+                prior = _prior_val(obs, offset=1)
+                chg   = _safe_change(current, prior)
+                val_str  = f"{chg:+.1f}%" if chg is not None else None
+                val_curr = chg
+                val_prev = None
+            else:  # latest
+                prior    = _prior_val(obs, offset=1)
+                val_str  = f"{current:.1f}" if current is not None else None
+                if event_name == "UNEMPLOYMENT RATE" and current is not None:
+                    val_str = f"{current:.1f}%"
+                elif event_name == "INITIAL JOBLESS CLAIMS" and current is not None:
+                    val_str = f"{int(current):,}"
+                val_curr = current
+                val_prev = prior
+
+            if val_curr is None:
+                continue
+
+            # Compute surprise tag
+            if val_prev is not None and val_curr is not None:
+                delta = val_curr - val_prev
+                threshold = abs(val_curr) * 0.02 if val_curr != 0 else 0.1
+                if direction == "lower_better":
+                    tag = "BEAT" if delta < -threshold else "MISS" if delta > threshold else "INLINE"
+                else:
+                    tag = "BEAT" if delta > threshold else "MISS" if delta < -threshold else "INLINE"
+            else:
+                tag = None
+
+            result[event_name] = {"actual_str": val_str, "surprise_tag": tag}
+        except Exception as e:
+            log.debug(f"Surprise fetch failed for {event_name}: {e}")
+
+    _set_cache("surprises", result)
+    return result
+
+
 # ── ECONOMIC CALENDAR ─────────────────────────────────────────
 def get_economic_calendar():
     """
     Generate approximate economic calendar for the next 7 days.
     Based on standard federal release patterns — dates are approximate.
+    Annotates events with latest FRED actuals where available.
     """
-    today  = datetime.utcnow().date()
-    events = []
+    today   = datetime.utcnow().date()
+    events  = []
+    surprises: dict = {}
+    try:
+        surprises = _fetch_surprise_data()
+    except Exception:
+        pass  # Calendar still works without surprise data
 
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
@@ -700,6 +792,13 @@ def get_economic_calendar():
             day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT PRELIM", "impact": "MEDIUM", "note": "Monthly"})
 
         if day_ev:
+            # Annotate events with latest FRED actuals
+            for ev in day_ev:
+                ev_name = ev.get("event", "")
+                sur = surprises.get(ev_name)
+                if sur:
+                    ev["actual_str"]   = sur.get("actual_str")
+                    ev["surprise_tag"] = sur.get("surprise_tag")
             events.append({
                 "date":        d.isoformat(),
                 "day_of_week": d.strftime("%A").upper(),

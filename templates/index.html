@@ -869,6 +869,68 @@
       .modal-action-btn{padding:7px 10px;font-size:10px;flex:1;min-width:70px}
     }
 
+    /* ── FED RATE PATH PANEL ── */
+    .fedwatch-wrap { padding: 12px 14px; }
+    .fedwatch-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .fedwatch-ff { font-size: 22px; font-weight: 700; color: var(--amber); letter-spacing: 0.06em; }
+    .fedwatch-ff-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-top: 2px; }
+    .fedwatch-signal-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; padding: 4px 10px; border: 1px solid var(--amber); color: var(--amber); }
+    .fedwatch-signal-badge.dovish { border-color: var(--green); color: var(--green); }
+    .fedwatch-signal-badge.hawkish { border-color: var(--red); color: var(--red); }
+    .fedwatch-signal-badge.hold { border-color: var(--muted); color: var(--muted); }
+    .fedwatch-detail { font-size: 10px; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 12px; }
+    .fedwatch-path { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .fedwatch-horizon { background: var(--bg3); border: 1px solid var(--border); padding: 10px 12px; }
+    .fedwatch-h-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 5px; }
+    .fedwatch-h-yield { font-size: 16px; font-weight: 700; }
+    .fedwatch-h-cuts { font-size: 9px; letter-spacing: 0.06em; margin-top: 3px; }
+    .fedwatch-h-dir { font-size: 7px; font-weight: 700; letter-spacing: 0.14em; margin-top: 4px; padding: 2px 5px; display: inline-block; }
+    .fedwatch-h-dir.CUTS { color: var(--green); border: 1px solid var(--green-dim); }
+    .fedwatch-h-dir.HIKES { color: var(--red); border: 1px solid var(--red-dim); }
+    .fedwatch-h-dir.HOLD { color: var(--muted); border: 1px solid var(--border2); }
+    .fedwatch-h-dir.UNKNOWN { color: var(--muted); border: 1px solid var(--border2); }
+
+    /* ── REGIME HISTORY TIMELINE ── */
+    .regime-history-wrap { padding: 14px; overflow-x: auto; }
+    .regime-history-timeline { display: flex; gap: 3px; min-height: 56px; align-items: flex-end; flex-wrap: nowrap; }
+    .rh-block { flex-shrink: 0; min-width: 22px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 3px; cursor: default; transition: opacity 0.15s; position: relative; }
+    .rh-block:hover { opacity: 0.8; }
+    .rh-block-label { font-size: 7px; font-weight: 700; letter-spacing: 0.06em; writing-mode: vertical-lr; transform: rotate(180deg); color: rgba(0,0,0,0.7); white-space: nowrap; overflow: hidden; max-height: 38px; }
+    .rh-date-row { display: flex; gap: 3px; margin-top: 4px; }
+    .rh-date { flex-shrink: 0; min-width: 22px; font-size: 7px; color: var(--muted); text-align: center; }
+    .rh-empty { padding: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+
+    /* ── MARKET BREADTH ── */
+    .breadth-wrap { padding: 12px 14px; }
+    .breadth-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .breadth-cell { background: var(--bg3); border: 1px solid var(--border); padding: 10px 12px; }
+    .breadth-cell-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 5px; }
+    .breadth-cell-val { font-size: 16px; font-weight: 700; }
+    .breadth-cell-sub { font-size: 9px; color: var(--muted); margin-top: 3px; }
+    .breadth-detail { font-size: 10px; color: var(--muted); letter-spacing: 0.03em; }
+
+    /* ── VIX TERM STRUCTURE ── */
+    .vix-term-wrap { padding: 12px 14px; }
+    .vix-term-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+    .vix-term-bar { background: var(--bg3); border: 1px solid var(--border); padding: 10px 12px; }
+    .vix-term-bar-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 5px; }
+    .vix-term-bar-val { font-size: 16px; font-weight: 700; }
+    .vix-term-bar-sub { font-size: 9px; color: var(--muted); margin-top: 3px; }
+    .vix-term-track { height: 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+    .vix-term-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+    .vix-term-detail { font-size: 10px; color: var(--muted); letter-spacing: 0.03em; }
+
+    /* ── COPPER / GOLD RATIO ── */
+    .cu-au-wrap { padding: 10px 14px; display: flex; align-items: center; gap: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .cu-au-label { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; font-weight: 700; flex-shrink: 0; }
+    .cu-au-ratio { font-size: 16px; font-weight: 700; }
+    .cu-au-signal-badge { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 8px; border: 1px solid var(--border2); color: var(--muted); flex-shrink: 0; }
+    .cu-au-detail { font-size: 9px; color: var(--muted); letter-spacing: 0.03em; flex: 1; }
+
+    /* ── PREP EXPORT BUTTON ── */
+    .prep-export-btn { background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 8px; letter-spacing: 0.12em; padding: 3px 7px; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; }
+    .prep-export-btn:hover { border-color: var(--amber); color: var(--amber); }
+
     /* ── TICKER SYMBOL CLICK HINTS ── */
     .watchlist-ticker-symbol, .search-result-ticker { cursor:pointer;transition:color 0.15s; }
     .watchlist-ticker-symbol:hover, .search-result-ticker:hover { color:var(--amber);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px; }
@@ -887,6 +949,7 @@
     <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
     <span id="clock">--:--:--</span>
     <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
+    <button class="prep-export-btn" id="prepExportBtn" title="Export daily prep summary">PREP</button>
     <button class="research-btn" id="researchBtn" title="Research"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg></button>
     <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
   </div>
@@ -1013,6 +1076,34 @@
       </div>
     </div>
 
+    <div class="section-header" id="fedwatch-header">
+      <div class="section-title">FED RATE PATH</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="fedwatchTimestamp">--</div>
+    </div>
+    <div id="fedwatchContent">
+      <div class="fedwatch-wrap">
+        <div class="skel" style="height:22px;width:80px;margin-bottom:10px"></div>
+        <div class="skel" style="height:10px;width:260px;margin-bottom:12px"></div>
+        <div class="fedwatch-path">
+          <div class="skel" style="height:66px"></div>
+          <div class="skel" style="height:66px"></div>
+          <div class="skel" style="height:66px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header" id="regime-history-header">
+      <div class="section-title">REGIME HISTORY</div>
+      <div class="section-line"></div>
+      <div class="section-meta">90-DAY</div>
+    </div>
+    <div id="regimeHistoryContent">
+      <div class="regime-history-wrap">
+        <div class="skel" style="height:44px;width:100%"></div>
+      </div>
+    </div>
+
   </div><!-- /tab-overview -->
 
   <!-- ══════════════════════════════════════════════════════ -->
@@ -1057,6 +1148,20 @@
       <div class="sector-cell" style="background:var(--bg3)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
     </div>
 
+    <div class="section-header" id="breadth-header">
+      <div class="section-title">MARKET BREADTH</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="breadthContent">
+      <div class="breadth-wrap">
+        <div class="breadth-grid">
+          <div class="skel" style="height:60px"></div>
+          <div class="skel" style="height:60px"></div>
+          <div class="skel" style="height:60px"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="section-header">
       <div class="section-title">VIX FEAR GAUGE</div>
       <div class="section-line"></div>
@@ -1069,6 +1174,20 @@
       </div>
     </div>
 
+    <div class="section-header" id="vix-term-header">
+      <div class="section-title">VIX TERM STRUCTURE</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="vixTermContent">
+      <div class="vix-term-wrap">
+        <div class="vix-term-bars">
+          <div class="skel" style="height:60px"></div>
+          <div class="skel" style="height:60px"></div>
+          <div class="skel" style="height:60px"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="section-header">
       <div class="section-title">COMMODITIES</div>
       <div class="section-line"></div>
@@ -1078,6 +1197,8 @@
       <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
       <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
     </div>
+
+    <div id="cuAuContent"></div>
 
     <div class="section-header">
       <div class="section-title">CURRENCIES</div>
@@ -1947,6 +2068,88 @@ function renderOverviewDriving(data) {
   if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
 
+// ── FED RATE PATH ─────────────────────────────────────────────
+function renderFedWatch(data) {
+  setTimestamp('fedwatchTimestamp', data.timestamp);
+  if (data.error) { setEl('fedwatchContent','<div class="error-row">'+data.error+'</div>'); return; }
+  const sig    = data.signal || 'UNKNOWN';
+  const sigKey = sig.toLowerCase().replace(/[\s—–]+/g, ' ').trim();
+  const sigBadgeCls = sigKey.includes('dovish') || sigKey.includes('easing') ? 'dovish'
+                    : sigKey.includes('hawkish') || sigKey.includes('tightening') ? 'hawkish'
+                    : sigKey.includes('hold') ? 'hold' : '';
+  const path  = data.implied_path || [];
+  const ffStr = data.current_ff != null ? fmt(data.current_ff, 2) + '%' : '--';
+  const bands = data.ff_lower != null && data.ff_upper != null
+    ? ` (${fmt(data.ff_lower,2)}–${fmt(data.ff_upper,2)})` : '';
+
+  const horizonHTML = path.map(p => {
+    const yldStr = p.yield != null ? fmt(p.yield, 2) + '%' : '--';
+    const cutsStr = p.cuts_priced != null
+      ? (p.cuts_priced > 0 ? p.cuts_priced + ' cut' + (p.cuts_priced !== 1 ? 's' : '')
+        : p.cuts_priced < 0 ? Math.abs(p.cuts_priced) + ' hike' + (Math.abs(p.cuts_priced) !== 1 ? 's' : '')
+        : 'no change') + ' priced' : '';
+    const dir = p.direction || 'UNKNOWN';
+    const yldCls = p.cuts_priced != null ? (p.cuts_priced > 0 ? 'c-green' : p.cuts_priced < 0 ? 'c-red' : 'c-muted') : 'c-muted';
+    return `<div class="fedwatch-horizon">
+      <div class="fedwatch-h-label">${p.label||''} — ${p.horizon||''}</div>
+      <div class="fedwatch-h-yield ${yldCls}">${yldStr}</div>
+      <div class="fedwatch-h-cuts c-muted">${cutsStr}</div>
+      <div class="fedwatch-h-dir ${dir}">${dir}</div>
+    </div>`;
+  }).join('');
+
+  setEl('fedwatchContent', `
+    <div class="fedwatch-wrap">
+      <div class="fedwatch-header">
+        <div>
+          <div class="fedwatch-ff">${ffStr}</div>
+          <div class="fedwatch-ff-label">CURRENT FED FUNDS TARGET${bands}</div>
+        </div>
+        <div class="fedwatch-signal-badge ${sigBadgeCls}">${sig}</div>
+      </div>
+      <div class="fedwatch-detail">${data.signal_detail||''}</div>
+      <div class="fedwatch-path">${horizonHTML || '<div class="c-muted">No path data</div>'}</div>
+    </div>`);
+}
+
+// ── REGIME HISTORY TIMELINE ───────────────────────────────────
+const REGIME_COLORS = {
+  'STRONG GROWTH':    '#00d964',
+  'GOLDILOCKS':       '#00d964',
+  'REFLATION':        '#38bdf8',
+  'OVERHEATING':      '#f97316',
+  'STAGFLATION RISK': '#f59e0b',
+  'STAGFLATION':      '#ef4444',
+  'RECESSION':        '#dc2626',
+  'UNAVAILABLE':      '#374151',
+};
+
+function renderRegimeHistory(data) {
+  const history = data.history || [];
+  if (!history.length) {
+    setEl('regimeHistoryContent', '<div class="regime-history-wrap"><div class="rh-empty">NO HISTORY YET — POPULATES DAILY AS REGIME IS ASSESSED</div></div>');
+    return;
+  }
+  const blocks = history.map((h, i) => {
+    const color = REGIME_COLORS[h.label] || REGIME_COLORS['STAGFLATION RISK'];
+    const short = h.label ? h.label.replace('STRONG ', 'STR ').replace('STAGFLATION RISK', 'STAG RISK') : '?';
+    const title = `${h.date}: ${h.label} (${h.confidence}%)`;
+    return `<div class="rh-block" style="background:${color}" title="${title}">
+      <div class="rh-block-label">${short}</div>
+    </div>`;
+  }).join('');
+  const dates = history.map((h, i) => {
+    const d = h.date || '';
+    const short = d.slice(5); // MM-DD
+    return `<div class="rh-date">${i === 0 || i === history.length-1 ? short : ''}</div>`;
+  }).join('');
+  setEl('regimeHistoryContent', `
+    <div class="regime-history-wrap">
+      <div class="regime-history-timeline">${blocks}</div>
+      <div class="rh-date-row">${dates}</div>
+    </div>`);
+}
+
 async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
@@ -1956,6 +2159,8 @@ async function fetchOverview() {
     apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
+    apiFetch('/api/fedwatch').then(renderFedWatch).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
+    apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
     loadBriefing().catch(() => {}),
   ]);
   setStatus(anyError ? 'error' : 'ok');
@@ -2127,7 +2332,99 @@ function renderMarkets(data) {
   setEl('currencyContent', currCells || '<div class="error-row">NO FX DATA</div>');
   document.getElementById('currencyContent').className = 'currency-grid';
 
+  // New derived panels
+  renderBreadth(data);
+  renderVixTerm(data);
+  renderCuAu(data);
+
   checkAlerts('market', data);
+}
+
+function renderBreadth(data) {
+  const b = data.breadth || {};
+  const sig = b.signal || 'UNKNOWN';
+  const sigCls = sig.includes('BROAD') || sig.includes('IMPROVING') ? 'green'
+               : sig.includes('NARROW') || sig.includes('DETERIORATING') ? 'red' : 'muted';
+  const diffVal = b.differential;
+  const diffStr = diffVal != null ? (diffVal >= 0 ? '+' : '') + fmt(diffVal, 2) + '%' : '--';
+  const diffCls = diffVal != null ? (diffVal > 0 ? 'c-green' : diffVal < 0 ? 'c-red' : 'c-muted') : 'c-muted';
+  const spyStr  = b.spy_pct != null ? (b.spy_pct >= 0 ? '+' : '') + fmt(b.spy_pct, 2) + '%' : '--';
+  const rspStr  = b.rsp_pct != null ? (b.rsp_pct >= 0 ? '+' : '') + fmt(b.rsp_pct, 2) + '%' : '--';
+  const spyCls  = colorClass(b.spy_pct, true);
+  const rspCls  = colorClass(b.rsp_pct, true);
+  setEl('breadthContent', `
+    <div class="breadth-wrap">
+      <div class="signal-bar" style="margin-bottom:10px">
+        <div class="signal-badge ${sigCls}">${sig}</div>
+        <div class="signal-detail">${b.detail||''}</div>
+      </div>
+      <div class="breadth-grid">
+        <div class="breadth-cell">
+          <div class="breadth-cell-label">SPY (CAP-WT)</div>
+          <div class="breadth-cell-val ${spyCls}">${spyStr}</div>
+          <div class="breadth-cell-sub">S&P 500</div>
+        </div>
+        <div class="breadth-cell">
+          <div class="breadth-cell-label">RSP (EQUAL-WT)</div>
+          <div class="breadth-cell-val ${rspCls}">${rspStr}</div>
+          <div class="breadth-cell-sub">Equal-weight S&P</div>
+        </div>
+        <div class="breadth-cell">
+          <div class="breadth-cell-label">RSP − SPY</div>
+          <div class="breadth-cell-val ${diffCls}">${diffStr}</div>
+          <div class="breadth-cell-sub">${b.sectors_up||0}↑ ${b.sectors_down||0}↓ sectors</div>
+        </div>
+      </div>
+    </div>`);
+}
+
+function renderVixTerm(data) {
+  const terms  = data.vix_term || [];
+  const signal = data.vix_term_signal || 'UNKNOWN';
+  const detail = data.vix_term_detail || '';
+  const sigCls = signal.includes('CONTANGO') ? 'green'
+               : signal.includes('BACKWARDATION') ? 'red'
+               : signal.includes('FLAT') ? 'amber' : 'muted';
+
+  const barMax = Math.max(...terms.map(t => t.price || 0), 1);
+  const bars = terms.map(t => {
+    const pct = t.price != null ? Math.min(100, (t.price / barMax) * 100) : 0;
+    const fill = t.months === '1M' ? 'var(--amber)' : t.months === '5M' ? 'var(--blue)' : 'var(--muted)';
+    const chgStr = t.pct_change != null ? (t.pct_change >= 0 ? '+' : '') + fmt(t.pct_change, 2) + '%' : '';
+    const valCls = colorClass(t.pct_change, false);
+    return `<div class="vix-term-bar">
+      <div class="vix-term-bar-label">${t.label||''} <span style="color:var(--muted);font-size:7px">${t.months||''}</span></div>
+      <div class="vix-term-bar-val" style="color:${fill}">${t.price != null ? fmt(t.price, 2) : '--'}</div>
+      <div class="vix-term-track" style="margin-top:6px"><div class="vix-term-fill" style="width:${pct}%;background:${fill}"></div></div>
+      <div class="vix-term-bar-sub ${valCls}">${chgStr}</div>
+    </div>`;
+  }).join('');
+
+  setEl('vixTermContent', `
+    <div class="vix-term-wrap">
+      <div class="signal-bar" style="margin-bottom:10px">
+        <div class="signal-badge ${sigCls}">${signal}</div>
+        <div class="signal-detail">${detail}</div>
+      </div>
+      <div class="vix-term-bars">${bars || '<div class="error-row">NO VIX TERM DATA</div>'}</div>
+    </div>`);
+}
+
+function renderCuAu(data) {
+  const ratio  = data.cu_au_ratio;
+  const signal = data.cu_au_signal || '';
+  const detail = data.cu_au_detail || '';
+  const sigCls = signal.includes('GROWTH POSITIVE') ? 'c-green'
+               : signal.includes('CONCERN') || signal.includes('RISK') ? 'c-red'
+               : signal.includes('NEUTRAL') ? 'c-amber' : 'c-muted';
+  const ratioStr = ratio != null ? ratio.toFixed(4) : '--';
+  setEl('cuAuContent', `
+    <div class="cu-au-wrap">
+      <div class="cu-au-label">CU/AU RATIO</div>
+      <div class="cu-au-ratio ${sigCls}">${ratioStr}</div>
+      <div class="cu-au-signal-badge" style="border-color:currentColor" class="${sigCls}">${signal}</div>
+      <div class="cu-au-detail">${detail}</div>
+    </div>`);
 }
 
 async function fetchMarkets() {
@@ -2434,13 +2731,22 @@ function renderDriving(articles) {
   if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
 
+function _calSurpriseTag(ev) {
+  if (!ev.surprise_tag) return '';
+  const tag = ev.surprise_tag;
+  const color = tag === 'BEAT' ? 'var(--green)' : tag === 'MISS' ? 'var(--red)' : 'var(--muted)';
+  const border = tag === 'BEAT' ? 'var(--green-dim)' : tag === 'MISS' ? 'var(--red-dim)' : 'var(--border2)';
+  const valStr = ev.actual_str ? ` ${ev.actual_str}` : '';
+  return `<span style="font-size:7px;font-weight:700;letter-spacing:0.1em;color:${color};border:1px solid ${border};padding:1px 5px;margin-left:5px">${tag}${valStr}</span>`;
+}
+
 function renderCalendar(events) {
   if (!events || !events.length) { setEl('calendarContent','<div style="padding:14px;font-size:9px;color:var(--muted)">NO UPCOMING EVENTS IN NEXT 7 DAYS</div>'); return; }
   const html = events.map(day => {
     const evHTML = day.events.map(ev => `
       <div class="cal-event">
         <div class="cal-time">${ev.time||''}</div>
-        <div class="cal-name">${ev.event||''} ${ev.note ? `<span style="font-size:7px;color:var(--muted)">(${ev.note})</span>` : ''}</div>
+        <div class="cal-name">${ev.event||''} ${_calSurpriseTag(ev)} ${ev.note ? `<span style="font-size:7px;color:var(--muted)">(${ev.note})</span>` : ''}</div>
         <div class="cal-impact ${ev.impact||'LOW'}">${ev.impact||''}</div>
       </div>`).join('');
     return `<div class="cal-day">
@@ -2489,6 +2795,124 @@ async function fetchNews() {
   ]);
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// DAILY PREP SUMMARY EXPORT
+// ════════════════════════════════════════════════════════════
+let _lastRegime = null, _lastMarket = null, _lastFedWatch = null, _lastHeadlines = [];
+
+// Patch render functions to cache for export
+const _origRenderRegime = renderRegime;
+renderRegime = function(d) { _lastRegime = d; _origRenderRegime(d); };
+const _origRenderMarkets = renderMarkets;
+renderMarkets = function(d) { _lastMarket = d; _origRenderMarkets(d); };
+const _origRenderFedWatch = renderFedWatch;
+renderFedWatch = function(d) { _lastFedWatch = d; _origRenderFedWatch(d); };
+
+function buildPrepSummary() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+  let lines = [];
+  lines.push('══════════════════════════════════════════');
+  lines.push('  MACRO DASHBOARD — DAILY PREP SUMMARY');
+  lines.push('  ' + dateStr);
+  lines.push('  Generated ' + timeStr);
+  lines.push('══════════════════════════════════════════');
+  lines.push('');
+
+  // Regime
+  if (_lastRegime) {
+    lines.push('MACRO REGIME');
+    lines.push('  Status:     ' + (_lastRegime.label||'--'));
+    lines.push('  Confidence: ' + (_lastRegime.confidence_score||'--') + '%');
+    const risks = (_lastRegime.key_risks||[]).slice(0,3);
+    if (risks.length) { lines.push('  Key Risks:'); risks.forEach(r => lines.push('    • ' + r)); }
+    lines.push('');
+  }
+
+  // Key Market Levels
+  if (_lastMarket) {
+    lines.push('KEY LEVELS');
+    const indices = _lastMarket.indices || [];
+    indices.forEach(i => {
+      if (i.price != null) lines.push(`  ${(i.abbr||i.label||'').padEnd(8)} ${String(i.price).padStart(10)}  (${i.pct_change >= 0 ? '+' : ''}${(i.pct_change||0).toFixed(2)}%)`);
+    });
+    const vix = _lastMarket.vix;
+    if (vix && vix.value != null) lines.push(`  VIX       ${String(vix.value).padStart(10)}  ${vix.label||''}`);
+    const uup = (_lastMarket.currencies||[]).find(c => c.label === 'UUP');
+    if (uup && uup.price != null) lines.push(`  DXY(UUP) ${String(uup.price).padStart(10)}  ${_lastMarket.dollar_signal||''}`);
+    lines.push('');
+    lines.push('FUTURES: ' + (_lastMarket.futures_signal||'--'));
+    lines.push('  ' + (_lastMarket.futures_detail||''));
+    lines.push('');
+    lines.push('SECTORS: ' + (_lastMarket.sector_signal||'--'));
+    lines.push('  ' + (_lastMarket.sector_detail||''));
+    lines.push('');
+  }
+
+  // Fed Rate Path
+  if (_lastFedWatch && !_lastFedWatch.error) {
+    lines.push('FED RATE PATH');
+    lines.push('  Current FF: ' + (_lastFedWatch.current_ff != null ? _lastFedWatch.current_ff.toFixed(2) + '%' : '--'));
+    lines.push('  Signal:     ' + (_lastFedWatch.signal||'--'));
+    lines.push('  ' + (_lastFedWatch.signal_detail||''));
+    const path = _lastFedWatch.implied_path || [];
+    path.forEach(p => {
+      if (p.yield != null) lines.push(`  ${p.label} yield: ${p.yield.toFixed(2)}% — ${p.cuts_priced > 0 ? p.cuts_priced + ' cut(s)' : p.cuts_priced < 0 ? Math.abs(p.cuts_priced) + ' hike(s)' : 'no change'} priced`);
+    });
+    lines.push('');
+  }
+
+  // Top Headlines
+  const headlines = _lastHeadlines.slice(0, 5);
+  if (headlines.length) {
+    lines.push('TOP HEADLINES');
+    headlines.forEach((h, i) => lines.push(`  ${i+1}. ${h.title||h.headline||''} (${(h.source||'').toUpperCase()})`));
+    lines.push('');
+  }
+
+  lines.push('══════════════════════════════════════════');
+  return lines.join('\n');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('prepExportBtn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const text = buildPrepSummary();
+    // Try clipboard first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'COPIED!';
+        setTimeout(() => { btn.textContent = 'PREP'; }, 2000);
+      }).catch(() => _downloadPrep(text, btn));
+    } else {
+      _downloadPrep(text, btn);
+    }
+  });
+});
+
+function _downloadPrep(text, btn) {
+  const blob = new Blob([text], {type: 'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `macro-prep-${date}.txt`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  btn.textContent = 'SAVED!';
+  setTimeout(() => { btn.textContent = 'PREP'; }, 2000);
+}
+
+// Cache headlines for export
+const _origRenderNewsFeed = typeof renderNewsFeed === 'function' ? renderNewsFeed : null;
+if (_origRenderNewsFeed) {
+  renderNewsFeed = function(d) {
+    _lastHeadlines = (d.articles || []).slice(0, 10);
+    _origRenderNewsFeed(d);
+  };
 }
 
 // ════════════════════════════════════════════════════════════

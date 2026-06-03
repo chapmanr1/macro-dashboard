@@ -6,9 +6,11 @@
 # Thresholds come from config.py and auto-calibrate monthly from live FRED data.
 
 import os
+import json
 import requests
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
 import time
 
 from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING
@@ -384,6 +386,49 @@ def _build_risks(internal_label, ind, scores):
 
     return risks[:5] if risks else ["NO CRITICAL FLAGS AT THIS TIME"]
 
+# ── REGIME HISTORY ────────────────────────────────────────────
+HISTORY_FILE     = Path(".regime_history.json")
+HISTORY_MAX_DAYS = 90
+
+
+def _record_regime_history(label: str, internal_label: str, confidence: int) -> None:
+    """Append regime entry to history file. Only records when regime changes or date changes."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    try:
+        history: list[dict] = []
+        if HISTORY_FILE.exists():
+            with open(HISTORY_FILE) as f:
+                history = json.load(f)
+        # Skip if same regime on same date
+        if history and history[-1].get("label") == label and history[-1].get("date") == today:
+            return
+        history.append({
+            "date":       today,
+            "label":      label,
+            "internal":   internal_label,
+            "confidence": confidence,
+        })
+        # Trim to rolling 90-day window
+        cutoff = (datetime.utcnow() - timedelta(days=HISTORY_MAX_DAYS)).strftime("%Y-%m-%d")
+        history = [h for h in history if h.get("date", "") >= cutoff]
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f)
+    except Exception as e:
+        log.warning(f"Failed to record regime history: {e}")
+
+
+def get_regime_history() -> list[dict]:
+    """Return up to 90 days of regime history from .regime_history.json."""
+    try:
+        if not HISTORY_FILE.exists():
+            return []
+        with open(HISTORY_FILE) as f:
+            return json.load(f)
+    except Exception as e:
+        log.warning(f"Failed to read regime history: {e}")
+        return []
+
+
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
 def get_regime():
     """
@@ -438,6 +483,7 @@ def get_regime():
         _cache["data"] = result
         _cache["ts"]   = time.time()
 
+        _record_regime_history(display_label, internal_label, confidence)
         log.info(f"Regime classified: {display_label} ({confidence}% confidence)")
         return result
 
