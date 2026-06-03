@@ -1,7 +1,8 @@
 # FILE: fed_watch.py
 # Bloomberg Macro Dashboard — Implied Fed Rate Path Tracker
-# Derives expected Fed Funds path from FRED T-bill yields vs current target.
-# No options data required — uses 3M/6M/1Y Treasury yields as forward proxies.
+# Derives expected Fed Funds path from Treasury yields vs current Fed Funds target.
+# Reuses fred_data.get_yields() cache to avoid extra FRED API calls on the hot path.
+# Only fetches DFEDTARL/DFEDTARU (2 calls) for the target bounds.
 
 import os
 import time
@@ -23,37 +24,35 @@ def _cache_valid() -> bool:
     return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
 
 
-def _fetch_series(series_id: str, limit: int = 3) -> list[dict]:
+def _fetch_series(series_id: str) -> Optional[float]:
+    """Fetch single latest observation. Returns None on any failure — never raises."""
     if not FRED_API_KEY:
-        raise ValueError("FRED_API_KEY not set")
+        return None
     params = {
         "series_id":         series_id,
         "api_key":           FRED_API_KEY,
         "file_type":         "json",
         "sort_order":        "desc",
-        "limit":             limit,
-        "observation_start": (datetime.utcnow() - timedelta(days=90)).strftime("%Y-%m-%d"),
+        "limit":             3,
+        "observation_start": (datetime.utcnow() - timedelta(days=60)).strftime("%Y-%m-%d"),
     }
-    for attempt in range(3):
-        resp = requests.get(FRED_BASE, params=params, timeout=10)
-        if resp.status_code == 429:
-            wait = 2 ** attempt
-            log.warning(f"FRED rate limit on {series_id} (attempt {attempt+1}), retrying in {wait}s")
-            time.sleep(wait)
-            continue
+    try:
+        resp = requests.get(FRED_BASE, params=params, timeout=6)
         resp.raise_for_status()
         obs = resp.json().get("observations", [])
-        return [o for o in obs if o.get("value") not in (".", "", None)]
-    raise RuntimeError(f"FRED rate limited after 3 attempts: {series_id}")
+        valid = [o for o in obs if o.get("value") not in (".", "", None)]
+        return float(valid[0]["value"]) if valid else None
+    except Exception as e:
+        log.debug(f"FedWatch _fetch_series {series_id}: {e}")
+        return None
 
 
-def _latest(obs: list[dict]) -> Optional[float]:
-    if not obs:
-        return None
-    try:
-        return float(obs[0]["value"])
-    except (KeyError, TypeError, ValueError):
-        return None
+def _yield_from_cache(yields_data: list, label: str) -> Optional[float]:
+    """Extract a yield value from the cached yields list by label."""
+    for y in yields_data:
+        if y.get("label") == label and y.get("value") is not None:
+            return float(y["value"])
+    return None
 
 
 def _cuts_priced(current_ff: float, forward_yield: float) -> float:
@@ -81,16 +80,15 @@ def _build_signal(path: list[dict]) -> tuple[str, str]:
 
 
 def _fetch_fed_watch() -> dict:
+    """
+    Build implied rate path. Reuses fred_data yields cache for 3M/6M/1Y yields
+    (avoids extra FRED calls). Only fetches DFEDTARL/DFEDTARU for the target bounds.
+    """
     ts = datetime.utcnow().isoformat()
 
-    lower_obs = _fetch_series("DFEDTARL", limit=3)
-    upper_obs = _fetch_series("DFEDTARU", limit=3)
-    tb3ms_obs = _fetch_series("TB3MS",    limit=3)
-    tb6ms_obs = _fetch_series("TB6MS",    limit=3)
-    dgs1_obs  = _fetch_series("DGS1",     limit=3)
-
-    lower = _latest(lower_obs)
-    upper = _latest(upper_obs)
+    # Get Fed Funds target bounds (2 FRED calls, fast series)
+    lower = _fetch_series("DFEDTARL")
+    upper = _fetch_series("DFEDTARU")
 
     if lower is not None and upper is not None:
         current_ff = (lower + upper) / 2
@@ -101,10 +99,23 @@ def _fetch_fed_watch() -> dict:
     else:
         current_ff = None
 
+    # Pull 3M/6M/1Y yields from fred_data cache (no extra FRED calls)
+    tb3 = tb6 = dgs1 = None
+    try:
+        from fred_data import get_yields
+        yields_result = get_yields()
+        yields_list = yields_result.get("yields", [])
+        # Labels match fred_data.py YIELD_SERIES definitions
+        tb3  = _yield_from_cache(yields_list, "3MO")
+        tb6  = _yield_from_cache(yields_list, "6MO")
+        dgs1 = _yield_from_cache(yields_list, "1YR")
+    except Exception as e:
+        log.warning(f"FedWatch: could not pull yields from fred_data cache: {e}")
+
     horizons = [
-        ("3M",  "3-month",  _latest(tb3ms_obs)),
-        ("6M",  "6-month",  _latest(tb6ms_obs)),
-        ("12M", "1-year",   _latest(dgs1_obs)),
+        ("3M",  "3-month", tb3),
+        ("6M",  "6-month", tb6),
+        ("12M", "1-year",  dgs1),
     ]
 
     path = []
@@ -147,22 +158,21 @@ def _fetch_fed_watch() -> dict:
 
 
 def get_fed_watch() -> dict:
-    """Return implied Fed rate path derived from FRED T-bill yields. Cached 1 hour."""
+    """Return implied Fed rate path. Cached 1 hour. Never raises — returns error dict on failure."""
     if _cache_valid():
         log.info("FedWatch: returning cached data.")
         return _cache["data"]
 
-    log.info("FedWatch: fetching fresh FRED data...")
+    log.info("FedWatch: building rate path...")
     try:
         result = _fetch_fed_watch()
         _cache["data"] = result
         _cache["ts"]   = time.time()
-        log.info(f"FedWatch: fetched — signal={result.get('signal')}, FF={result.get('current_ff')}")
+        log.info(f"FedWatch: done — signal={result.get('signal')}, FF={result.get('current_ff')}")
         return result
     except Exception as e:
-        log.error(f"FedWatch: fetch failed — {e}")
+        log.error(f"FedWatch: failed — {e}")
         if _cache["data"] is not None:
-            log.info("FedWatch: returning stale cache after error.")
             return _cache["data"]
         return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
 
