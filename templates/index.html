@@ -2062,6 +2062,7 @@ function renderMarketDriving(articles, containerId) {
 
 function renderOverviewDriving(data) {
   _lastNewsRaw = data.articles || [];
+  _lastHeadlines = _lastNewsRaw.slice(0, 10);
   renderMarketDriving(_lastNewsRaw, 'ovDrivingContent');
   renderMarketDriving(_lastNewsRaw, 'drivingContent');
   const ts = document.getElementById('drivingTimestamp');
@@ -2154,12 +2155,12 @@ async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
   await Promise.allSettled([
-    apiFetch('/api/regime').then(renderRegime).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/regime').then(d => { _lastRegime = d; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
-    apiFetch('/api/fedwatch').then(renderFedWatch).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
+    apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
     apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
     loadBriefing().catch(() => {}),
   ]);
@@ -2431,6 +2432,7 @@ async function fetchMarkets() {
   setStatus('loading');
   try {
     const data = await apiFetch('/api/market');
+    _lastMarket = data;
     renderMarkets(data);
     setStatus('ok');
   } catch(e) {
@@ -2762,6 +2764,7 @@ function renderCalendar(events) {
 
 function renderNewsFeed(data) {
   const rawArticles = data.articles || [];
+  _lastHeadlines = rawArticles.slice(0, 10);
   const articles = typeof filterArticlesBySettings === 'function' ? filterArticlesBySettings(rawArticles) : rawArticles;
   const ts       = data.timestamp || null;
   document.getElementById('newsTimestamp').textContent = ts ? 'UPDATED ' + fmtRelTime(ts) : '--';
@@ -2801,14 +2804,6 @@ async function fetchNews() {
 // DAILY PREP SUMMARY EXPORT
 // ════════════════════════════════════════════════════════════
 let _lastRegime = null, _lastMarket = null, _lastFedWatch = null, _lastHeadlines = [];
-
-// Patch render functions to cache for export
-const _origRenderRegime = renderRegime;
-renderRegime = function(d) { _lastRegime = d; _origRenderRegime(d); };
-const _origRenderMarkets = renderMarkets;
-renderMarkets = function(d) { _lastMarket = d; _origRenderMarkets(d); };
-const _origRenderFedWatch = renderFedWatch;
-renderFedWatch = function(d) { _lastFedWatch = d; _origRenderFedWatch(d); };
 
 function buildPrepSummary() {
   const now = new Date();
@@ -2906,14 +2901,6 @@ function _downloadPrep(text, btn) {
   setTimeout(() => { btn.textContent = 'PREP'; }, 2000);
 }
 
-// Cache headlines for export
-const _origRenderNewsFeed = typeof renderNewsFeed === 'function' ? renderNewsFeed : null;
-if (_origRenderNewsFeed) {
-  renderNewsFeed = function(d) {
-    _lastHeadlines = (d.articles || []).slice(0, 10);
-    _origRenderNewsFeed(d);
-  };
-}
 
 // ════════════════════════════════════════════════════════════
 // AUTO-REFRESH & INIT
