@@ -210,16 +210,20 @@ def _breadth_signal(breadth: dict) -> tuple[str, str]:
 
 
 def _vix_term_signal(vix_term: list[dict]) -> tuple[str, str]:
-    front = next((v for v in vix_term if v.get("months") == "1M"), None)
+    # Front anchor is VIXCLS spot (labeled "SPOT"), not a futures price.
+    # Spot VIX trades below front-month futures in contango, so the mid/spot
+    # ratio is structurally higher than a mid/front-futures ratio would be.
+    # Thresholds are calibrated to spot-as-anchor accordingly.
+    front = next((v for v in vix_term if v.get("months") == "SPOT"), None)
     mid   = next((v for v in vix_term if v.get("months") == "5M"), None)
     if not front or not mid or front.get("price") is None or mid.get("price") is None:
         return "UNKNOWN", "VIX term structure data unavailable."
     fp, mp = front["price"], mid["price"]
     ratio  = mp / fp if fp > 0 else 1.0
-    if ratio > 1.12:
-        return "CONTANGO — STEEP", f"Front-month VIX well below mid-term ({fp:.2f} vs {mp:.2f}) — market calm; complacency risk building."
-    elif ratio > 1.03:
-        return "CONTANGO", f"Normal term structure — mid-term VIX ({mp:.2f}) above front ({fp:.2f}). Low systemic stress."
+    if ratio > 1.15:
+        return "CONTANGO — STEEP", f"Spot VIX well below mid-term ({fp:.2f} vs {mp:.2f}) — market calm; complacency risk building."
+    elif ratio > 1.05:
+        return "CONTANGO", f"Normal term structure — mid-term VIX ({mp:.2f}) above spot ({fp:.2f}). Low systemic stress."
     elif ratio > 0.97:
         return "FLAT", f"VIX term structure flattening ({fp:.2f} vs {mp:.2f}) — subtle shift in risk perception."
     elif ratio > 0.90:
@@ -286,7 +290,8 @@ def _fetch_market_data() -> dict:
     ts = datetime.now(timezone.utc).isoformat()
 
     # FRED index cache — reads only, never blocks. Cache was pre-warmed at startup
-    # by _warm_fred_index_cache(); if not yet ready, indices show as null this request.
+    # by _warm_fred_index_cache(); if not yet ready, indices are empty this request
+    # and the result is cached for only 30 s so the next request retries.
     fred_idx     = get_index_data(cache_only=True)
     fred_indices = fred_idx.get("indices", [])
     fred_vix     = fred_idx.get("vix")
@@ -333,10 +338,11 @@ def _fetch_market_data() -> dict:
 
     # ── VIX ───────────────────────────────────────────────────
     # Spot VIX from FRED (VIXCLS) — actual index, not a futures ETF proxy
-    vix_value = fred_vix["price"]     if fred_vix else None
-    vix_change = fred_vix["change"]   if fred_vix else None
+    vix_value  = fred_vix["price"]      if fred_vix else None
+    vix_change = fred_vix["change"]     if fred_vix else None
     vix_pct    = fred_vix["pct_change"] if fred_vix else None
     vix_dir    = fred_vix["direction"]  if fred_vix else "FLAT"
+    vix_as_of  = fred_vix.get("as_of") if fred_vix else None
     vix_info   = _vix_signal(vix_value)
     vix_out    = {
         "symbol":     "^VIX",
@@ -345,20 +351,23 @@ def _fetch_market_data() -> dict:
         "change":     vix_change,
         "pct_change": vix_pct,
         "direction":  vix_dir,
+        "as_of":      vix_as_of,
         **vix_info,
     }
 
     # ── VIX TERM STRUCTURE ────────────────────────────────────
-    # Front month = VIXCLS spot (FRED). Mid/long use Twelve Data ETF proxies.
+    # Spot VIX (FRED VIXCLS, T-1 close) anchors the term structure.
+    # Mid/long use Twelve Data ETF proxies (real-time).
     vix_term_out = []
     vixy_entry = {
         "symbol":      "VIX",
         "label":       "VIX SPOT",
-        "months":      "1M",
-        "description": "CBOE VIX spot (FRED VIXCLS)",
+        "months":      "SPOT",
+        "description": "CBOE VIX spot (FRED VIXCLS, prev close)",
         "price":       vix_value,
         "pct_change":  vix_pct,
         "direction":   vix_dir,
+        "as_of":       vix_as_of,
     }
     vix_term_out.append(vixy_entry)
     for vt in VIX_TERM_SYMBOLS:
@@ -485,8 +494,12 @@ def _fetch_market_data() -> dict:
     }
 
     _cache["data"] = result
-    _cache["ts"]   = time.time()
-    log.info(f"Market: fetched — futures={futures_signal}, VIX={vix_value}, sector={sector_signal}")
+    # If FRED indices weren't ready yet (warm thread still running), cache for only 30 seconds
+    # so the next request picks up the full data once FRED finishes, rather than serving the
+    # degraded response for the full 20-minute TTL.
+    _cache["ts"] = time.time() if fred_indices else time.time() - CACHE_TTL + 30
+    log.info(f"Market: fetched — futures={futures_signal}, VIX={vix_value}, sector={sector_signal}"
+             + ("" if fred_indices else " [FRED indices not yet warm — short TTL]"))
     return result
 
 
