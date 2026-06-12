@@ -270,20 +270,9 @@ def get_market() -> dict:
 
 
 def _fetch_market_data() -> dict:
+    import concurrent.futures as _cf
     ts = datetime.now(timezone.utc).isoformat()
 
-    # ── FRED: indices + VIX (10s hard timeout — never blocks market data) ────
-    import concurrent.futures as _cf
-    try:
-        with _cf.ThreadPoolExecutor(max_workers=1) as _pool:
-            fred_idx = _pool.submit(get_index_data).result(timeout=10)
-    except Exception as e:
-        log.warning(f"Market: FRED index fetch skipped ({e}) — continuing without index data.")
-        fred_idx = {"indices": [], "vix": None}
-    fred_indices = fred_idx.get("indices", [])   # SP500, DJIA, NASDAQCOM
-    fred_vix     = fred_idx.get("vix")           # VIXCLS
-
-    # ── Twelve Data batches ───────────────────────────────────
     futures_syms   = [f["symbol"] for f in FUTURES]
     sector_syms    = [s["symbol"] for s in SECTORS]
     commodity_syms = [c["symbol"] for c in COMMODITIES]
@@ -292,14 +281,42 @@ def _fetch_market_data() -> dict:
     vix_term_syms  = [v["symbol"] for v in VIX_TERM_SYMBOLS]
     rut_syms       = [RUT_INDEX["symbol"]]
 
-    # Batch 1: Russell 2000 (IWM proxy) + futures + breadth + VIX term structure
-    batch1 = get_quotes(rut_syms + futures_syms + breadth_syms + vix_term_syms)
-    # Batch 2: sectors
-    batch2 = get_quotes(sector_syms)
-    # Batch 3: commodities + currencies
-    batch3 = get_quotes(commodity_syms + currency_syms)
+    # Run FRED index fetch and all TD batches in parallel.
+    # shutdown(wait=False) ensures a slow/hung FRED call never blocks the response —
+    # the background thread continues, warms the cache, and benefits the next request.
+    pool     = _cf.ThreadPoolExecutor(max_workers=4)
+    f_fred   = pool.submit(get_index_data)
+    f_batch1 = pool.submit(get_quotes, rut_syms + futures_syms + breadth_syms + vix_term_syms)
+    f_batch2 = pool.submit(get_quotes, sector_syms)
+    f_batch3 = pool.submit(get_quotes, commodity_syms + currency_syms)
 
-    all_quotes = {**batch1, **batch2, **batch3}
+    try:
+        fred_idx = f_fred.result(timeout=12)
+    except Exception as e:
+        log.warning(f"Market: FRED index fetch timed out or failed ({e}) — skipping index data.")
+        fred_idx = {"indices": [], "vix": None}
+
+    try:
+        batch1 = f_batch1.result(timeout=30) or {}
+    except Exception as e:
+        log.warning(f"Market: TD batch1 failed ({e})")
+        batch1 = {}
+    try:
+        batch2 = f_batch2.result(timeout=30) or {}
+    except Exception as e:
+        log.warning(f"Market: TD batch2 failed ({e})")
+        batch2 = {}
+    try:
+        batch3 = f_batch3.result(timeout=30) or {}
+    except Exception as e:
+        log.warning(f"Market: TD batch3 failed ({e})")
+        batch3 = {}
+
+    pool.shutdown(wait=False)  # don't block on any still-running background task
+
+    fred_indices = fred_idx.get("indices", [])   # SP500, DJIA, NASDAQCOM
+    fred_vix     = fred_idx.get("vix")           # VIXCLS
+    all_quotes   = {**batch1, **batch2, **batch3}
 
     # ── INDICES ───────────────────────────────────────────────
     # FRED indices first (SPX, DJIA, NDX), then RUT from TD
