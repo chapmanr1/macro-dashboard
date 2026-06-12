@@ -1161,16 +1161,21 @@ INDEX_SERIES = [
 ]
 
 
-def get_index_data() -> dict:
+def get_index_data(cache_only: bool = False) -> dict:
     """
     Fetch daily index closes from FRED: SP500, DJIA, NASDAQCOM, VIXCLS.
     Returns previous trading day's close with day-over-day change.
-    Cached for 1 hour — FRED updates once per business day so more frequent
-    polling is wasteful.
+    Cached for 1 hour — FRED updates once per business day.
+
+    cache_only=True: return whatever is cached (or empty) without fetching.
+    Used by market_data to avoid blocking the market endpoint on FRED latency.
     """
     if _cache_valid("indices"):
         log.info("Indices: returning cached FRED data.")
         return _cache["indices"]["data"]
+    if cache_only:
+        return _cache["indices"]["data"] or {"indices": [], "vix": None,
+                                              "timestamp": datetime.utcnow().isoformat()}
     try:
         return _fetch_index_data()
     except Exception as e:
