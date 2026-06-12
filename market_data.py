@@ -65,7 +65,7 @@ COMMODITIES = [
 ]
 
 CURRENCIES = [
-    {"symbol": "DX-Y.NYB", "label": "UUP",     "description": "US Dollar Index (UUP ETF proxy)", "decimals": 2},
+    {"symbol": "DX-Y.NYB", "label": "DXY",     "description": "US Dollar Index", "decimals": 2},
     {"symbol": "EURUSD=X", "label": "EUR/USD",  "description": "Euro / US Dollar","decimals": 4},
 ]
 VIX_DISPLAY_MAX = 50
@@ -462,7 +462,7 @@ def _fetch_market_data() -> dict:
                 "pct_change": stats["pct_change"],
                 "direction":  stats["direction"],
             })
-            if cur["label"] == "UUP":
+            if cur["label"] == "DXY":
                 dxy_value = stats["price"]
         else:
             entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
