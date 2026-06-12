@@ -301,6 +301,45 @@ def api_health():
             health["status"] = "degraded"
     return jsonify(health)
 
+# ── STARTUP CACHE PRE-WARM ────────────────────────────────────
+def _prewarm_caches() -> None:
+    """
+    Fetch all slow FRED caches in parallel at startup so the first user request
+    is never cold. Runs as a background daemon thread — does not block startup.
+    Regime + macro + yields + credit each make serial FRED calls (~15-40s each);
+    running them in parallel cuts total warm time to the slowest single module.
+    """
+    def _run():
+        import concurrent.futures as _cf
+        tasks = []
+        try:
+            from regime_engine import get_regime
+            tasks.append(get_regime)
+        except ImportError:
+            pass
+        try:
+            from fred_data import get_macro, get_yields, get_credit
+            tasks += [get_macro, get_yields, get_credit]
+        except ImportError:
+            pass
+        if not tasks:
+            return
+        log.info(f"Pre-warming {len(tasks)} FRED caches in parallel...")
+        with _cf.ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+            futures = {pool.submit(fn): fn.__name__ for fn in tasks}
+            for fut in _cf.as_completed(futures, timeout=110):
+                name = futures[fut]
+                try:
+                    fut.result()
+                    log.info(f"Pre-warm done: {name}")
+                except Exception as e:
+                    log.warning(f"Pre-warm failed [{name}]: {e}")
+        log.info("Startup cache pre-warm complete.")
+
+    threading.Thread(target=_run, daemon=True).start()
+
+_prewarm_caches()
+
 # ── INTERNAL KEEP-ALIVE ───────────────────────────────────────
 def internal_keepalive():
     import urllib.request
