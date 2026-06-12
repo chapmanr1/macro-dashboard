@@ -1154,10 +1154,10 @@ def _fetch_credit():
 
 # ── INDEX DATA (FRED daily series) ───────────────────────────
 INDEX_SERIES = [
-    {"id": "sp500",  "fred_id": "SP500",    "label": "S&P 500",   "abbr": "SPX",  "decimals": 2},
-    {"id": "djia",   "fred_id": "DJIA",     "label": "DOW JONES", "abbr": "DJIA", "decimals": 2},
-    {"id": "nasdaq", "fred_id": "NASDAQCOM","label": "NASDAQ",    "abbr": "NDX",  "decimals": 2},
-    {"id": "vix",    "fred_id": "VIXCLS",   "label": "VIX",       "abbr": "VIX",  "decimals": 2},
+    {"id": "sp500",  "fred_id": "SP500",    "label": "S&P 500",   "symbol": "^GSPC", "abbr": "SPX",  "decimals": 2},
+    {"id": "djia",   "fred_id": "DJIA",     "label": "DOW JONES", "symbol": "^DJI",  "abbr": "DJIA", "decimals": 2},
+    {"id": "nasdaq", "fred_id": "NASDAQCOM","label": "NASDAQ",    "symbol": "^IXIC", "abbr": "NDX",  "decimals": 2},
+    {"id": "vix",    "fred_id": "VIXCLS",   "label": "VIX",       "symbol": "^VIX",  "abbr": "VIX",  "decimals": 2},
 ]
 
 
@@ -1194,7 +1194,7 @@ def _fetch_index_data() -> dict:
             change  = _safe_change(current, prior)
             pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
             entry = {
-                "symbol":     s["abbr"],
+                "symbol":     s["symbol"],
                 "label":      s["label"],
                 "abbr":       s["abbr"],
                 "price":      round(current, s["decimals"]) if current is not None else None,
@@ -1212,7 +1212,7 @@ def _fetch_index_data() -> dict:
         except Exception as e:
             log.warning(f"Index fetch failed [{s['fred_id']}]: {e}")
             entry = {
-                "symbol": s["abbr"], "label": s["label"], "abbr": s["abbr"],
+                "symbol": s["symbol"], "label": s["label"], "abbr": s["abbr"],
                 "price": None, "change": None, "pct_change": None,
                 "ytd_pct": None, "direction": "FLAT", "as_of": None,
                 "source": "FRED", "error": True,

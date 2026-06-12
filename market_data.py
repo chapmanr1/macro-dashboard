@@ -325,7 +325,7 @@ def _fetch_market_data() -> dict:
     vix_dir    = fred_vix["direction"]  if fred_vix else "FLAT"
     vix_info   = _vix_signal(vix_value)
     vix_out    = {
-        "symbol":     "VIX",
+        "symbol":     "^VIX",
         "label":      "VIX",
         "value":      vix_value,
         "change":     vix_change,
