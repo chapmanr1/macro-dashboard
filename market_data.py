@@ -100,6 +100,49 @@ def _parse_quote(quote: dict) -> Optional[dict]:
         return None
 
 
+def _yf_quotes(symbols: list[str]) -> dict:
+    """
+    Fetch latest quotes from yfinance for actual index/futures/sector prices.
+    Uses concurrent threads so N symbols take ~max(individual latencies) time.
+    Returns dict keyed by original symbol with the same shape as _parse_quote.
+    """
+    import yfinance as yf
+    import concurrent.futures as _cf
+    from proxy_config import proxy_session
+
+    def _fetch(sym: str) -> tuple[str, Optional[dict]]:
+        try:
+            hist = yf.Ticker(sym, session=proxy_session).history(period="5d", auto_adjust=True)
+            if hist.empty:
+                return sym, None
+            current = float(hist["Close"].iloc[-1])
+            prior   = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
+            change  = round(current - prior, 4) if prior is not None else None
+            pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
+            return sym, {
+                "price":      round(current, 2),
+                "change":     change,
+                "pct_change": pct,
+                "ytd_pct":    None,
+                "direction":  "UP" if (change or 0) > 0.005 else "DOWN" if (change or 0) < -0.005 else "FLAT",
+            }
+        except Exception as e:
+            log.warning(f"yfinance quote failed [{sym}]: {e}")
+            return sym, None
+
+    results: dict = {}
+    with _cf.ThreadPoolExecutor(max_workers=min(len(symbols), 12)) as pool:
+        futs = {pool.submit(_fetch, s): s for s in symbols}
+        for fut in _cf.as_completed(futs, timeout=30):
+            try:
+                sym, data = fut.result()
+                if data:
+                    results[sym] = data
+            except Exception as e:
+                log.warning(f"yfinance worker error: {e}")
+    return results
+
+
 def _null_instrument(label, symbol=""):
     return {
         "symbol":     symbol,
@@ -296,29 +339,31 @@ def _fetch_market_data() -> dict:
     fred_indices = fred_idx.get("indices", [])
     fred_vix     = fred_idx.get("vix")
 
-    # ── Twelve Data batches ───────────────────────────────────
-    futures_syms   = [f["symbol"] for f in FUTURES]
-    sector_syms    = [s["symbol"] for s in SECTORS]
+    # ── yfinance: actual index/futures/sector prices ─────────────
+    yf_syms = (
+        [RUT_INDEX["symbol"]]
+        + [f["symbol"] for f in FUTURES]
+        + [s["symbol"] for s in SECTORS]
+    )
+    yf_quotes = _yf_quotes(yf_syms)
+
+    # ── Twelve Data batches (breadth + VIX term + commodities + currencies) ──
     commodity_syms = [c["symbol"] for c in COMMODITIES]
     currency_syms  = [c["symbol"] for c in CURRENCIES]
     breadth_syms   = [b["symbol"] for b in BREADTH_SYMBOLS]
     vix_term_syms  = [v["symbol"] for v in VIX_TERM_SYMBOLS]
-    rut_syms       = [RUT_INDEX["symbol"]]
 
-    # Batch 1: Russell 2000 (IWM proxy) + futures + breadth + VIX term structure
-    batch1 = get_quotes(rut_syms + futures_syms + breadth_syms + vix_term_syms)
-    # Batch 2: sectors
-    batch2 = get_quotes(sector_syms)
-    # Batch 3: commodities + currencies
-    batch3 = get_quotes(commodity_syms + currency_syms)
+    # Batch 1: breadth + VIX term structure
+    batch1 = get_quotes(breadth_syms + vix_term_syms)
+    # Batch 2: commodities + currencies
+    batch2 = get_quotes(commodity_syms + currency_syms)
 
-    all_quotes = {**batch1, **batch2, **batch3}
+    all_quotes = {**batch1, **batch2}
 
     # ── INDICES ───────────────────────────────────────────────
-    # FRED indices first (SPX, DJIA, NDX), then RUT from TD
+    # FRED indices first (SPX, DJIA, NDX), then RUT from yfinance (actual level)
     indices_out = list(fred_indices)
-    rut_q = all_quotes.get(RUT_INDEX["symbol"])
-    rut_stats = _parse_quote(rut_q) if rut_q else None
+    rut_stats = yf_quotes.get(RUT_INDEX["symbol"])
     if rut_stats:
         indices_out.append({**RUT_INDEX, **rut_stats})
     else:
@@ -327,8 +372,7 @@ def _fetch_market_data() -> dict:
     # ── FUTURES ───────────────────────────────────────────────
     futures_out = []
     for fut in FUTURES:
-        q = all_quotes.get(fut["symbol"])
-        stats = _parse_quote(q) if q else None
+        stats = yf_quotes.get(fut["symbol"])
         if stats:
             futures_out.append({**fut, **stats})
         else:
@@ -389,8 +433,7 @@ def _fetch_market_data() -> dict:
     # ── SECTORS ───────────────────────────────────────────────
     sectors_out = []
     for sec in SECTORS:
-        q = all_quotes.get(sec["symbol"])
-        stats = _parse_quote(q) if q else None
+        stats = yf_quotes.get(sec["symbol"])
         if stats:
             sectors_out.append({**sec, **stats})
         else:

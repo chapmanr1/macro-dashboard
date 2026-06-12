@@ -811,11 +811,6 @@
     .ra-news-panel { padding:8px 14px;border-bottom:1px solid var(--border); }
 
     /* ── RESEARCH CTA STRIP ── */
-    .research-cta-strip { display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(59,130,246,0.05);border-top:1px solid rgba(59,130,246,0.15);border-bottom:1px solid rgba(59,130,246,0.15);cursor:pointer;transition:background 0.15s;user-select:none;-webkit-tap-highlight-color:transparent; }
-    .research-cta-strip:hover { background:rgba(59,130,246,0.10); }
-    .research-cta-icon { font-size:14px; }
-    .research-cta-text { font-family:var(--font-ui);font-size:10px;color:var(--muted);letter-spacing:0.06em;flex:1; }
-    .research-cta-text strong { color:var(--blue);font-weight:600; }
 
     /* ── MOBILE ── */
     @media (max-width: 640px) {
@@ -1132,12 +1127,6 @@
       <div class="regime-history-wrap">
         <div class="skel" style="height:44px;width:100%"></div>
       </div>
-    </div>
-
-    <!-- RESEARCH CTA STRIP -->
-    <div class="research-cta-strip" onclick="openResearch()">
-      <span class="research-cta-icon">&#128202;</span>
-      <span class="research-cta-text">Tap <strong>RESEARCH</strong> to analyze any ticker &rarr;</span>
     </div>
 
   </div><!-- /tab-overview -->
@@ -3001,6 +2990,8 @@ const SEC_DEFS = [
   {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['regimeContent'],            pw:false},
   {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['macroContent'],             pw:false},
   {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['yieldsContent'],            pw:false},
+  {id:'ov-fedwatch',  tab:'overview',title:'Fed Rate Path',      els:['fedwatchContent'],          pw:false},
+  {id:'ov-reg-hist',  tab:'overview',title:'Regime History',     els:['regimeHistoryContent'],     pw:false},
   {id:'mkt-futures',  tab:'markets', title:'Futures',            els:['futuresContent'],           pw:false},
   {id:'mkt-indices',  tab:'markets', title:'Equity Indices',     els:['indicesContent'],           pw:false},
   {id:'mkt-sector',   tab:'markets', title:'Sector Rotation',    els:['sectorSignalBar','sectorContent'], pw:false},

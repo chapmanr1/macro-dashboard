@@ -15,14 +15,7 @@ BASE_URL = "https://api.twelvedata.com"
 # ── SYMBOL MAP (yfinance → Twelve Data) ───────────────────────
 # Equity ETFs and common stocks are identical; only special symbols differ.
 SYMBOL_MAP: dict[str, str] = {
-    # Russell 2000: no daily FRED series; IWM is the proxy.
-    "^RUT":     "IWM",
-    # Futures: CME futures unavailable on free tier; ETF proxies trade extended
-    # hours and reflect pre-market direction, which is the purpose of this data.
-    "ES=F":     "SPY",
-    "NQ=F":     "QQQ",
-    "YM=F":     "DIA",
-    # Commodities and currencies (unchanged — confirmed working)
+    # Commodities and currencies
     "CL=F":     "WTI/USD",
     "GC=F":     "XAU/USD",
     "SI=F":     "XAG/USD",
