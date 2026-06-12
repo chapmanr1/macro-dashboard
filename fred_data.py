@@ -1180,47 +1180,54 @@ def get_index_data() -> dict:
         return {"indices": [], "vix": None, "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
 
+def _fetch_one_index(s: dict) -> dict:
+    """Fetch a single FRED index series and return a normalised entry dict."""
+    try:
+        obs     = _fetch_series(s["fred_id"], limit=2)
+        current = _latest_val(obs)
+        prior   = _prior_val(obs, offset=1)
+        change  = _safe_change(current, prior)
+        pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
+        return {
+            "symbol":     s["symbol"],
+            "label":      s["label"],
+            "abbr":       s["abbr"],
+            "price":      round(current, s["decimals"]) if current is not None else None,
+            "change":     round(change,  s["decimals"]) if change  is not None else None,
+            "pct_change": pct,
+            "ytd_pct":    None,
+            "direction":  _direction(change),
+            "as_of":      _obs_date(obs),
+            "source":     "FRED",
+            "_id":        s["id"],
+        }
+    except Exception as e:
+        log.warning(f"Index fetch failed [{s['fred_id']}]: {e}")
+        return {
+            "symbol": s["symbol"], "label": s["label"], "abbr": s["abbr"],
+            "price": None, "change": None, "pct_change": None,
+            "ytd_pct": None, "direction": "FLAT", "as_of": None,
+            "source": "FRED", "error": True, "_id": s["id"],
+        }
+
+
 def _fetch_index_data() -> dict:
-    log.info("Indices: fetching fresh FRED data...")
+    """Fetch all 4 index series in parallel — avoids sequential 12s timeouts stacking."""
+    import concurrent.futures
+    log.info("Indices: fetching fresh FRED data (parallel)...")
     ts      = datetime.utcnow().isoformat()
     indices = []
     vix_out = None
 
-    for s in INDEX_SERIES:
-        try:
-            obs     = _fetch_series(s["fred_id"], limit=3)
-            current = _latest_val(obs)
-            prior   = _prior_val(obs, offset=1)
-            change  = _safe_change(current, prior)
-            pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
-            entry = {
-                "symbol":     s["symbol"],
-                "label":      s["label"],
-                "abbr":       s["abbr"],
-                "price":      round(current, s["decimals"]) if current is not None else None,
-                "change":     round(change,  s["decimals"]) if change  is not None else None,
-                "pct_change": pct,
-                "ytd_pct":    None,
-                "direction":  _direction(change),
-                "as_of":      _obs_date(obs),
-                "source":     "FRED",
-            }
-            if s["id"] == "vix":
-                vix_out = entry
-            else:
-                indices.append(entry)
-        except Exception as e:
-            log.warning(f"Index fetch failed [{s['fred_id']}]: {e}")
-            entry = {
-                "symbol": s["symbol"], "label": s["label"], "abbr": s["abbr"],
-                "price": None, "change": None, "pct_change": None,
-                "ytd_pct": None, "direction": "FLAT", "as_of": None,
-                "source": "FRED", "error": True,
-            }
-            if s["id"] == "vix":
-                vix_out = entry
-            else:
-                indices.append(entry)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(_fetch_one_index, INDEX_SERIES, timeout=20))
+
+    for entry in results:
+        idx_id = entry.pop("_id", None)
+        if idx_id == "vix":
+            vix_out = entry
+        else:
+            indices.append(entry)
 
     result = {"indices": indices, "vix": vix_out, "timestamp": ts}
     _cache["indices"]["data"] = result

@@ -272,8 +272,14 @@ def get_market() -> dict:
 def _fetch_market_data() -> dict:
     ts = datetime.now(timezone.utc).isoformat()
 
-    # ── FRED: indices + VIX ───────────────────────────────────
-    fred_idx   = get_index_data()
+    # ── FRED: indices + VIX (10s hard timeout — never blocks market data) ────
+    import concurrent.futures as _cf
+    try:
+        with _cf.ThreadPoolExecutor(max_workers=1) as _pool:
+            fred_idx = _pool.submit(get_index_data).result(timeout=10)
+    except Exception as e:
+        log.warning(f"Market: FRED index fetch skipped ({e}) — continuing without index data.")
+        fred_idx = {"indices": [], "vix": None}
     fred_indices = fred_idx.get("indices", [])   # SP500, DJIA, NASDAQCOM
     fred_vix     = fred_idx.get("vix")           # VIXCLS
 
