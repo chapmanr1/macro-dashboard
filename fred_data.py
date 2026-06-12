@@ -20,6 +20,7 @@ _cache = {
     "economy":   {"data": None, "ts": 0},
     "credit":    {"data": None, "ts": 0},
     "surprises": {"data": None, "ts": 0},
+    "indices":   {"data": None, "ts": 0},
 }
 
 def _cache_valid(key):
@@ -1148,6 +1149,83 @@ def _fetch_credit():
 
     _set_cache("credit", result)
     log.info(f"Credit: fetched — {len(spreads)} spreads, {len(triggers)} triggers evaluated.")
+    return result
+
+
+# ── INDEX DATA (FRED daily series) ───────────────────────────
+INDEX_SERIES = [
+    {"id": "sp500",  "fred_id": "SP500",    "label": "S&P 500",   "abbr": "SPX",  "decimals": 2},
+    {"id": "djia",   "fred_id": "DJIA",     "label": "DOW JONES", "abbr": "DJIA", "decimals": 2},
+    {"id": "nasdaq", "fred_id": "NASDAQCOM","label": "NASDAQ",    "abbr": "NDX",  "decimals": 2},
+    {"id": "vix",    "fred_id": "VIXCLS",   "label": "VIX",       "abbr": "VIX",  "decimals": 2},
+]
+
+
+def get_index_data() -> dict:
+    """
+    Fetch daily index closes from FRED: SP500, DJIA, NASDAQCOM, VIXCLS.
+    Returns previous trading day's close with day-over-day change.
+    Cached for 1 hour — FRED updates once per business day so more frequent
+    polling is wasteful.
+    """
+    if _cache_valid("indices"):
+        log.info("Indices: returning cached FRED data.")
+        return _cache["indices"]["data"]
+    try:
+        return _fetch_index_data()
+    except Exception as e:
+        log.error(f"Indices: unexpected failure — {e}")
+        if _cache["indices"]["data"] is not None:
+            return _cache["indices"]["data"]
+        return {"indices": [], "vix": None, "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
+
+
+def _fetch_index_data() -> dict:
+    log.info("Indices: fetching fresh FRED data...")
+    ts      = datetime.utcnow().isoformat()
+    indices = []
+    vix_out = None
+
+    for s in INDEX_SERIES:
+        try:
+            obs     = _fetch_series(s["fred_id"], limit=3)
+            current = _latest_val(obs)
+            prior   = _prior_val(obs, offset=1)
+            change  = _safe_change(current, prior)
+            pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
+            entry = {
+                "symbol":     s["abbr"],
+                "label":      s["label"],
+                "abbr":       s["abbr"],
+                "price":      round(current, s["decimals"]) if current is not None else None,
+                "change":     round(change,  s["decimals"]) if change  is not None else None,
+                "pct_change": pct,
+                "ytd_pct":    None,
+                "direction":  _direction(change),
+                "as_of":      _obs_date(obs),
+                "source":     "FRED",
+            }
+            if s["id"] == "vix":
+                vix_out = entry
+            else:
+                indices.append(entry)
+        except Exception as e:
+            log.warning(f"Index fetch failed [{s['fred_id']}]: {e}")
+            entry = {
+                "symbol": s["abbr"], "label": s["label"], "abbr": s["abbr"],
+                "price": None, "change": None, "pct_change": None,
+                "ytd_pct": None, "direction": "FLAT", "as_of": None,
+                "source": "FRED", "error": True,
+            }
+            if s["id"] == "vix":
+                vix_out = entry
+            else:
+                indices.append(entry)
+
+    result = {"indices": indices, "vix": vix_out, "timestamp": ts}
+    _cache["indices"]["data"] = result
+    _cache["indices"]["ts"]   = time.time()
+    log.info(f"Indices: fetched {len(indices)} indices + VIX from FRED.")
     return result
 
 

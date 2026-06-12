@@ -15,14 +15,8 @@ BASE_URL = "https://api.twelvedata.com"
 # ── SYMBOL MAP (yfinance → Twelve Data) ───────────────────────
 # Equity ETFs and common stocks are identical; only special symbols differ.
 SYMBOL_MAP: dict[str, str] = {
-    # Indices: direct TD index symbols require Pro tier; use ETF proxies instead.
-    # QQQ tracks Nasdaq-100 (not composite), which diverges slightly from IXIC.
-    # VIXY tracks front-month VIX futures (~15-25% below spot VIX in contango).
-    "^GSPC":    "SPY",
-    "^DJI":     "DIA",
-    "^IXIC":    "QQQ",
+    # Russell 2000: no daily FRED series; IWM is the proxy.
     "^RUT":     "IWM",
-    "^VIX":     "VIXY",
     # Futures: CME futures unavailable on free tier; ETF proxies trade extended
     # hours and reflect pre-market direction, which is the purpose of this data.
     "ES=F":     "SPY",

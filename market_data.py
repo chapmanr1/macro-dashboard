@@ -1,12 +1,13 @@
 # FILE: market_data.py
-# Bloomberg Macro Dashboard — Market Data via Twelve Data
-# Fetches equities, futures, VIX, sectors, commodities, currencies.
+# Bloomberg Macro Dashboard — Market Data
+# Indices + VIX from FRED; futures, sectors, commodities, currencies from Twelve Data.
 
 import time
 import logging
 from datetime import datetime, timezone
 from typing import Optional
 from twelve_data import get_quotes
+from fred_data import get_index_data
 
 log = logging.getLogger(__name__)
 
@@ -18,12 +19,9 @@ def _cache_valid():
     return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
 
 # ── SYMBOL DEFINITIONS ────────────────────────────────────────
-INDICES = [
-    {"symbol": "^GSPC", "label": "S&P 500",    "abbr": "SPX"},
-    {"symbol": "^DJI",  "label": "DOW JONES",  "abbr": "DJIA"},
-    {"symbol": "^IXIC", "label": "NASDAQ",      "abbr": "NDX"},
-    {"symbol": "^RUT",  "label": "RUSSELL 2K",  "abbr": "RUT"},
-]
+# S&P 500, Dow, Nasdaq, VIX come from FRED (see fred_data.get_index_data).
+# Russell 2000 has no daily FRED series — IWM proxy via Twelve Data.
+RUT_INDEX = {"symbol": "^RUT", "label": "RUSSELL 2K", "abbr": "RUT"}
 
 FUTURES = [
     {"symbol": "ES=F",  "label": "S&P FUT",    "group": "equity"},
@@ -57,10 +55,10 @@ CURRENCIES = [
     {"symbol": "DX-Y.NYB", "label": "UUP",     "description": "US Dollar Index (UUP ETF proxy)", "decimals": 2},
     {"symbol": "EURUSD=X", "label": "EUR/USD",  "description": "Euro / US Dollar","decimals": 4},
 ]
-VIX_SYMBOL = "^VIX"
 VIX_DISPLAY_MAX = 50
 
 BREADTH_SYMBOLS = [
+    {"symbol": "SPY", "label": "S&P CAP-WT", "description": "Cap-weight S&P 500 proxy"},
     {"symbol": "RSP", "label": "S&P EQL-WT", "description": "Equal-weight S&P 500"},
 ]
 
@@ -274,18 +272,22 @@ def get_market() -> dict:
 def _fetch_market_data() -> dict:
     ts = datetime.now(timezone.utc).isoformat()
 
-    # Collect all symbols into three batches (one API call each)
-    index_syms     = [i["symbol"] for i in INDICES]
+    # ── FRED: indices + VIX ───────────────────────────────────
+    fred_idx   = get_index_data()
+    fred_indices = fred_idx.get("indices", [])   # SP500, DJIA, NASDAQCOM
+    fred_vix     = fred_idx.get("vix")           # VIXCLS
+
+    # ── Twelve Data batches ───────────────────────────────────
     futures_syms   = [f["symbol"] for f in FUTURES]
-    vix_syms       = [VIX_SYMBOL]
     sector_syms    = [s["symbol"] for s in SECTORS]
     commodity_syms = [c["symbol"] for c in COMMODITIES]
     currency_syms  = [c["symbol"] for c in CURRENCIES]
     breadth_syms   = [b["symbol"] for b in BREADTH_SYMBOLS]
     vix_term_syms  = [v["symbol"] for v in VIX_TERM_SYMBOLS]
+    rut_syms       = [RUT_INDEX["symbol"]]
 
-    # Batch 1: indices + futures + VIX + breadth + VIX term structure
-    batch1 = get_quotes(index_syms + futures_syms + vix_syms + breadth_syms + vix_term_syms)
+    # Batch 1: Russell 2000 (IWM proxy) + futures + breadth + VIX term structure
+    batch1 = get_quotes(rut_syms + futures_syms + breadth_syms + vix_term_syms)
     # Batch 2: sectors
     batch2 = get_quotes(sector_syms)
     # Batch 3: commodities + currencies
@@ -294,14 +296,14 @@ def _fetch_market_data() -> dict:
     all_quotes = {**batch1, **batch2, **batch3}
 
     # ── INDICES ───────────────────────────────────────────────
-    indices_out = []
-    for idx in INDICES:
-        q = all_quotes.get(idx["symbol"])
-        stats = _parse_quote(q) if q else None
-        if stats:
-            indices_out.append({**idx, **stats})
-        else:
-            indices_out.append({**idx, **_null_instrument(idx["label"], idx["symbol"])})
+    # FRED indices first (SPX, DJIA, NDX), then RUT from TD
+    indices_out = list(fred_indices)
+    rut_q = all_quotes.get(RUT_INDEX["symbol"])
+    rut_stats = _parse_quote(rut_q) if rut_q else None
+    if rut_stats:
+        indices_out.append({**RUT_INDEX, **rut_stats})
+    else:
+        indices_out.append({**RUT_INDEX, **_null_instrument(RUT_INDEX["label"], RUT_INDEX["symbol"])})
 
     # ── FUTURES ───────────────────────────────────────────────
     futures_out = []
@@ -316,31 +318,33 @@ def _fetch_market_data() -> dict:
     futures_signal, futures_detail = _futures_signal(futures_out)
 
     # ── VIX ───────────────────────────────────────────────────
-    vix_q     = all_quotes.get(VIX_SYMBOL)
-    vix_stats = _parse_quote(vix_q) if vix_q else None
-    vix_value = vix_stats["price"] if vix_stats else None
-    vix_info  = _vix_signal(vix_value)
-    vix_out   = {
-        "symbol":     VIX_SYMBOL,
+    # Spot VIX from FRED (VIXCLS) — actual index, not a futures ETF proxy
+    vix_value = fred_vix["price"]     if fred_vix else None
+    vix_change = fred_vix["change"]   if fred_vix else None
+    vix_pct    = fred_vix["pct_change"] if fred_vix else None
+    vix_dir    = fred_vix["direction"]  if fred_vix else "FLAT"
+    vix_info   = _vix_signal(vix_value)
+    vix_out    = {
+        "symbol":     "VIX",
         "label":      "VIX",
         "value":      vix_value,
-        "change":     vix_stats["change"]     if vix_stats else None,
-        "pct_change": vix_stats["pct_change"] if vix_stats else None,
-        "direction":  vix_stats["direction"]  if vix_stats else "FLAT",
+        "change":     vix_change,
+        "pct_change": vix_pct,
+        "direction":  vix_dir,
         **vix_info,
     }
 
     # ── VIX TERM STRUCTURE ────────────────────────────────────
-    # Front-month (VIXY proxy) already captured in vix_value above
+    # Front month = VIXCLS spot (FRED). Mid/long use Twelve Data ETF proxies.
     vix_term_out = []
     vixy_entry = {
-        "symbol":      "VIXY",
-        "label":       "VIX FRONT",
+        "symbol":      "VIX",
+        "label":       "VIX SPOT",
         "months":      "1M",
-        "description": "~1-month VIX futures",
+        "description": "CBOE VIX spot (FRED VIXCLS)",
         "price":       vix_value,
-        "pct_change":  vix_stats["pct_change"] if vix_stats else None,
-        "direction":   vix_stats["direction"]  if vix_stats else "FLAT",
+        "pct_change":  vix_pct,
+        "direction":   vix_dir,
     }
     vix_term_out.append(vixy_entry)
     for vt in VIX_TERM_SYMBOLS:
@@ -372,8 +376,8 @@ def _fetch_market_data() -> dict:
     sector_signal, sector_detail = _sector_signal(sectors_out)
 
     # ── MARKET BREADTH ────────────────────────────────────────
-    # RSP (equal-weight S&P) vs SPY (cap-weight, proxied by ^GSPC)
-    spy_q     = all_quotes.get("^GSPC")
+    # RSP (equal-weight S&P) vs SPY (cap-weight proxy, both from Twelve Data)
+    spy_q     = all_quotes.get("SPY")
     rsp_q     = all_quotes.get("RSP")
     spy_stats = _parse_quote(spy_q) if spy_q else None
     rsp_stats = _parse_quote(rsp_q) if rsp_q else None
