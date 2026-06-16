@@ -6,7 +6,8 @@ import json
 import logging
 import pytz
 from datetime import datetime, timedelta
-from twelve_data import get_time_series, get_quotes
+from twelve_data import get_quotes
+from fred_data import get_series_history
 
 log = logging.getLogger(__name__)
 
@@ -25,40 +26,38 @@ def _calculate_technicals():
     """Calculate S&P, VIX, 10Y, and sector technicals via Twelve Data and FRED."""
     tech = {}
 
-    # ── S&P 500 ───────────────────────────────────────────────
+    # ── S&P 500 (actual SPX levels from FRED SP500 series) ───────
     try:
-        bars = get_time_series("SPY", "1day", 365)
+        bars = get_series_history("SP500", 365)
         if len(bars) >= 50:
-            closes = [float(b["close"]) for b in bars]
-            highs  = [float(b["high"])  for b in bars]
-            lows   = [float(b["low"])   for b in bars]
+            closes = [b["value"] for b in bars]
             n = len(closes)
             c     = closes[-1]
             ma50  = sum(closes[n-50:n]) / 50
             ma200 = sum(closes[n-200:n]) / 200 if n >= 200 else None
             high_10 = closes[-10] if n >= 10 else closes[0]
             high_30 = closes[-30] if n >= 30 else closes[0]
-            hi52 = max(highs)
-            lo52 = min(lows)
-            tech["spy_current"]       = round(c, 2)
-            tech["spy_vs_50dma"]      = round((c - ma50)  / ma50  * 100, 2)
-            tech["spy_vs_200dma"]     = round((c - ma200) / ma200 * 100, 2) if ma200 else None
-            tech["spy_50dma_level"]   = round(ma50, 2)
-            tech["spy_200dma_level"]  = round(ma200, 2) if ma200 else None
-            tech["spy_10d_momentum"]  = round((c - high_10) / high_10 * 100, 2)
-            tech["spy_30d_momentum"]  = round((c - high_30) / high_30 * 100, 2)
-            tech["spy_52w_high"]      = round(hi52, 2)
-            tech["spy_52w_low"]       = round(lo52, 2)
-            tech["spy_pct_from_high"] = round((c - hi52) / hi52 * 100, 2)
-            tech["spy_pct_from_low"]  = round((c - lo52) / lo52 * 100, 2)
+            hi52 = max(closes)
+            lo52 = min(closes)
+            tech["spx_current"]       = round(c, 2)
+            tech["spx_vs_50dma"]      = round((c - ma50)  / ma50  * 100, 2)
+            tech["spx_vs_200dma"]     = round((c - ma200) / ma200 * 100, 2) if ma200 else None
+            tech["spx_50dma_level"]   = round(ma50, 2)
+            tech["spx_200dma_level"]  = round(ma200, 2) if ma200 else None
+            tech["spx_10d_momentum"]  = round((c - high_10) / high_10 * 100, 2)
+            tech["spx_30d_momentum"]  = round((c - high_30) / high_30 * 100, 2)
+            tech["spx_52w_high"]      = round(hi52, 2)
+            tech["spx_52w_low"]       = round(lo52, 2)
+            tech["spx_pct_from_high"] = round((c - hi52) / hi52 * 100, 2)
+            tech["spx_pct_from_low"]  = round((c - lo52) / lo52 * 100, 2)
     except Exception as e:
-        tech["spy_error"] = str(e)[:120]
+        tech["spx_error"] = str(e)[:120]
 
-    # ── VIX ───────────────────────────────────────────────────
+    # ── VIX (actual VIXCLS from FRED) ─────────────────────────
     try:
-        vbars = get_time_series("VIXY", "1day", 60)
+        vbars = get_series_history("VIXCLS", 60)
         if len(vbars) >= 2:
-            vc_list = [float(b["close"]) for b in vbars]
+            vc_list = [b["value"] for b in vbars]
             vc  = vc_list[-1]
             v30 = sum(vc_list) / len(vc_list)
             tech["vix_current"]  = round(vc, 2)
@@ -121,26 +120,26 @@ def _calculate_key_levels(tech):
     """Derive support/resistance levels from technical data."""
     levels = {}
     try:
-        c   = tech.get("spy_current")
-        hi  = tech.get("spy_52w_high")
-        lo  = tech.get("spy_52w_low")
-        ma50  = tech.get("spy_50dma_level")
-        ma200 = tech.get("spy_200dma_level")
+        c   = tech.get("spx_current")
+        hi  = tech.get("spx_52w_high")
+        lo  = tech.get("spx_52w_low")
+        ma50  = tech.get("spx_50dma_level")
+        ma200 = tech.get("spx_200dma_level")
         if c is None:
             return levels
 
-        spy_lvls = {"current": c}
+        spx_lvls = {"current": c}
         if hi:
-            spy_lvls["52w_high"] = hi
-            spy_lvls["pct_below_high"] = round((c - hi) / hi * 100, 2)
+            spx_lvls["52w_high"] = hi
+            spx_lvls["pct_below_high"] = round((c - hi) / hi * 100, 2)
         if lo:
-            spy_lvls["52w_low"]   = lo
+            spx_lvls["52w_low"]   = lo
         if ma50:
-            spy_lvls["50dma"]     = ma50
-            spy_lvls["50dma_gap"] = f"{tech.get('spy_vs_50dma', 0):+.2f}%"
+            spx_lvls["50dma"]     = ma50
+            spx_lvls["50dma_gap"] = f"{tech.get('spx_vs_50dma', 0):+.2f}%"
         if ma200:
-            spy_lvls["200dma"]     = ma200
-            spy_lvls["200dma_gap"] = f"{tech.get('spy_vs_200dma', 0):+.2f}%"
+            spx_lvls["200dma"]     = ma200
+            spx_lvls["200dma_gap"] = f"{tech.get('spx_vs_200dma', 0):+.2f}%"
 
         # Round-number levels within ±5%
         base   = int(c / 100) * 100
@@ -148,9 +147,9 @@ def _calculate_key_levels(tech):
         for lvl in range(base - 200, base + 300, 50):
             if lvl != int(c) and abs(lvl - c) / c < 0.05:
                 rounds.append(lvl)
-        spy_lvls["nearby_round_levels"] = rounds
+        spx_lvls["nearby_round_levels"] = rounds
 
-        levels["spy"] = spy_lvls
+        levels["spx"] = spx_lvls
 
         # 10Y levels
         ty = tech.get("ten_year_yield")
@@ -373,17 +372,17 @@ FORMAT: Use the ═══ SECTION NAME ═══ headers exactly as shown above.
 
         # Build comprehensive user message
         spy_block = ""
-        if "spy_current" in tech_data:
-            spy_block = f"""S&P 500:
-  Current: {tech_data.get('spy_current', 'N/A')}
-  vs 50DMA ({tech_data.get('spy_50dma_level', 'N/A')}): {tech_data.get('spy_vs_50dma', 'N/A'):+.2f}%
-  vs 200DMA ({tech_data.get('spy_200dma_level', 'N/A')}): {tech_data.get('spy_vs_200dma', 'N/A'):+.2f}%
-  10d momentum: {tech_data.get('spy_10d_momentum', 'N/A'):+.2f}%
-  30d momentum: {tech_data.get('spy_30d_momentum', 'N/A'):+.2f}%
-  52w high: {tech_data.get('spy_52w_high', 'N/A')} ({tech_data.get('spy_pct_from_high', 'N/A'):+.2f}% from high)
-  52w low:  {tech_data.get('spy_52w_low', 'N/A')}"""
+        if "spx_current" in tech_data:
+            spy_block = f"""S&P 500 (actual SPX):
+  Current: {tech_data.get('spx_current', 'N/A')}
+  vs 50DMA ({tech_data.get('spx_50dma_level', 'N/A')}): {tech_data.get('spx_vs_50dma', 'N/A'):+.2f}%
+  vs 200DMA ({tech_data.get('spx_200dma_level', 'N/A')}): {tech_data.get('spx_vs_200dma', 'N/A'):+.2f}%
+  10d momentum: {tech_data.get('spx_10d_momentum', 'N/A'):+.2f}%
+  30d momentum: {tech_data.get('spx_30d_momentum', 'N/A'):+.2f}%
+  52w high: {tech_data.get('spx_52w_high', 'N/A')} ({tech_data.get('spx_pct_from_high', 'N/A'):+.2f}% from high)
+  52w low:  {tech_data.get('spx_52w_low', 'N/A')}"""
         else:
-            spy_block = f"S&P 500 technical data unavailable: {tech_data.get('spy_error', 'unknown error')}"
+            spy_block = f"S&P 500 technical data unavailable: {tech_data.get('spx_error', 'unknown error')}"
 
         vix_block = ""
         if "vix_current" in tech_data:

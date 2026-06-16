@@ -15,14 +15,13 @@ BASE_URL = "https://api.twelvedata.com"
 # ── SYMBOL MAP (yfinance → Twelve Data) ───────────────────────
 # Equity ETFs and common stocks are identical; only special symbols differ.
 SYMBOL_MAP: dict[str, str] = {
-    # Commodities and currencies
+    # Commodities
     "CL=F":     "WTI/USD",
     "GC=F":     "XAU/USD",
     "SI=F":     "XAG/USD",
     "HG=F":     "HG1",
     "NG=F":     "NG/USD",
-    "DX-Y.NYB": "UUP",
-    "DX=F":     "UUP",
+    # Currencies
     "EURUSD=X": "EUR/USD",
 }
 

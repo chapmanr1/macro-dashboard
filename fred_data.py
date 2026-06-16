@@ -1154,10 +1154,11 @@ def _fetch_credit():
 
 # ── INDEX DATA (FRED daily series) ───────────────────────────
 INDEX_SERIES = [
-    {"id": "sp500",  "fred_id": "SP500",    "label": "S&P 500",   "symbol": "^GSPC", "abbr": "SPX",  "decimals": 2},
-    {"id": "djia",   "fred_id": "DJIA",     "label": "DOW JONES", "symbol": "^DJI",  "abbr": "DJIA", "decimals": 2},
-    {"id": "nasdaq", "fred_id": "NASDAQCOM","label": "NASDAQ",    "symbol": "^IXIC", "abbr": "NDX",  "decimals": 2},
-    {"id": "vix",    "fred_id": "VIXCLS",   "label": "VIX",       "symbol": "^VIX",  "abbr": "VIX",  "decimals": 2},
+    {"id": "sp500",  "fred_id": "SP500",     "label": "S&P 500",   "symbol": "^GSPC",    "abbr": "SPX",  "decimals": 2},
+    {"id": "djia",   "fred_id": "DJIA",      "label": "DOW JONES", "symbol": "^DJI",     "abbr": "DJIA", "decimals": 2},
+    {"id": "nasdaq", "fred_id": "NASDAQCOM", "label": "NASDAQ",    "symbol": "^IXIC",    "abbr": "NDX",  "decimals": 2},
+    {"id": "vix",    "fred_id": "VIXCLS",    "label": "VIX",       "symbol": "^VIX",     "abbr": "VIX",  "decimals": 2},
+    {"id": "dxy",    "fred_id": "DTWEXBGS",  "label": "DXY",       "symbol": "DTWEXBGS", "abbr": "DXY",  "decimals": 2},
 ]
 
 
@@ -1217,28 +1218,51 @@ def _fetch_one_index(s: dict) -> dict:
 
 
 def _fetch_index_data() -> dict:
-    """Fetch all 4 index series in parallel — avoids sequential 12s timeouts stacking."""
+    """Fetch all index series in parallel — avoids sequential 12s timeouts stacking."""
     import concurrent.futures
     log.info("Indices: fetching fresh FRED data (parallel)...")
     ts      = datetime.utcnow().isoformat()
     indices = []
     vix_out = None
+    dxy_out = None
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
         results = list(pool.map(_fetch_one_index, INDEX_SERIES, timeout=20))
 
     for entry in results:
         idx_id = entry.pop("_id", None)
         if idx_id == "vix":
             vix_out = entry
+        elif idx_id == "dxy":
+            dxy_out = entry
         else:
             indices.append(entry)
 
-    result = {"indices": indices, "vix": vix_out, "timestamp": ts}
+    result = {"indices": indices, "vix": vix_out, "dxy": dxy_out, "timestamp": ts}
     _cache["indices"]["data"] = result
     _cache["indices"]["ts"]   = time.time()
-    log.info(f"Indices: fetched {len(indices)} indices + VIX from FRED.")
+    log.info(f"Indices: fetched {len(indices)} indices + VIX + DXY from FRED.")
     return result
+
+
+def get_series_history(series_id: str, n_obs: int) -> list[dict]:
+    """
+    Fetch the last n_obs observations of a FRED series, returned oldest-first.
+    Returns list of {"date": str, "value": float}.
+    Used by ai_briefing.py for SPX and VIXCLS time-series analysis.
+    """
+    try:
+        obs = _fetch_series(series_id, limit=n_obs)
+        result = []
+        for o in reversed(obs):
+            try:
+                result.append({"date": o["date"], "value": float(o["value"])})
+            except (KeyError, ValueError):
+                continue
+        return result
+    except Exception as e:
+        log.warning(f"get_series_history failed [{series_id}]: {e}")
+        return []
 
 
 # ── STANDALONE TEST ───────────────────────────────────────────

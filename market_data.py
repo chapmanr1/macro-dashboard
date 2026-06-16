@@ -1,6 +1,6 @@
 # FILE: market_data.py
 # Bloomberg Macro Dashboard — Market Data
-# Indices + VIX from FRED; everything else from yfinance via proxy.
+# Indices + VIX + DXY from FRED; sectors, breadth, commodities, EUR/USD from Twelve Data.
 
 import time
 import logging
@@ -32,8 +32,8 @@ def _cache_valid():
     return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
 
 # ── SYMBOL DEFINITIONS ────────────────────────────────────────
-# S&P 500, Dow, Nasdaq, VIX come from FRED (see fred_data.get_index_data).
-# Russell 2000 has no daily FRED series — IWM proxy via Twelve Data.
+# S&P 500, Dow, Nasdaq, VIX, DXY come from FRED (see fred_data.get_index_data).
+# RUT and futures: pending replacement data source — shown as unavailable.
 RUT_INDEX = {"symbol": "^RUT", "label": "RUSSELL 2K", "abbr": "RUT"}
 
 FUTURES = [
@@ -64,19 +64,19 @@ COMMODITIES = [
     {"symbol": "NG=F",  "label": "NAT GAS",     "suffix": "$/mmBtu","decimals": 3},
 ]
 
+# DXY comes from FRED (DTWEXBGS). Only EUR/USD remains from Twelve Data.
 CURRENCIES = [
-    {"symbol": "DX-Y.NYB", "label": "DXY",     "description": "US Dollar Index", "decimals": 2},
-    {"symbol": "EURUSD=X", "label": "EUR/USD",  "description": "Euro / US Dollar","decimals": 4},
+    {"symbol": "EURUSD=X", "label": "EUR/USD", "description": "Euro / US Dollar", "decimals": 4},
 ]
 VIX_DISPLAY_MAX = 50
 
 BREADTH_SYMBOLS = [
-    {"symbol": "SPY", "label": "S&P CAP-WT", "description": "Cap-weight S&P 500 proxy"},
+    {"symbol": "SPY", "label": "S&P CAP-WT", "description": "Cap-weight S&P 500"},
     {"symbol": "RSP", "label": "S&P EQL-WT", "description": "Equal-weight S&P 500"},
 ]
 
-# VIX term structure ETFs (VIXY = front-month, already in VIX_SYMBOL mapping)
-VIX_TERM_SYMBOLS = [
+# VIX term structure: mid/long stubs pending replacement of VIXM/VXZ ETF proxies.
+VIX_TERM_PENDING = [
     {"symbol": "VIXM", "label": "VIX MID",  "months": "5M",  "description": "~5-month VIX futures"},
     {"symbol": "VXZ",  "label": "VIX LONG", "months": "7M+", "description": "~7-month VIX futures"},
 ]
@@ -99,48 +99,6 @@ def _parse_quote(quote: dict) -> Optional[dict]:
     except (KeyError, TypeError, ValueError):
         return None
 
-
-def _yf_quotes(symbols: list[str]) -> dict:
-    """
-    Fetch latest quotes from yfinance for actual index/futures/sector prices.
-    Uses concurrent threads so N symbols take ~max(individual latencies) time.
-    Returns dict keyed by original symbol with the same shape as _parse_quote.
-    """
-    import yfinance as yf
-    import concurrent.futures as _cf
-    from proxy_config import proxy_session
-
-    def _fetch(sym: str) -> tuple[str, Optional[dict]]:
-        try:
-            hist = yf.Ticker(sym, session=proxy_session).history(period="5d", auto_adjust=True)
-            if hist.empty:
-                return sym, None
-            current = float(hist["Close"].iloc[-1])
-            prior   = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
-            change  = round(current - prior, 4) if prior is not None else None
-            pct     = round((change / prior) * 100, 3) if (change is not None and prior) else None
-            return sym, {
-                "price":      round(current, 2),
-                "change":     change,
-                "pct_change": pct,
-                "ytd_pct":    None,
-                "direction":  "UP" if (change or 0) > 0.005 else "DOWN" if (change or 0) < -0.005 else "FLAT",
-            }
-        except Exception as e:
-            log.warning(f"yfinance quote failed [{sym}]: {e}")
-            return sym, None
-
-    results: dict = {}
-    with _cf.ThreadPoolExecutor(max_workers=min(len(symbols), 12)) as pool:
-        futs = {pool.submit(_fetch, s): s for s in symbols}
-        for fut in _cf.as_completed(futs, timeout=30):
-            try:
-                sym, data = fut.result()
-                if data:
-                    results[sym] = data
-            except Exception as e:
-                log.warning(f"yfinance worker error: {e}")
-    return results
 
 
 def _null_instrument(label, symbol=""):
@@ -338,50 +296,39 @@ def _fetch_market_data() -> dict:
     fred_idx     = get_index_data(cache_only=True)
     fred_indices = fred_idx.get("indices", [])
     fred_vix     = fred_idx.get("vix")
+    fred_dxy     = fred_idx.get("dxy")  # FRED DTWEXBGS — Trade Weighted Dollar Index
 
-    # ── yfinance: actual index/futures/sector prices ─────────────
-    yf_syms = (
-        [RUT_INDEX["symbol"]]
-        + [f["symbol"] for f in FUTURES]
-        + [s["symbol"] for s in SECTORS]
-    )
-    yf_quotes = _yf_quotes(yf_syms)
+    # ── Twelve Data batches ──────────────────────────────────────
+    # Batch 1: breadth (SPY, RSP) + EUR/USD
+    breadth_syms  = [b["symbol"] for b in BREADTH_SYMBOLS]
+    currency_syms = [c["symbol"] for c in CURRENCIES]
+    batch1 = get_quotes(breadth_syms + currency_syms)
 
-    # ── Twelve Data batches (breadth + VIX term + commodities + currencies) ──
-    commodity_syms = [c["symbol"] for c in COMMODITIES]
-    currency_syms  = [c["symbol"] for c in CURRENCIES]
-    breadth_syms   = [b["symbol"] for b in BREADTH_SYMBOLS]
-    vix_term_syms  = [v["symbol"] for v in VIX_TERM_SYMBOLS]
+    # Batch 2: commodities
+    batch2 = get_quotes([c["symbol"] for c in COMMODITIES])
 
-    # Batch 1: breadth + VIX term structure
-    batch1 = get_quotes(breadth_syms + vix_term_syms)
-    # Batch 2: commodities + currencies
-    batch2 = get_quotes(commodity_syms + currency_syms)
-
-    all_quotes = {**batch1, **batch2}
+    # Batch 3: sectors (XLK–XLC)
+    batch3 = get_quotes([s["symbol"] for s in SECTORS])
 
     # ── INDICES ───────────────────────────────────────────────
-    # FRED indices first (SPX, DJIA, NDX), then RUT from yfinance (actual level)
+    # SPX, DJIA, NDX from FRED. RUT pending replacement data source.
     indices_out = list(fred_indices)
-    rut_stats = yf_quotes.get(RUT_INDEX["symbol"])
-    if rut_stats:
-        indices_out.append({**RUT_INDEX, **rut_stats})
-    else:
-        indices_out.append({**RUT_INDEX, **_null_instrument(RUT_INDEX["label"], RUT_INDEX["symbol"])})
+    indices_out.append({
+        **RUT_INDEX,
+        **_null_instrument(RUT_INDEX["label"], RUT_INDEX["symbol"]),
+        "pending_source": True,
+    })
 
     # ── FUTURES ───────────────────────────────────────────────
-    futures_out = []
-    for fut in FUTURES:
-        stats = yf_quotes.get(fut["symbol"])
-        if stats:
-            futures_out.append({**fut, **stats})
-        else:
-            futures_out.append({**fut, **_null_instrument(fut["label"], fut["symbol"])})
-
+    # Pending replacement data source — shown as unavailable.
+    futures_out = [
+        {**fut, **_null_instrument(fut["label"], fut["symbol"]), "pending_source": True}
+        for fut in FUTURES
+    ]
     futures_signal, futures_detail = _futures_signal(futures_out)
 
     # ── VIX ───────────────────────────────────────────────────
-    # Spot VIX from FRED (VIXCLS) — actual index, not a futures ETF proxy
+    # Spot VIX from FRED (VIXCLS) — actual index level.
     vix_value  = fred_vix["price"]      if fred_vix else None
     vix_change = fred_vix["change"]     if fred_vix else None
     vix_pct    = fred_vix["pct_change"] if fred_vix else None
@@ -400,40 +347,25 @@ def _fetch_market_data() -> dict:
     }
 
     # ── VIX TERM STRUCTURE ────────────────────────────────────
-    # Spot VIX (FRED VIXCLS, T-1 close) anchors the term structure.
-    # Mid/long use Twelve Data ETF proxies (real-time).
-    vix_term_out = []
-    vixy_entry = {
-        "symbol":      "VIX",
-        "label":       "VIX SPOT",
-        "months":      "SPOT",
-        "description": "CBOE VIX spot (FRED VIXCLS, prev close)",
-        "price":       vix_value,
-        "pct_change":  vix_pct,
-        "direction":   vix_dir,
-        "as_of":       vix_as_of,
-    }
-    vix_term_out.append(vixy_entry)
-    for vt in VIX_TERM_SYMBOLS:
-        q     = all_quotes.get(vt["symbol"])
-        stats = _parse_quote(q) if q else None
-        entry = {**vt}
-        if stats:
-            entry.update({
-                "price":      stats["price"],
-                "pct_change": stats["pct_change"],
-                "direction":  stats["direction"],
-            })
-        else:
-            entry.update({"price": None, "pct_change": None, "direction": "FLAT"})
-        vix_term_out.append(entry)
-
+    # Spot VIX (FRED VIXCLS) anchors the term structure.
+    # Mid/long stubs pending replacement data source for actual VIX futures.
+    vix_term_out = [
+        {
+            "symbol": "VIX", "label": "VIX SPOT", "months": "SPOT",
+            "description": "CBOE VIX spot (FRED VIXCLS, prev close)",
+            "price": vix_value, "pct_change": vix_pct,
+            "direction": vix_dir, "as_of": vix_as_of,
+        },
+        {**VIX_TERM_PENDING[0], "price": None, "pct_change": None, "direction": "FLAT", "pending_source": True},
+        {**VIX_TERM_PENDING[1], "price": None, "pct_change": None, "direction": "FLAT", "pending_source": True},
+    ]
     vix_term_signal, vix_term_detail = _vix_term_signal(vix_term_out)
 
     # ── SECTORS ───────────────────────────────────────────────
     sectors_out = []
     for sec in SECTORS:
-        stats = yf_quotes.get(sec["symbol"])
+        q = batch3.get(sec["symbol"])
+        stats = _parse_quote(q) if q else None
         if stats:
             sectors_out.append({**sec, **stats})
         else:
@@ -442,11 +374,9 @@ def _fetch_market_data() -> dict:
     sector_signal, sector_detail = _sector_signal(sectors_out)
 
     # ── MARKET BREADTH ────────────────────────────────────────
-    # RSP (equal-weight S&P) vs SPY (cap-weight proxy, both from Twelve Data)
-    spy_q     = all_quotes.get("SPY")
-    rsp_q     = all_quotes.get("RSP")
-    spy_stats = _parse_quote(spy_q) if spy_q else None
-    rsp_stats = _parse_quote(rsp_q) if rsp_q else None
+    # RSP (equal-weight S&P) vs SPY (cap-weight) — both from Twelve Data.
+    spy_stats = _parse_quote(batch1.get("SPY"))
+    rsp_stats = _parse_quote(batch1.get("RSP"))
 
     sectors_up   = sum(1 for s in sectors_out if (s.get("pct_change") or 0) >  0.2)
     sectors_down = sum(1 for s in sectors_out if (s.get("pct_change") or 0) < -0.2)
@@ -469,7 +399,7 @@ def _fetch_market_data() -> dict:
     # ── COMMODITIES ───────────────────────────────────────────
     commodities_out = []
     for com in COMMODITIES:
-        q = all_quotes.get(com["symbol"])
+        q = batch2.get(com["symbol"])
         stats = _parse_quote(q) if q else None
         entry = {**com}
         if stats:
@@ -492,10 +422,35 @@ def _fetch_market_data() -> dict:
     cu_au_signal, cu_au_detail = _cu_au_signal(cu_au_ratio)
 
     # ── CURRENCIES ────────────────────────────────────────────
+    # DXY: FRED DTWEXBGS (Trade Weighted US Dollar Index) — actual Fed index.
+    # EUR/USD: Twelve Data.
     currencies_out = []
     dxy_value = None
+
+    if fred_dxy:
+        dxy_value = fred_dxy.get("price")
+        currencies_out.append({
+            "symbol":      "DTWEXBGS",
+            "label":       "DXY",
+            "description": "Trade Weighted USD Index (FRED)",
+            "decimals":    2,
+            "price":       round(dxy_value, 2) if dxy_value is not None else None,
+            "change":      fred_dxy.get("change"),
+            "pct_change":  fred_dxy.get("pct_change"),
+            "direction":   fred_dxy.get("direction", "FLAT"),
+            "as_of":       fred_dxy.get("as_of"),
+            "source":      "FRED",
+        })
+    else:
+        currencies_out.append({
+            "symbol": "DTWEXBGS", "label": "DXY",
+            "description": "Trade Weighted USD Index (FRED)",
+            "decimals": 2, "price": None, "change": None,
+            "pct_change": None, "direction": "FLAT",
+        })
+
     for cur in CURRENCIES:
-        q = all_quotes.get(cur["symbol"])
+        q = batch1.get(cur["symbol"])
         stats = _parse_quote(q) if q else None
         entry = {**cur}
         if stats:
@@ -505,8 +460,6 @@ def _fetch_market_data() -> dict:
                 "pct_change": stats["pct_change"],
                 "direction":  stats["direction"],
             })
-            if cur["label"] == "DXY":
-                dxy_value = stats["price"]
         else:
             entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
         currencies_out.append(entry)
