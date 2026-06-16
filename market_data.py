@@ -1,6 +1,6 @@
 # FILE: market_data.py
 # Bloomberg Macro Dashboard — Market Data
-# Indices + VIX from FRED; futures, sectors, commodities, currencies from Twelve Data.
+# Indices + VIX from FRED; everything else from yfinance via proxy.
 
 import time
 import logging
