@@ -164,14 +164,12 @@ his dashboard more deeply after every session, not just have
 more working code.
 
 ## Known bugs and open work (as of June 2026)
-- Regime engine `name 'label' is not defined` — NameError introduced
-  by dead code cleanup commit, needs fix in regime_engine.py
 - Sector rotation may need batching fix for 8/min rate limit
-- Temporary PROXY DEBUG logging may still exist in some files
-  (should have been removed but verify)
 - Graham/Buffett scorecards currently show limited data due to
   Twelve Data free tier not including fundamentals
   Future plan: source fundamentals from SEC EDGAR (free)
+- RUT, equity futures (ES/NQ/YM), and VIX term structure are stubbed
+  as unavailable — pending decision on replacement data source
 
 ## What's working well (don't break these)
 - AI Morning Briefing (Anthropic API + FRED data feed)
