@@ -46,13 +46,13 @@
     .notif-bell:hover { color: var(--white); }
     .notif-bell.has-notif { color: #ef4444; }
     .notif-badge { position: absolute; top: -4px; right: -6px; background: #ef4444; color: #fff; font-size: 8px; font-family: var(--font-ui); font-weight: 700; border-radius: 8px; min-width: 14px; height: 14px; line-height: 14px; text-align: center; padding: 0 3px; pointer-events: none; }
-    .notif-panel { position: absolute; top: calc(100% + 8px); left: 0; width: 300px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); z-index: 1050; overflow: visible; }
-    .notif-panel::before { content:''; position: absolute; top: -6px; left: 12px; width: 10px; height: 10px; background: var(--panel); border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg); }
-    .notif-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .notif-panel { position: absolute; top: calc(100% + 8px); left: 0; width: 300px; background: #111827; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); z-index: 1050; overflow: visible; }
+    .notif-panel::before { content:''; position: absolute; top: -6px; left: 12px; width: 10px; height: 10px; background: #111827; border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg); }
+    .notif-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); background: #111827; }
     .notif-panel-title { font-family: var(--font-ui); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); }
     .notif-clear-btn { background: none; border: none; cursor: pointer; font-family: var(--font-ui); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); padding: 0; transition: color 0.15s; }
     .notif-clear-btn:hover { color: var(--white); }
-    .notif-list { max-height: 240px; overflow-y: auto; overflow-x: hidden; }
+    .notif-list { max-height: 400px; overflow-y: auto; overflow-x: hidden; }
     .notif-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-ui); font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: #ef4444; display: flex; gap: 8px; align-items: flex-start; }
     .notif-item-time { color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     .notif-empty { padding: 12px; font-family: var(--font-ui); font-size: 9px; color: var(--muted); letter-spacing: 0.08em; text-align: center; }
@@ -2851,6 +2851,7 @@ async function fetchNews() {
 // ════════════════════════════════════════════════════════════
 let _lastRegime = null, _lastMarket = null, _lastFedWatch = null, _lastHeadlines = [];
 let _notifications = [];
+let _calendarChecked = false;
 
 function buildPrepSummary() {
   const now = new Date();
@@ -2960,6 +2961,7 @@ autoRefreshInterval = setInterval(() => {
 // Load overview on start
 state.tabLoaded['overview'] = true;
 fetchOverview();
+fetchCalendarNotifs();
 startRefreshCountdown();
 
 // ════════════════════════════════════════════════════════════
@@ -3612,6 +3614,20 @@ async function fetchBDC(){
     }).join('');
     el.className='bdc-grid';
   }catch(e){}
+}
+
+// ── Calendar notifications (fires once on page load) ──────────
+function fetchCalendarNotifs(){
+  if(_calendarChecked)return;
+  _calendarChecked=true;
+  const today=new Date().toISOString().slice(0,10);
+  apiFetch('/api/calendar').then(data=>{
+    const block=(data.events||[]).find(b=>b.date===today);
+    if(!block)return;
+    (block.events||[]).forEach(ev=>{
+      _addNotif(`${ev.event}${ev.time?' · '+ev.time:''}`);
+    });
+  }).catch(()=>{});
 }
 
 // ── Alerts ────────────────────────────────────────────────────

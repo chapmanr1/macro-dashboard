@@ -733,6 +733,19 @@ def get_economic_calendar():
     except Exception:
         pass  # Calendar still works without surprise data
 
+    # Hardcoded 2026 Fed event dates — verify against federalreserve.gov annually
+    _BEIGE_BOOK_2026 = {
+        "2026-01-14", "2026-03-04", "2026-04-15", "2026-05-27",
+        "2026-07-15", "2026-09-02", "2026-10-14", "2026-11-25",
+    }
+    _FOMC_PRESSER_2026 = {
+        "2026-01-29", "2026-03-19", "2026-04-30", "2026-06-11",
+        "2026-07-30", "2026-09-17", "2026-11-05", "2026-12-10",
+    }
+    _HH_TESTIMONY_2026 = {
+        "2026-02-11", "2026-02-12", "2026-07-15", "2026-07-16",
+    }
+
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
         weekday = d.weekday()  # 0=Mon, 6=Sun
@@ -791,6 +804,14 @@ def get_economic_calendar():
         # 2nd Friday: Univ Michigan Preliminary
         if weekday == 4 and 8 <= d.day <= 14:
             day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT PRELIM", "impact": "MEDIUM", "note": "Monthly"})
+
+        d_iso = d.isoformat()
+        if d_iso in _BEIGE_BOOK_2026:
+            day_ev.append({"time": "2:00 ET",  "event": "BEIGE BOOK RELEASE",              "impact": "HIGH", "note": "Fed Regional Survey"})
+        if d_iso in _FOMC_PRESSER_2026:
+            day_ev.append({"time": "2:30 ET",  "event": "FED CHAIR PRESS CONFERENCE",       "impact": "HIGH", "note": "FOMC Decision Day"})
+        if d_iso in _HH_TESTIMONY_2026:
+            day_ev.append({"time": "10:00 ET", "event": "FED CHAIR CONGRESSIONAL TESTIMONY","impact": "HIGH", "note": "Semi-Annual Report"})
 
         if day_ev:
             # Annotate events with latest FRED actuals
