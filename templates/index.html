@@ -40,6 +40,22 @@
     /* ── TOP BAR ── */
     .topbar { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 1000; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 16px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--border); background: #0a1628; -webkit-transform: translateZ(0); transform: translateZ(0); box-shadow: 0 1px 12px rgba(0,0,0,0.4); }
     .topbar-left { display: flex; align-items: center; }
+    /* ── BELL NOTIFICATION ── */
+    .notif-wrap { position: relative; display: flex; align-items: center; }
+    .notif-bell { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px 4px; line-height: 1; -webkit-tap-highlight-color: transparent; transition: color 0.15s; display: flex; align-items: center; }
+    .notif-bell:hover { color: var(--white); }
+    .notif-bell.has-notif { color: #ef4444; }
+    .notif-badge { position: absolute; top: -4px; right: -6px; background: #ef4444; color: #fff; font-size: 8px; font-family: var(--font-ui); font-weight: 700; border-radius: 8px; min-width: 14px; height: 14px; line-height: 14px; text-align: center; padding: 0 3px; pointer-events: none; }
+    .notif-panel { position: absolute; top: calc(100% + 8px); left: 0; width: 300px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); z-index: 1050; overflow: visible; }
+    .notif-panel::before { content:''; position: absolute; top: -6px; left: 12px; width: 10px; height: 10px; background: var(--panel); border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg); }
+    .notif-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .notif-panel-title { font-family: var(--font-ui); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); }
+    .notif-clear-btn { background: none; border: none; cursor: pointer; font-family: var(--font-ui); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); padding: 0; transition: color 0.15s; }
+    .notif-clear-btn:hover { color: var(--white); }
+    .notif-list { max-height: 240px; overflow-y: auto; overflow-x: hidden; }
+    .notif-item { padding: 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--font-ui); font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: #ef4444; display: flex; gap: 8px; align-items: flex-start; }
+    .notif-item-time { color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .notif-empty { padding: 12px; font-family: var(--font-ui); font-size: 9px; color: var(--muted); letter-spacing: 0.08em; text-align: center; }
     .topbar-brand { font-family: var(--font-ui); font-size: 13px; font-weight: 600; color: var(--white); letter-spacing: 0.12em; text-align: center; }
     .topbar-brand span { color: var(--blue); }
     .topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: 12px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
@@ -504,7 +520,7 @@
     html[data-theme="light"] .briefing-section .section-header { background: rgba(0,51,102,0.05); }
     html[data-theme="light"] .briefing-section-hdr { border-bottom-color: rgba(0,51,102,0.15); }
     html[data-theme="light"] .briefing-refresh-btn:hover { color: #ffffff; }
-    html[data-theme="light"] .alert-banner { background: rgba(0,51,102,0.07); }
+    html[data-theme="light"] .notif-panel { box-shadow: 0 12px 32px rgba(0,51,102,0.12); }
     /* Chart modal */
     html[data-theme="light"] .chart-modal-content { background: #ffffff; border-color: rgba(0,51,102,0.3); box-shadow: 0 0 40px rgba(0,51,102,0.12); }
     html[data-theme="light"] .modal-chart-wrapper { background: var(--bg2); }
@@ -543,7 +559,7 @@
     html[data-theme="midnight"] .modal-summary-stats { background: rgba(77,163,255,0.06); border-top-color: rgba(77,163,255,0.2); }
     html[data-theme="midnight"] .modal-action-btn { border-color: rgba(77,163,255,0.3); }
     html[data-theme="midnight"] .modal-action-btn:hover { background: rgba(77,163,255,0.1); }
-    html[data-theme="midnight"] .alert-banner { background: rgba(77,163,255,0.10); }
+    html[data-theme="midnight"] .notif-bell.has-notif { color: #ff6b6b; }
 
     /* ── FONT SIZES ── */
     html[data-fontsize="compact"] body { font-size:11px; }
@@ -571,11 +587,6 @@
     html[data-client="true"] .trigger-desc,html[data-client="true"] .vix-description,
     html[data-client="true"] .kshape-interp,html[data-client="true"] .currency-signal { display:none !important; }
 
-    /* ── ALERT BANNER ── */
-    .alert-banner { display:none;position:fixed;top:83px;left:0;right:0;width:100%;z-index:95;background:rgba(245,158,11,0.10);border-bottom:2px solid var(--amber);padding:7px 14px;align-items:center;gap:10px; }
-    .alert-banner.show { display:flex; }
-    .alert-banner-text { flex:1;font-family:var(--font-ui);font-size:10px;color:var(--amber);letter-spacing:0.08em;font-weight:600; }
-    .alert-banner-close { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;font-family:var(--font-mono);line-height:1; }
 
     /* ── WATCHLIST STRIP ── */
     .watchlist-strip { display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border); }
@@ -968,7 +979,22 @@
 <body>
 <!-- FIXED TOP BAR -->
 <div class="topbar">
-  <div class="topbar-left"></div>
+  <div class="topbar-left">
+    <div class="notif-wrap" id="notifWrap">
+      <button class="notif-bell" id="notifBell" title="Notifications">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+      </button>
+      <div class="notif-panel" id="notifPanel" style="display:none">
+        <div class="notif-panel-header">
+          <span class="notif-panel-title">ALERTS</span>
+          <button class="notif-clear-btn" id="notifClearBtn">CLEAR ALL</button>
+        </div>
+        <div class="notif-list" id="notifList"></div>
+        <div class="notif-empty" id="notifEmpty">No alerts</div>
+      </div>
+    </div>
+  </div>
   <div class="topbar-brand">MACRO DASHBOARD</div>
   <div class="topbar-right">
     <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
@@ -986,11 +1012,6 @@
   <button class="tab-btn" data-tab="economy">ECONOMY</button>
   <button class="tab-btn" data-tab="credit">CREDIT</button>
   <button class="tab-btn" data-tab="news">NEWS</button>
-</div>
-<!-- ALERT BANNER -->
-<div id="alertBanner" class="alert-banner">
-  <span id="alertBannerText" class="alert-banner-text"></span>
-  <button id="alertBannerClose" class="alert-banner-close" title="Dismiss">✕</button>
 </div>
 <div class="terminal">
 
@@ -2829,6 +2850,7 @@ async function fetchNews() {
 // DAILY PREP SUMMARY EXPORT
 // ════════════════════════════════════════════════════════════
 let _lastRegime = null, _lastMarket = null, _lastFedWatch = null, _lastHeadlines = [];
+let _notifications = [];
 
 function buildPrepSummary() {
   const now = new Date();
@@ -3593,13 +3615,34 @@ async function fetchBDC(){
 }
 
 // ── Alerts ────────────────────────────────────────────────────
-// _lastRegime is declared above (line ~2806) — do not re-declare here
+function _updateBell(){
+  const bell=document.getElementById('notifBell');
+  const badge=document.getElementById('notifBadge');
+  const list=document.getElementById('notifList');
+  const empty=document.getElementById('notifEmpty');
+  if(!bell)return;
+  const count=_notifications.length;
+  if(count>0){
+    bell.classList.add('has-notif');
+    badge.textContent=count>9?'9+':count;
+    badge.style.display='';
+  }else{
+    bell.classList.remove('has-notif');
+    badge.style.display='none';
+  }
+  if(list)list.innerHTML=_notifications.map(n=>`<div class="notif-item"><span class="notif-item-time">${n.time}</span><span>${n.msg}</span></div>`).join('');
+  if(empty)empty.style.display=count===0?'':'none';
+}
+
+function _addNotif(msg){
+  const now=new Date();
+  const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  _notifications.unshift({msg,time});
+  _updateBell();
+}
 
 function checkAlerts(type,data){
   const d=stLoad();
-  const banner=document.getElementById('alertBanner');
-  const bannerText=document.getElementById('alertBannerText');
-  if(!banner)return;
   const msgs=[];
   if(type==='market'&&data.vix){
     const v=data.vix.value;
@@ -3614,13 +3657,24 @@ function checkAlerts(type,data){
     if(_lastRegime&&_lastRegime!==lbl)msgs.push(`REGIME CHANGE: ${_lastRegime} → ${lbl}`);
     _lastRegime=lbl;
   }
-  if(msgs.length){
-    bannerText.textContent='⚠ '+msgs.join('  ·  ');
-    banner.classList.add('show');
-  }
+  msgs.forEach(_addNotif);
 }
-document.getElementById('alertBannerClose')?.addEventListener('click',()=>
-  document.getElementById('alertBanner').classList.remove('show'));
+
+document.getElementById('notifBell')?.addEventListener('click',e=>{
+  e.stopPropagation();
+  const panel=document.getElementById('notifPanel');
+  if(panel)panel.style.display=panel.style.display==='none'?'':'none';
+});
+document.getElementById('notifClearBtn')?.addEventListener('click',()=>{
+  _notifications=[];
+  _updateBell();
+  document.getElementById('notifPanel').style.display='none';
+});
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('notifWrap');
+  const panel=document.getElementById('notifPanel');
+  if(wrap&&panel&&!wrap.contains(e.target))panel.style.display='none';
+});
 
 // ── News filter (client-side) ─────────────────────────────────
 function filterArticlesBySettings(articles){
