@@ -60,10 +60,12 @@ except ImportError:
         return {"label": series_id, "unit": "", "data": [], "error": "FRED module not loaded"}
 
 try:
-    from global_data import get_global_indicators
+    from global_data import get_global_indicators, get_cot_positioning
 except ImportError:
     def get_global_indicators():
         return {"economies": [], "timestamp": datetime.utcnow().isoformat(), "error": "Global module not loaded"}
+    def get_cot_positioning():
+        return {"positions": [], "as_of": None, "timestamp": datetime.utcnow().isoformat(), "error": "Global module not loaded"}
 
 try:
     from news_feed import get_news
@@ -323,6 +325,14 @@ def api_global():
     except Exception as e:
         log.error(f"Global indicators error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "economies": []}), 500
+
+@app.route("/api/cot")
+def api_cot():
+    try:
+        return jsonify(get_cot_positioning())
+    except Exception as e:
+        log.error(f"COT positioning error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "positions": []}), 500
 
 @app.route("/api/health")
 def api_health():
