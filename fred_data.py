@@ -155,6 +155,45 @@ def _safe_change(current, prior):
     return round(current - prior, 4)
 
 
+def _extract_sparkline_dated(obs: list, calc: str, scale: float = 1, n: int = 12) -> list:
+    """Like _extract_sparkline but returns [{"date": str, "value": float}] pairs (oldest-first)."""
+    valid = [o for o in obs if o.get("value") not in (".", "", None)]
+    if len(valid) < 2:
+        return []
+    try:
+        if calc in ("latest", "latest_bp"):
+            sc = 100 if calc == "latest_bp" else scale
+            return [{"date": o["date"], "value": round(float(o["value"]) * sc, 4)}
+                    for o in reversed(valid[:n])]
+        elif calc == "mom_pct":
+            raw = []
+            for i in range(min(n, len(valid) - 1)):
+                curr, prev = float(valid[i]["value"]), float(valid[i + 1]["value"])
+                if prev != 0:
+                    raw.append({"date": valid[i]["date"],
+                                "value": round(((curr - prev) / abs(prev)) * 100, 2)})
+            return list(reversed(raw))
+        elif calc == "yoy":
+            raw = []
+            for i in range(min(n, len(valid) - 12)):
+                curr, ya = float(valid[i]["value"]), float(valid[i + 12]["value"])
+                if ya != 0:
+                    raw.append({"date": valid[i]["date"],
+                                "value": round(((curr - ya) / abs(ya)) * 100, 2)})
+            return list(reversed(raw))
+        elif calc in ("qoq_annualized", "qoq"):
+            raw = []
+            for i in range(min(n, len(valid) - 1)):
+                curr, prev = float(valid[i]["value"]), float(valid[i + 1]["value"])
+                if prev != 0:
+                    raw.append({"date": valid[i]["date"],
+                                "value": round(((curr / prev) ** 4 - 1) * 100, 2)})
+            return list(reversed(raw))
+        return []
+    except (ValueError, ZeroDivisionError):
+        return []
+
+
 def _extract_sparkline(obs: list, calc: str, scale: float = 1, n: int = 12) -> list:
     """Return up to n sparkline floats (oldest-first) from raw FRED observations."""
     valid = [o for o in obs if o.get("value") not in (".", "", None)]
@@ -1014,6 +1053,7 @@ def _fetch_macro():
                 "decimals": s["decimals"], "positive_is_good": s["positive_is_good"],
                 "as_of": _obs_date(obs),
                 "sparkline": _extract_sparkline(obs, s["calc"]),
+                "sparkline_dated": _extract_sparkline_dated(obs, s["calc"]),
             })
         except Exception as e:
             log.warning(f"Macro fetch failed [{s['fred_id']}]: {e}")
@@ -1023,7 +1063,7 @@ def _fetch_macro():
                 "current": None, "prior": None, "change": None,
                 "direction": "FLAT", "suffix": s.get("suffix",""),
                 "decimals": s.get("decimals",2), "positive_is_good": s.get("positive_is_good",True),
-                "as_of": None, "sparkline": [],
+                "as_of": None, "sparkline": [], "sparkline_dated": [],
             })
 
     result = {"series": series, "timestamp": ts, "errors": errors}
@@ -1161,7 +1201,8 @@ def _fetch_economy():
                     "signal":          _signal_word(s["id"], current, s["positive_is_good"]),
                     "interpretation":  _get_interpretation(s["id"], current, change),
                     "as_of":           _obs_date(obs),
-                    "sparkline":       _extract_sparkline(obs, s["calc"]),
+                    "sparkline":        _extract_sparkline(obs, s["calc"]),
+                    "sparkline_dated":  _extract_sparkline_dated(obs, s["calc"]),
                 })
                 raw_vals[s["id"]] = current
 
@@ -1276,7 +1317,8 @@ def _fetch_credit():
                 "direction":    _direction(change),
                 "interpretation": _get_interpretation(s["id"], current, change),
                 "as_of":        _obs_date(obs),
-                "sparkline":    _extract_sparkline(obs, s.get("calc", "latest"), scale=scale),
+                "sparkline":        _extract_sparkline(obs, s.get("calc", "latest"), scale=scale),
+                "sparkline_dated":  _extract_sparkline_dated(obs, s.get("calc", "latest"), scale=scale),
             })
 
             # Signal for spreads

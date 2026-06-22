@@ -206,6 +206,26 @@
     .sparkline-svg polyline { fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
     .sparkline-svg line { stroke-width:1.5; stroke-linecap:round; }
 
+    /* ── CELL CLICKABILITY ── */
+    .macro-cell, .scorecard-cell, .spread-cell, .tips-cell { cursor: pointer; }
+
+    /* ── SPARKLINE DETAIL POPUP ── */
+    .sl-popup { position:fixed; z-index:10003; background:var(--bg2); border:1px solid rgba(59,130,246,0.3); border-radius:8px; width:360px; max-width:calc(100vw - 20px); box-shadow:0 10px 48px rgba(0,0,0,0.8); display:none; animation:modalFadeIn 0.15s ease; }
+    .sl-popup.show { display:block; }
+    .sl-popup-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px 8px; border-bottom:1px solid var(--border); }
+    .sl-popup-title { font-size:9px; font-weight:700; letter-spacing:0.12em; color:var(--white); font-family:var(--font-mono); text-transform:uppercase; }
+    .sl-popup-close { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:0 2px; transition:color 0.15s; flex-shrink:0; }
+    .sl-popup-close:hover { color:var(--red); }
+    .sl-popup-chart { padding:12px 14px 4px; }
+    .sl-popup-chart svg { display:block; width:100%; height:auto; overflow:visible; }
+    .sl-popup-table { padding:4px 14px 12px; max-height:180px; overflow-y:auto; }
+    .sl-popup-thead { display:flex; justify-content:space-between; padding:0 0 4px; border-bottom:1px solid var(--border); font-family:var(--font-ui); font-size:8px; color:var(--muted); letter-spacing:0.1em; font-weight:600; text-transform:uppercase; margin-bottom:2px; }
+    .sl-popup-row { display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-family:var(--font-mono); font-size:9px; }
+    .sl-popup-row:last-child { border-bottom:none; }
+    .sl-popup-row-date { color:var(--muted); }
+    .sl-popup-row-val { font-weight:600; }
+    @media (max-width:640px) { .sl-popup { width:calc(100vw - 20px); left:10px !important; } }
+
     /* ── CHART ICON BUTTON ── */
     .chart-icon-btn { background:none; border:none; color:transparent; font-size:9px; cursor:pointer; padding:0 0 0 2px; line-height:1; -webkit-tap-highlight-color:transparent; transition:color 0.15s; flex-shrink:0; font-family:var(--font-ui); }
     .macro-cell:hover .chart-icon-btn, .scorecard-cell:hover .chart-icon-btn,
@@ -2100,6 +2120,138 @@ function _mcFmt(v) {
   return v.toFixed(2);
 }
 
+// ── SPARKLINE DETAIL POPUP ───────────────────────────────────
+const _slStore = {};
+
+function _slStorePut(s) {
+  if (!s || !s.id) return;
+  _slStore[s.id] = {
+    label:    s.label || s.id || '',
+    dated:    s.sparkline_dated || [],
+    suffix:   s.suffix || (s.unit === 'bp' ? 'bp' : s.unit === '%' ? '%' : ''),
+    decimals: s.decimals ?? 2,
+    pig:      s.positive_is_good !== undefined ? s.positive_is_good : null,
+  };
+}
+
+function openSLDetail(cell) {
+  const id = cell.dataset.slId;
+  if (!id) return;
+  const d = _slStore[id];
+  if (!d || !d.dated || d.dated.length < 2) return;
+
+  document.getElementById('slDetailTitle').textContent = d.label;
+  document.getElementById('slDetailChart').innerHTML  = _slRenderChart(d);
+  document.getElementById('slDetailTable').innerHTML  = _slRenderTable(d);
+
+  const popup = document.getElementById('slDetailPopup');
+  popup.classList.add('show');
+
+  // Position near the cell, clamped to viewport
+  const rect = cell.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  popup.style.left = '-9999px'; popup.style.top = '-9999px';
+  const pw = popup.offsetWidth, ph = popup.offsetHeight;
+  let left = rect.left, top = rect.bottom + 8;
+  if (left + pw > vw - 10) left = vw - pw - 10;
+  if (left < 10) left = 10;
+  if (top + ph > vh - 10) top = rect.top - ph - 8;
+  if (top < 10) top = Math.max(10, rect.bottom + 8);
+  popup.style.left = left + 'px';
+  popup.style.top  = top  + 'px';
+
+  setTimeout(() => document.addEventListener('click', _slOutsideDismiss, {capture:true}), 0);
+}
+
+function closeSLDetail() {
+  document.getElementById('slDetailPopup').classList.remove('show');
+  document.removeEventListener('click', _slOutsideDismiss, true);
+}
+
+function _slOutsideDismiss(e) {
+  const popup = document.getElementById('slDetailPopup');
+  if (!popup.contains(e.target)) {
+    closeSLDetail();
+  }
+}
+
+function _slRenderChart(d) {
+  const dated = d.dated;
+  const vals  = dated.map(p => p.value);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const rng  = mx - mn || 1;
+  const W = 332, H = 80, px = 4, py = 6;
+  const cW = W - px * 2, cH = H - py * 2;
+  const last = vals[vals.length - 1], first = vals[0];
+  let stroke = 'var(--muted)';
+  if (rng > 0.001) {
+    const up = last > first;
+    if (d.pig === true)        stroke = up ? 'var(--green)' : 'var(--red)';
+    else if (d.pig === false)  stroke = up ? 'var(--red)'   : 'var(--green)';
+    else                       stroke = 'var(--blue)';
+  }
+  const xS = i => px + (i / (dated.length - 1)) * cW;
+  const yS = v => py + cH - ((v - mn) / rng) * cH;
+
+  const pts = dated.map((p, i) => `${xS(i).toFixed(1)},${yS(p.value).toFixed(1)}`).join(' ');
+
+  // Pick date label indices: first, evenly spaced midpoints, last
+  const n = dated.length;
+  const labelIdxs = n <= 4
+    ? [...Array(n).keys()]
+    : [0, Math.round(n/4), Math.round(n/2), Math.round(3*n/4), n-1];
+  const uniqueIdxs = [...new Set(labelIdxs)];
+
+  let dots = '', xlbls = '';
+  uniqueIdxs.forEach((i, li) => {
+    const x = xS(i), y = yS(dated[i].value);
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${stroke}" opacity="0.9"/>`;
+    const anchor = li === 0 ? 'start' : li === uniqueIdxs.length - 1 ? 'end' : 'middle';
+    xlbls += `<text x="${x.toFixed(1)}" y="${H + 18}" fill="var(--muted)" font-size="7.5" text-anchor="${anchor}" font-family="monospace">${dated[i].date.substring(0,7)}</text>`;
+  });
+
+  // Y axis: min / max labels
+  const yMin_lbl = `<text x="${(px - 2).toFixed(1)}" y="${(py + cH + 3.5).toFixed(1)}" fill="var(--muted)" font-size="7.5" text-anchor="end" font-family="monospace">${fmt(mn, d.decimals)}</text>`;
+  const yMax_lbl = `<text x="${(px - 2).toFixed(1)}" y="${(py + 3.5).toFixed(1)}" fill="var(--muted)" font-size="7.5" text-anchor="end" font-family="monospace">${fmt(mx, d.decimals)}</text>`;
+
+  // Zero line if straddles
+  const zeroLine = mn < 0 && mx > 0
+    ? `<line x1="${px}" y1="${yS(0).toFixed(1)}" x2="${px + cW}" y2="${yS(0).toFixed(1)}" stroke="rgba(255,255,255,0.18)" stroke-width="0.8" stroke-dasharray="3,2"/>`
+    : '';
+
+  return `<svg viewBox="0 0 ${W} ${H + 22}" style="width:100%;height:auto">
+    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${zeroLine}${dots}${xlbls}${yMin_lbl}${yMax_lbl}
+  </svg>`;
+}
+
+function _slRenderTable(d) {
+  const rows = [...d.dated].reverse().map((p, i, arr) => {
+    const prev = arr[i + 1];
+    let cls = 'c-muted';
+    if (prev !== undefined) {
+      const up = p.value > prev.value;
+      if (d.pig === true)        cls = up ? 'c-green' : 'c-red';
+      else if (d.pig === false)  cls = up ? 'c-red'   : 'c-green';
+    }
+    const arrow = prev === undefined ? '' : p.value > prev.value ? '▲ ' : p.value < prev.value ? '▼ ' : '';
+    return `<div class="sl-popup-row">
+      <span class="sl-popup-row-date">${p.date.substring(0,7)}</span>
+      <span class="sl-popup-row-val ${cls}">${arrow}${fmt(p.value, d.decimals)}${d.suffix}</span>
+    </div>`;
+  }).join('');
+  return `<div class="sl-popup-thead"><span>DATE</span><span>VALUE</span></div>${rows}`;
+}
+
+// Delegated click handler — fires for all data cells
+document.addEventListener('click', e => {
+  if (document.getElementById('slDetailPopup').classList.contains('show')) return;
+  const cell = e.target.closest('.macro-cell,.scorecard-cell,.spread-cell,.tips-cell');
+  if (!cell) return;
+  if (e.target.closest('.info-btn,.chart-icon-btn,.fred-link,a,button')) return;
+  openSLDetail(cell);
+});
+
 function _showTooltip(btn, id) {
   const tt = document.getElementById('indicator-tooltip');
   if (!tt) return;
@@ -2300,12 +2452,13 @@ function renderMacro(data) {
   if (!series.length) { setEl('macroContent','<div class="error-row">NO MACRO DATA</div>'); return; }
 
   const cells = series.map(s => {
+    _slStorePut(s);
     const chg = s.change ?? null;
     const pig = s.positive_is_good !== false;
     const cls = colorClass(chg, pig);
     const fredUrl = FRED_URLS[s.id];
     const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
-    return `<div class="macro-cell">
+    return `<div class="macro-cell" data-sl-id="${s.id}">
       <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
       ${_sparkline(s.sparkline, s.positive_is_good)}
@@ -2899,6 +3052,7 @@ function signalColor(signal) {
 }
 
 function scorecardCell(s) {
+  _slStorePut(s);
   const pig = s.positive_is_good;
   const cls = (pig === true)  ? colorClass(s.change, true)
             : (pig === false) ? colorClass(s.change, false)
@@ -2906,7 +3060,7 @@ function scorecardCell(s) {
   const valStr = s.current != null ? fmt(s.current, s.decimals??2) + (s.suffix||'') : '--';
   const arrow = s.change != null ? dirArrow(s.change) : '';
   const sigCls = signalColor(s.signal);
-  return `<div class="scorecard-cell">
+  return `<div class="scorecard-cell" data-sl-id="${s.id}">
     <div class="scorecard-label"><span>${s.label||''} ${indicatorTypeBadge(s.id)}</span><span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
     <div class="scorecard-value ${cls}">${valStr}<span class="scorecard-arrow ${cls}">${arrow}</span></div>
     ${_sparkline(s.sparkline, s.positive_is_good)}
@@ -3009,6 +3163,7 @@ function spreadContextBar(value, maxBp, zones) {
 function renderSpreads(spreads) {
   if (!spreads || !spreads.length) { setEl('spreadsContent','<div class="error-row">NO CREDIT DATA</div>'); return; }
   const cells = spreads.map(s => {
+    _slStorePut({...s, positive_is_good: false, suffix: 'bp'});
     const sigBorder = s.signal_color === 'green' ? 'var(--green)' : s.signal_color === 'red' ? 'var(--red)' : 'var(--amber)';
     const valCls    = s.signal_color === 'green' ? 'c-green' : s.signal_color === 'red' ? 'c-red' : 'c-amber';
     const chgCls    = colorClass(s.change, false);
@@ -3026,7 +3181,7 @@ function renderSpreads(spreads) {
          {start:130,end:200,color:'rgba(239,68,68,0.18)',label:'130-200 WIDE',labelColor:'var(--red)'},
          {start:200,end:350,color:'rgba(127,29,29,0.3)',label:'>200 CRISIS',labelColor:'var(--red-dim)',last:true}];
 
-    return `<div class="spread-cell">
+    return `<div class="spread-cell" data-sl-id="${s.id}">
       <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span><span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
       <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
@@ -3044,11 +3199,12 @@ function renderTipsPanel(breakevens, realYields) {
   const all = [...(breakevens||[]), ...(realYields||[])];
   if (!all.length) { setEl('breakevensContent','<div class="error-row">NO TIPS DATA</div>'); return; }
   const cells = all.map(s => {
+    _slStorePut({...s, positive_is_good: null, suffix: '%', decimals: s.decimals ?? 2});
     const chgCls = colorClass(s.change, null);
     const arrow  = s.direction === 'UP' ? '▲' : s.direction === 'DOWN' ? '▼' : '→';
     const isBreakeven = s.id && s.id.includes('yie');
     const valCls = isBreakeven ? 'c-amber' : 'c-blue';
-    return `<div class="tips-cell">
+    return `<div class="tips-cell" data-sl-id="${s.id}">
       <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}<span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
       <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
@@ -5125,6 +5281,15 @@ fetchBDC();
 </script>
 <div id="indicator-tooltip"></div>
 <div id="ycTooltip" class="yc-tooltip"></div>
+
+<div id="slDetailPopup" class="sl-popup">
+  <div class="sl-popup-header">
+    <span class="sl-popup-title" id="slDetailTitle">—</span>
+    <button class="sl-popup-close" onclick="closeSLDetail()">✕</button>
+  </div>
+  <div class="sl-popup-chart" id="slDetailChart"></div>
+  <div class="sl-popup-table" id="slDetailTable"></div>
+</div>
 
 <div id="macroChartModal" class="mc-modal" onclick="if(event.target===this)closeMacroChart()">
   <div class="mc-inner">
