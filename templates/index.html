@@ -32,7 +32,7 @@
     ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
     * { scrollbar-width: thin; scrollbar-color: var(--blue) var(--border); }
-    .terminal { max-width: 1400px; margin: 0 auto; padding-top: 83px; padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+    .terminal { max-width: 1400px; margin: 0 auto; padding-top: calc(83px + env(safe-area-inset-top, 0px)); padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 
     /* ── FIXED HEADER WRAPPER (structural only — children are fixed) ── */
     .sticky-header { display: none; }
@@ -66,7 +66,7 @@
     #clock { color: var(--white); font-size: 10px; font-family: var(--font-mono); }
 
     /* ── TAB NAVIGATION ── */
-    .tab-nav { position: fixed; top: 36px; left: 0; right: 0; width: 100%; z-index: 999; display: -webkit-flex; display: flex; background: #0a1628; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -webkit-transform: translateZ(0); transform: translateZ(0); }
+    .tab-nav { position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: 0; right: 0; width: 100%; z-index: 999; display: -webkit-flex; display: flex; background: #0a1628; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -webkit-transform: translateZ(0); transform: translateZ(0); }
     .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn { -webkit-flex: 1; flex: 1; padding: 11px 18px; font-family: var(--font-ui); font-size: 9px; font-weight: 600; line-height: 1; letter-spacing: 0.16em; color: var(--muted); background: none; border: none; border-right: 1px solid var(--border); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; margin-bottom: -1px; transition: color 0.15s, background 0.15s; -webkit-tap-highlight-color: transparent; text-align: center; min-height: 42px; }
     .tab-btn:hover { color: var(--white); background: rgba(59,130,246,0.05); }
@@ -439,7 +439,7 @@
     .sdrag { cursor: grab; color: transparent; font-size: 14px; padding: 0 6px 0 0; user-select: none; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
     .section-header:hover .sdrag { color: var(--muted); }
     .sdrag:hover { color: var(--amber) !important; }
-    @media (max-width: 640px) { .settings-drawer { width: calc(100vw - 16px); right: 8px; top: 52px; } }
+    @media (max-width: 640px) { .settings-drawer { width: calc(100vw - 16px); right: 8px; top: calc(52px + env(safe-area-inset-top, 0px)); } }
 
     /* ── THEMES ── */
     /* original: uses :root — no overrides needed */
@@ -847,10 +847,21 @@
       .news-source { display: none; }
       .driving-item { grid-template-columns: 44px 1fr; }
       .cal-event { grid-template-columns: 60px 1fr 54px; }
-      .briefing-section { margin: 10px 10px 0; }
-      .briefing-content { font-size: 13px !important; padding: 12px 14px; }
+      .briefing-section { margin: 10px 8px 16px; }
+      .briefing-content { font-size: 13px !important; padding: 12px 12px; }
       .briefing-refresh-btn { min-height: 44px; min-width: 44px; padding: 0 14px; }
       .briefing-setup { font-size: 12px; }
+      /* tighter cell padding on phone */
+      .ov-cell { padding: 10px 10px; }
+      .ov-col-center { padding: 10px 10px; }
+      .section-header { padding: 7px 10px; }
+      .sub-section-header { padding: 5px 10px; }
+      /* notification panel: prevent overflow off right edge */
+      .notif-panel { width: calc(100vw - 16px); max-width: 340px; }
+      /* tab buttons: full Apple tap-target height */
+      .tab-btn { min-height: 44px; padding: 11px 12px; }
+      /* watchlist / market tables: allow horizontal scroll without clipping */
+      .watchlist-table, .indices-grid { -webkit-overflow-scrolling: touch; }
     }
 
     /* ── CHART MODAL ── */
