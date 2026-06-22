@@ -60,6 +60,12 @@ except ImportError:
         return {"label": series_id, "unit": "", "data": [], "error": "FRED module not loaded"}
 
 try:
+    from global_data import get_global_indicators
+except ImportError:
+    def get_global_indicators():
+        return {"economies": [], "timestamp": datetime.utcnow().isoformat(), "error": "Global module not loaded"}
+
+try:
     from news_feed import get_news
 except ImportError:
     def get_news():
@@ -309,6 +315,14 @@ def api_macro_history():
     except Exception as e:
         log.error(f"Macro history error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "series": []}), 500
+
+@app.route("/api/global")
+def api_global():
+    try:
+        return jsonify(get_global_indicators())
+    except Exception as e:
+        log.error(f"Global indicators error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "economies": []}), 500
 
 @app.route("/api/health")
 def api_health():

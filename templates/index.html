@@ -1387,6 +1387,14 @@
       <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
     </div>
 
+    <div class="sub-section-header">▸ GLOBAL MACRO <span style="font-weight:400;color:var(--muted);letter-spacing:0.05em">OECD COMPOSITE LEADING INDICATORS</span></div>
+    <div id="scorecard-global" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+    </div>
+
     </div><!-- /sec-eco-scorecard -->
 
     <div class="section-header">
@@ -1943,6 +1951,11 @@ const MACRO_CHART_META = {
   dgs2:      {fredId:'DGS2',             label:'2Y Treasury Yield'},
   dgs10:     {fredId:'DGS10',            label:'10Y Treasury Yield'},
   dgs30:     {fredId:'DGS30',            label:'30Y Treasury Yield'},
+  // Global CLIs
+  china:     {fredId:'CHNLOLITONOSTSAM', label:'China OECD CLI'},
+  eurozone:  {fredId:'EUALOLITONOSTSAM', label:'Eurozone OECD CLI'},
+  oecd:      {fredId:'OECDLOLITONOSTSAM',label:'OECD Total CLI'},
+  japan:     {fredId:'JPNLOLITONOSTSAM', label:'Japan OECD CLI'},
 };
 
 // Pre-configured multi-series overlay views
@@ -3047,7 +3060,7 @@ function signalColor(signal) {
   const s = signal.toUpperCase();
   if (['STRONG','HEALTHY','LOW','VERY LOW','TIGHT','BELOW TREND','DEFLATION','EXPANSION','EASY','OPTIMISTIC','CONTAINED'].some(x => s.includes(x))) return 'c-green';
   if (['CRITICAL','HIGH','CRISIS','CONTRACTION','DISTRESSED','VERY HIGH','PESSIMISTIC'].some(x => s.includes(x))) return 'c-red';
-  if (['ELEVATED','STRESSED','ABOVE TREND','BORDERLINE','TIGHTENING'].some(x => s.includes(x))) return 'c-amber';
+  if (['ELEVATED','STRESSED','ABOVE TREND','BORDERLINE','TIGHTENING','SLOWING','RECOVERING'].some(x => s.includes(x))) return 'c-amber';
   return 'c-muted';
 }
 
@@ -3068,6 +3081,43 @@ function scorecardCell(s) {
     <div class="scorecard-desc">${s.description||''}</div>
     ${s.interpretation ? `<div class="scorecard-interp">${s.interpretation}</div>` : ''}
   </div>`;
+}
+
+function _globalInterp(label, signal, current) {
+  const v = current != null ? ` (${current.toFixed(1)})` : '';
+  return ({
+    EXPANSION:   `${label}${v} — above long-run trend and accelerating.`,
+    SLOWING:     `${label}${v} — above trend but decelerating; watch for momentum reversal.`,
+    RECOVERING:  `${label}${v} — below trend but improving; early recovery signal.`,
+    CONTRACTION: `${label}${v} — below long-run trend and weakening.`,
+    'AT TREND':  `${label}${v} — running at long-run trend (CLI ≈ 100).`,
+    'ABOVE TREND':`${label}${v} — above long-run trend.`,
+    'BELOW TREND':`${label}${v} — below long-run trend.`,
+  })[signal] || '';
+}
+
+function renderGlobal(economies) {
+  const el = document.getElementById('scorecard-global');
+  if (!el) return;
+  if (!economies || !economies.length) {
+    renderError('scorecard-global', 'OECD CLI DATA UNAVAILABLE');
+    return;
+  }
+  el.className = 'scorecard-grid';
+  el.innerHTML = economies.map(e => scorecardCell({
+    id:               e.id,
+    label:            e.label,
+    description:      'OECD Composite Leading Indicator',
+    current:          e.current,
+    change:           e.change,
+    suffix:           '',
+    decimals:         1,
+    positive_is_good: true,
+    signal:           e.signal,
+    sparkline:        e.sparkline || [],
+    sparkline_dated:  e.sparkline_dated || [],
+    interpretation:   _globalInterp(e.label, e.signal, e.current),
+  })).join('');
 }
 
 function renderRecession(prob, signal, color, interp) {
@@ -3118,7 +3168,10 @@ function renderKShape(ks) {
 async function fetchEconomy() {
   setStatus('loading');
   try {
-    const data = await apiFetch('/api/economy');
+    const [data, globalData] = await Promise.all([
+      apiFetch('/api/economy'),
+      apiFetch('/api/global').catch(() => ({economies: []})),
+    ]);
     setTimestamp('economyTimestamp', data.timestamp);
 
     ['growth','inflation','labor','consumer','business_sentiment'].forEach(cat => {
@@ -3128,11 +3181,12 @@ async function fetchEconomy() {
       if (el) { el.className = 'scorecard-grid'; el.innerHTML = html; }
     });
 
+    renderGlobal(globalData.economies || []);
     renderRecession(data.recession_probability, data.recession_signal, data.recession_color, data.recession_interpretation);
     renderKShape(data.k_shape);
     setStatus('ok');
   } catch(e) {
-    ['scorecard-growth','scorecard-inflation','scorecard-labor','scorecard-consumer','scorecard-business_sentiment','recessionContent','kshapeContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
+    ['scorecard-growth','scorecard-inflation','scorecard-labor','scorecard-consumer','scorecard-business_sentiment','scorecard-global','recessionContent','kshapeContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
     setStatus('error');
   }
   startRefreshCountdown();

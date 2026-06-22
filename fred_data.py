@@ -66,6 +66,11 @@ _HISTORY_META: dict = {
     "DGS2":             {"label": "2Y Treasury",          "unit": "%",  "calc": "level"},
     "DGS10":            {"label": "10Y Treasury",         "unit": "%",  "calc": "level"},
     "DGS30":            {"label": "30Y Treasury",         "unit": "%",  "calc": "level"},
+    # OECD Composite Leading Indicators (normalized to 100 = long-run trend)
+    "CHNLOLITONOSTSAM": {"label": "China CLI",            "unit": "",   "calc": "level"},
+    "EUALOLITONOSTSAM": {"label": "Eurozone CLI",         "unit": "",   "calc": "level"},
+    "OECDLOLITONOSTSAM":{"label": "OECD CLI",             "unit": "",   "calc": "level"},
+    "JPNLOLITONOSTSAM": {"label": "Japan CLI",            "unit": "",   "calc": "level"},
 }
 
 def _cache_valid(key):
