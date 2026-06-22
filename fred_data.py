@@ -277,6 +277,48 @@ def _interp_real_yield(val, maturity_label):
     if val > 0:    return f"{maturity_label} real yield at {val:.2f}% is near zero — policy is essentially neutral in real terms."
     return f"{maturity_label} real yield at {val:.2f}% is negative — financial conditions are still supportive despite nominal rate hikes."
 
+def _interp_ism_mfg(val, change):
+    if val is None: return "ISM Manufacturing PMI data unavailable."
+    if val >= 55: return f"ISM Manufacturing PMI at {val:.1f} — strong expansion; new orders and production accelerating above trend."
+    if val >= 50: return f"ISM Manufacturing PMI at {val:.1f} — manufacturing sector expanding; activity above the contraction/expansion threshold."
+    if val >= 47: return f"ISM Manufacturing PMI at {val:.1f} — borderline contraction; orders softening and production near stall speed."
+    return f"ISM Manufacturing PMI at {val:.1f} — manufacturing in contraction; sustained readings below 47 signal industrial recession."
+
+def _interp_ism_svc(val, change):
+    if val is None: return "ISM Services PMI data unavailable."
+    if val >= 55: return f"ISM Services PMI at {val:.1f} — services sector in strong expansion; the dominant ~80% of US GDP is growing above trend."
+    if val >= 50: return f"ISM Services PMI at {val:.1f} — services expanding; business activity, new orders, and employment all positive."
+    if val >= 47: return f"ISM Services PMI at {val:.1f} — services near stall speed; below-50 would signal contraction in the largest GDP component."
+    return f"ISM Services PMI at {val:.1f} — services sector contracting; a rare, serious signal of broad economic deterioration."
+
+def _interp_nfib(val, change):
+    if val is None: return "NFIB Optimism data unavailable."
+    if val >= 100: return f"NFIB Optimism at {val:.1f} — small business confidence is high; hiring and capex plans elevated, consistent with solid GDP."
+    if val >= 95:  return f"NFIB Optimism at {val:.1f} — small business sentiment neutral-to-positive; cautious expansion mode."
+    if val >= 90:  return f"NFIB Optimism at {val:.1f} — small business confidence subdued; concerns about inflation, rates, and regulation are weighing on plans."
+    return f"NFIB Optimism at {val:.1f} — small business pessimism elevated; historically consistent with rising unemployment and slowing hiring."
+
+def _interp_nfci(val, change):
+    if val is None: return "NFCI data unavailable."
+    if val > 1.0:  return f"NFCI at {val:.2f} — financial conditions significantly tighter than historical norms; credit stress is building across the system."
+    if val > 0.2:  return f"NFCI at {val:.2f} — financial conditions tightening above average; increased cost of credit and reduced market liquidity."
+    if val > -0.6: return f"NFCI at {val:.2f} — financial conditions near historical average; neither meaningfully accommodative nor restrictive."
+    return f"NFCI at {val:.2f} — financial conditions looser than average; easy credit and compressed volatility providing a supportive backdrop."
+
+def _interp_pce_goods(val, change):
+    if val is None: return "Core goods PCE data unavailable."
+    if val <= 0:   return f"Core goods PCE at {val:.1f}% YoY — goods deflation present; disinflationary for headline PCE, consistent with post-supply-chain normalization."
+    if val <= 2.0: return f"Core goods PCE at {val:.1f}% YoY — goods prices contained, providing an offset to sticky services inflation in the overall PCE basket."
+    if val <= 4.0: return f"Core goods PCE at {val:.1f}% YoY — goods prices elevated; supply chain pressures or demand-driven inflation in durable and nondurable goods."
+    return f"Core goods PCE at {val:.1f}% YoY — goods inflation running hot; broad-based pricing pressure across the physical goods economy."
+
+def _interp_pce_svc(val, change):
+    if val is None: return "Core services PCE data unavailable."
+    if val <= 2.0: return f"Core services PCE at {val:.1f}% YoY — services inflation contained; significant for the Fed since services is the stickiest PCE component."
+    if val <= 3.5: return f"Core services PCE at {val:.1f}% YoY — services inflation elevated; shelter and non-housing services remain the primary obstacle to 2% overall PCE."
+    if val <= 5.0: return f"Core services PCE at {val:.1f}% YoY — services inflation high; labor-intensive sectors create wage-price spiral risk."
+    return f"Core services PCE at {val:.1f}% YoY — services inflation crisis-level; the Fed cannot cut rates in this environment."
+
 
 # ── ORIGINAL SERIES DEFINITIONS ───────────────────────────────
 MACRO_SERIES = [
@@ -308,15 +350,23 @@ ECONOMY_SERIES = {
         {"id":"houst",    "fred_id":"HOUST",         "label":"HOUSING STARTS", "description":"Housing Starts (Ann. Rate)",   "suffix":"K","decimals":0,"limit":13, "calc":"latest",        "category":"growth","positive_is_good":True},
     ],
     "inflation": [
-        {"id":"cpi",      "fred_id":"CPIAUCSL",      "label":"CPI YOY",        "description":"Consumer Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "category":"inflation","positive_is_good":False},
-        {"id":"pce",      "fred_id":"PCEPILFE",      "label":"CORE PCE YOY",   "description":"Core PCE Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "category":"inflation","positive_is_good":False},
-        {"id":"t5yie",    "fred_id":"T5YIE",         "label":"5Y BREAKEVEN",   "description":"5-Year Breakeven Inflation",   "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"inflation","positive_is_good":None},
-        {"id":"t10yie",   "fred_id":"T10YIE",        "label":"10Y BREAKEVEN",  "description":"10-Year Breakeven Inflation",  "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"inflation","positive_is_good":None},
+        {"id":"cpi",       "fred_id":"CPIAUCSL",          "label":"CPI YOY",         "description":"Consumer Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"pce",       "fred_id":"PCEPILFE",          "label":"CORE PCE YOY",    "description":"Core PCE Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"pce_goods", "fred_id":"DPCCRC1M027SBEA",   "label":"CORE GOODS PCE",  "description":"Core Goods PCE YoY",           "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"pce_svc",   "fred_id":"DPCCRV1M027SBEA",   "label":"CORE SVCS PCE",   "description":"Core Services PCE YoY",        "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"t5yie",     "fred_id":"T5YIE",             "label":"5Y BREAKEVEN",    "description":"5-Year Breakeven Inflation",   "suffix":"%","decimals":2,"limit":13, "calc":"latest", "category":"inflation","positive_is_good":None},
+        {"id":"t10yie",    "fred_id":"T10YIE",            "label":"10Y BREAKEVEN",   "description":"10-Year Breakeven Inflation",  "suffix":"%","decimals":2,"limit":13, "calc":"latest", "category":"inflation","positive_is_good":None},
     ],
     "labor": [
         {"id":"unemployment","fred_id":"UNRATE",     "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",            "suffix":"%","decimals":1,"limit":13, "calc":"latest",        "category":"labor","positive_is_good":False},
         {"id":"icsa",     "fred_id":"ICSA",          "label":"JOBLESS CLAIMS", "description":"Initial Jobless Claims",       "suffix":"","decimals":0,"limit":13,  "calc":"latest",        "category":"labor","positive_is_good":False},
         {"id":"jolts",    "fred_id":"JTSJOL",        "label":"JOLTS OPENINGS", "description":"Job Openings (Thousands)",     "suffix":"K","decimals":0,"limit":13, "calc":"latest",        "category":"labor","positive_is_good":True},
+    ],
+    "business_sentiment": [
+        {"id":"ism_mfg", "fred_id":"MPMINDX",    "label":"ISM MFG PMI",     "description":"ISM Manufacturing PMI",         "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
+        {"id":"ism_svc", "fred_id":"NMFCI",      "label":"ISM SERVICES PMI","description":"ISM Non-Mfg Composite Index",   "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
+        {"id":"nfib",    "fred_id":"NFIBOPTIM",  "label":"NFIB OPTIMISM",   "description":"Small Business Optimism Index", "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
+        {"id":"nfci",    "fred_id":"NFCI",       "label":"NFCI",            "description":"Chicago Fed Fin. Conditions",   "suffix":"","decimals":2,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":False},
     ],
     "consumer": [
         {"id":"umich",    "fred_id":"UMCSENT",       "label":"UMICH SENTIMENT","description":"Univ Michigan Sentiment",      "suffix":"","decimals":1, "limit":13, "calc":"latest",        "category":"consumer","positive_is_good":True},
@@ -387,6 +437,12 @@ def _get_interpretation(series_id, current, change):
         "t10yie":     lambda c, ch: _interp_breakeven(c, "10-year"),
         "dfii5":      lambda c, ch: _interp_real_yield(c, "5-year"),
         "dfii10":     lambda c, ch: _interp_real_yield(c, "10-year"),
+        "ism_mfg":    lambda c, ch: _interp_ism_mfg(c, ch),
+        "ism_svc":    lambda c, ch: _interp_ism_svc(c, ch),
+        "nfib":       lambda c, ch: _interp_nfib(c, ch),
+        "nfci":       lambda c, ch: _interp_nfci(c, ch),
+        "pce_goods":  lambda c, ch: _interp_pce_goods(c, ch),
+        "pce_svc":    lambda c, ch: _interp_pce_svc(c, ch),
     }
     fn = interps.get(series_id)
     if fn:
@@ -412,6 +468,12 @@ def _signal_word(series_id, current, positive_is_good):
         "savings":    [(-99,"DISTRESSED"),(2.5,"VERY LOW"),(5.0,"LOW"),(8.0,"NORMAL"),(99,"HIGH")],
         "cc_delinq":  [(-99,"HEALTHY"),(2.0,"NORMAL"),(3.0,"ELEVATED"),(4.5,"HIGH"),(99,"CRISIS")],
         "mortgage":   [(-99,"VERY LOW"),(4.0,"LOW"),(5.5,"MODERATE"),(6.5,"HIGH"),(99,"ELEVATED")],
+        "ism_mfg":    [(47.0,"CONTRACTION"),(50.0,"BORDERLINE"),(55.0,"EXPANSION"),(99,"STRONG")],
+        "ism_svc":    [(47.0,"CONTRACTION"),(50.0,"BORDERLINE"),(55.0,"EXPANSION"),(99,"STRONG")],
+        "nfib":       [(90.0,"PESSIMISTIC"),(96.0,"NEUTRAL"),(103.0,"OPTIMISTIC"),(9999,"OPTIMISTIC")],
+        "nfci":       [(-0.6,"EASY CONDITIONS"),(0.2,"NEUTRAL"),(1.0,"TIGHTENING"),(99,"HIGH STRESS")],
+        "pce_goods":  [(-99,"DEFLATION"),(2.0,"CONTAINED"),(4.0,"ELEVATED"),(99,"HIGH")],
+        "pce_svc":    [(-99,"DEFLATION"),(2.5,"ON TARGET"),(4.0,"ELEVATED"),(99,"HIGH")],
     }
 
     if series_id in mapping:
@@ -1108,10 +1170,11 @@ def _fetch_economy():
     k_shape = _compute_k_shape(k_shape_inputs)
 
     result = {
-        "growth":   categories.get("growth",  []),
-        "inflation":categories.get("inflation",[]),
-        "labor":    categories.get("labor",   []),
-        "consumer": categories.get("consumer",[]),
+        "growth":             categories.get("growth",             []),
+        "inflation":          categories.get("inflation",          []),
+        "labor":              categories.get("labor",              []),
+        "consumer":           categories.get("consumer",           []),
+        "business_sentiment": categories.get("business_sentiment", []),
         "recession_probability": recession_prob,
         "recession_signal":      recession_signal,
         "recession_color":       recession_color,

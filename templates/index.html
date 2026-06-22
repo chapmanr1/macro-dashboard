@@ -1331,6 +1331,14 @@
       <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
     </div>
 
+    <div class="sub-section-header">▸ BUSINESS SENTIMENT</div>
+    <div id="scorecard-business_sentiment" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+    </div>
+
     </div><!-- /sec-eco-scorecard -->
 
     <div class="section-header">
@@ -1830,6 +1838,12 @@ const INDICATOR_TOOLTIPS = {
   regime_confidence: { title:'REGIME CONFIDENCE SCORE', what:'0-100% score measuring how decisively the current macro regime classification is supported by the underlying FRED indicator data.', read:'High = indicators align clearly around one regime. Low = mixed signals, regime may be in transition. Watch for rapid drops in confidence.', thresholds:'High >70% | Moderate 40-70% | Low/Transitioning <40%' },
   recession_prob: { title:'RECESSION PROBABILITY', what:'Composite probability score (0-100) based on yield curve inversion, GDP growth, HY credit spreads, and unemployment trajectory.', read:'Not a forecast — a current conditions gauge. Rising score = more recession preconditions met simultaneously. Sustained readings above 70 are historically serious.', thresholds:'Low <25 | Moderate 25-50 | Elevated 50-70 | High 70-85 | Critical >85' },
   k_shape:        { title:'K-SHAPE DIVERGENCE', what:'Tracks whether upper-income and lower-income households are experiencing diverging economic conditions — the "two-speed economy."', read:'High divergence = upper-income supported by assets/home values while lower-income is stressed by rates/delinquency. Precedes consumer slowdown.', thresholds:'Stable gap <15 | Emerging split 15-30 | Significant bifurcation >30' },
+  ism_mfg:        { title:'ISM MANUFACTURING PMI', what:'Institute for Supply Management Manufacturing Purchasing Managers Index. Monthly survey of manufacturing supply chain managers on orders, production, employment, and inventories.', read:'Above 50 = expansion, below 50 = contraction. The most widely watched US manufacturing leading indicator. Reacts 1-2 months ahead of GDP.', thresholds:'Strong >55 | Expansion 50-55 | Borderline 47-50 | Contraction <47 | Severe <44' },
+  ism_svc:        { title:'ISM SERVICES PMI', what:'ISM Non-Manufacturing Composite Index. Monthly survey of service sector purchasing managers — covers ~80% of US economic activity including finance, healthcare, retail, and hospitality.', read:'Above 50 = expansion. Services PMI matters more than manufacturing for US GDP due to the sector\'s size. Below 50 is unusual and historically serious.', thresholds:'Strong >55 | Expansion 50-55 | Borderline 47-50 | Contraction <47' },
+  nfib:           { title:'NFIB SMALL BUSINESS OPTIMISM', what:'National Federation of Independent Business Optimism Index. Monthly survey of small business owners on hiring intentions, capital expenditure plans, and business outlook.', read:'Small businesses employ ~50% of US workers. Falling NFIB leads unemployment by 2-3 months. A sustained drop below 92 historically precedes layoffs and slowing GDP.', thresholds:'Optimistic >100 | Neutral 92-100 | Pessimistic 86-92 | Crisis <86 | Historical avg ~98' },
+  nfci:           { title:'NFCI — CHICAGO FED FIN. CONDITIONS', what:'Chicago Fed National Financial Conditions Index. Weekly composite of 105 measures of financial activity across money, debt, equity markets, and banking. Normalized to zero (average) with positive = tighter than normal.', read:'Negative (below zero) = looser than historical average = supportive conditions. Positive = tighter. Above +1.0 = significant financial stress across the system.', thresholds:'Easy <-0.6 | Normal -0.6 to +0.2 | Tightening +0.2 to +1.0 | Stress >+1.0' },
+  pce_goods:      { title:'CORE GOODS PCE YoY', what:'Core PCE Price Index for goods, excluding food and energy. Tracks inflation in physical goods: cars, electronics, furniture, apparel, and other durable/nondurable items.', read:'Goods inflation is typically more volatile than services and more directly tied to supply chains. When goods deflate (as post-2022), it helps bring down headline PCE toward target.', thresholds:'Deflationary <0% | Contained 0-2% | Elevated 2-4% | High >4%' },
+  pce_svc:        { title:'CORE SERVICES PCE YoY', what:'Core PCE Price Index for services, excluding food and energy. Covers shelter, healthcare, financial services, recreation, and other labor-intensive services — the stickiest inflation component.', read:'Services inflation is driven by wages and rent, making it very slow to fall. Even if goods deflate, high services PCE keeps headline PCE above target. The Fed\'s most watched inflation sub-component.', thresholds:'Target <2.5% | Elevated 2.5-4% | High 4-5.5% | Crisis >5.5%' },
 };
 
 const REGIME_IND_TIP_IDS = {
@@ -2640,9 +2654,9 @@ function indicatorTypeBadge(id) {
 function signalColor(signal) {
   if (!signal) return 'c-muted';
   const s = signal.toUpperCase();
-  if (['STRONG','HEALTHY','LOW','VERY LOW','TIGHT','BELOW TREND','DEFLATION'].some(x => s.includes(x))) return 'c-green';
-  if (['CRITICAL','HIGH','CRISIS','CONTRACTION','DISTRESSED','VERY HIGH'].some(x => s.includes(x))) return 'c-red';
-  if (['ELEVATED','STRESSED','ABOVE TREND'].some(x => s.includes(x))) return 'c-amber';
+  if (['STRONG','HEALTHY','LOW','VERY LOW','TIGHT','BELOW TREND','DEFLATION','EXPANSION','EASY','OPTIMISTIC','CONTAINED'].some(x => s.includes(x))) return 'c-green';
+  if (['CRITICAL','HIGH','CRISIS','CONTRACTION','DISTRESSED','VERY HIGH','PESSIMISTIC'].some(x => s.includes(x))) return 'c-red';
+  if (['ELEVATED','STRESSED','ABOVE TREND','BORDERLINE','TIGHTENING'].some(x => s.includes(x))) return 'c-amber';
   return 'c-muted';
 }
 
@@ -2657,6 +2671,7 @@ function scorecardCell(s) {
   return `<div class="scorecard-cell">
     <div class="scorecard-label"><span>${s.label||''} ${indicatorTypeBadge(s.id)}</span>${_tipBtn(s.id)}</div>
     <div class="scorecard-value ${cls}">${valStr}<span class="scorecard-arrow ${cls}">${arrow}</span></div>
+    ${_sparkline(s.sparkline, s.positive_is_good)}
     <div class="scorecard-signal ${sigCls}">${s.signal||''}</div>
     <div class="scorecard-desc">${s.description||''}</div>
     ${s.interpretation ? `<div class="scorecard-interp">${s.interpretation}</div>` : ''}
@@ -2714,7 +2729,7 @@ async function fetchEconomy() {
     const data = await apiFetch('/api/economy');
     setTimestamp('economyTimestamp', data.timestamp);
 
-    ['growth','inflation','labor','consumer'].forEach(cat => {
+    ['growth','inflation','labor','consumer','business_sentiment'].forEach(cat => {
       const items = data[cat] || [];
       const html = items.length ? items.map(scorecardCell).join('') : '<div class="error-row">NO DATA</div>';
       const el = document.getElementById('scorecard-' + cat);
@@ -2725,7 +2740,7 @@ async function fetchEconomy() {
     renderKShape(data.k_shape);
     setStatus('ok');
   } catch(e) {
-    ['scorecard-growth','scorecard-inflation','scorecard-labor','scorecard-consumer','recessionContent','kshapeContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
+    ['scorecard-growth','scorecard-inflation','scorecard-labor','scorecard-consumer','scorecard-business_sentiment','recessionContent','kshapeContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
     setStatus('error');
   }
   startRefreshCountdown();
