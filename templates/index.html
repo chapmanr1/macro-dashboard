@@ -206,6 +206,34 @@
     .sparkline-svg polyline { fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
     .sparkline-svg line { stroke-width:1.5; stroke-linecap:round; }
 
+    /* ── CHART ICON BUTTON ── */
+    .chart-icon-btn { background:none; border:none; color:transparent; font-size:9px; cursor:pointer; padding:0 0 0 2px; line-height:1; -webkit-tap-highlight-color:transparent; transition:color 0.15s; flex-shrink:0; font-family:var(--font-ui); }
+    .macro-cell:hover .chart-icon-btn, .scorecard-cell:hover .chart-icon-btn,
+    .spread-cell:hover .chart-icon-btn, .tips-cell:hover .chart-icon-btn { color:var(--muted); }
+    .chart-icon-btn:hover, .chart-icon-btn:focus { color:var(--blue) !important; outline:none; }
+
+    /* ── MACRO CHART MODAL ── */
+    .mc-modal { position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(5px); z-index:10002; display:none; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
+    .mc-modal.show { display:flex; }
+    .mc-inner { position:relative; background:var(--bg2); border:1px solid rgba(59,130,246,0.3); border-radius:8px; width:100%; max-width:900px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; animation:modalFadeIn 0.2s ease; box-shadow:0 0 50px rgba(59,130,246,0.12); }
+    .mc-header { display:flex; align-items:center; padding:13px 18px; border-bottom:1px solid var(--border); gap:8px; flex-wrap:wrap; }
+    .mc-title { flex:1; font-size:11px; font-weight:700; letter-spacing:0.1em; color:var(--white); font-family:var(--font-mono); text-transform:uppercase; min-width:100px; }
+    .mc-period-btns { display:flex; gap:3px; }
+    .mc-period-btn { background:none; border:1px solid var(--border); color:var(--muted); font-size:9px; font-family:var(--font-mono); padding:3px 8px; border-radius:3px; cursor:pointer; transition:all 0.15s; letter-spacing:0.08em; }
+    .mc-period-btn:hover, .mc-period-btn.active { border-color:var(--blue); color:var(--blue); background:rgba(59,130,246,0.08); }
+    .mc-overlay-btns { display:flex; gap:3px; flex-wrap:wrap; }
+    .mc-overlay-btn { background:none; border:1px solid var(--border); color:var(--muted); font-size:8px; font-family:var(--font-ui); padding:2px 7px; border-radius:3px; cursor:pointer; transition:all 0.15s; letter-spacing:0.06em; text-transform:uppercase; }
+    .mc-overlay-btn:hover { border-color:var(--amber); color:var(--amber); background:rgba(245,158,11,0.06); }
+    .mc-close { background:none; border:1px solid var(--border); color:var(--muted); width:28px; height:28px; border-radius:4px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+    .mc-close:hover { border-color:var(--red); color:var(--red); background:rgba(239,68,68,0.08); }
+    .mc-chart-area { flex:1; min-height:260px; padding:10px 14px 4px; overflow:hidden; position:relative; }
+    .mc-chart-area svg { display:block; width:100%; height:100%; }
+    .mc-legend { display:flex; gap:14px; flex-wrap:wrap; padding:8px 18px 12px; border-top:1px solid var(--border); }
+    .mc-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; font-family:var(--font-mono); color:var(--muted); letter-spacing:0.06em; }
+    .mc-legend-swatch { width:18px; height:2px; border-radius:1px; flex-shrink:0; }
+    .mc-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:9px; font-family:var(--font-ui); letter-spacing:0.14em; }
+    @media (max-width:640px) { .mc-inner { max-height:95vh; } .mc-header { padding:10px 12px; } .mc-chart-area { min-height:200px; } }
+
     /* ── MARKETS: FUTURES ── */
     .futures-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .futures-cell { background: var(--bg2); padding: 14px 16px; transition: background 0.15s, border-color 0.15s; border: 1px solid transparent; }
@@ -1862,6 +1890,216 @@ function _tipBtn(id) {
   return `<button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'${id}')" ontouchstart="event.stopPropagation();_showTooltip(this,'${id}')">ⓘ</button>`;
 }
 
+// ── MACRO CHART META ─────────────────────────────────────────
+const MACRO_CHART_META = {
+  gdp:       {fredId:'GDPC1',            label:'Real GDP QoQ Annualized'},
+  cpi:       {fredId:'CPIAUCSL',         label:'CPI YoY %'},
+  pce:       {fredId:'PCEPILFE',         label:'Core PCE YoY %'},
+  pce_goods: {fredId:'DPCCRC1M027SBEA',  label:'Core Goods PCE YoY %'},
+  pce_svc:   {fredId:'DPCCRV1M027SBEA',  label:'Core Svcs PCE YoY %'},
+  unemployment:{fredId:'UNRATE',         label:'Unemployment Rate'},
+  fed_funds: {fredId:'FEDFUNDS',         label:'Federal Funds Rate'},
+  m2:        {fredId:'M2SL',             label:'M2 Money Supply YoY %'},
+  icsa:      {fredId:'ICSA',             label:'Initial Jobless Claims'},
+  jolts:     {fredId:'JTSJOL',           label:'JOLTS Job Openings'},
+  umich:     {fredId:'UMCSENT',          label:'UMich Consumer Sentiment'},
+  retail:    {fredId:'RSXFS',            label:'Retail Sales ex-Autos MoM %'},
+  savings:   {fredId:'PSAVERT',          label:'Personal Savings Rate'},
+  cc_delinq: {fredId:'DRCCLACBS',        label:'Credit Card Delinquency Rate'},
+  cs_hpi:    {fredId:'CSUSHPISA',        label:'Case-Shiller HPI YoY %'},
+  mortgage:  {fredId:'MORTGAGE30US',     label:'30Y Mortgage Rate'},
+  houst:     {fredId:'HOUST',            label:'Housing Starts (SAAR)'},
+  manemp:    {fredId:'MANEMP',           label:'Manufacturing Employment'},
+  ism_mfg:   {fredId:'MPMINDX',          label:'ISM Manufacturing PMI'},
+  ism_svc:   {fredId:'NMFCI',            label:'ISM Services PMI'},
+  nfib:      {fredId:'NFIBOPTIM',        label:'NFIB Small Business Optimism'},
+  nfci:      {fredId:'NFCI',             label:'NFCI Financial Conditions'},
+  hy_oas:    {fredId:'BAMLH0A0HYM2',     label:'HY OAS (bp)'},
+  ig_oas:    {fredId:'BAMLC0A0CM',       label:'IG OAS (bp)'},
+  t5yie:     {fredId:'T5YIE',            label:'5Y Inflation Breakeven'},
+  t10yie:    {fredId:'T10YIE',           label:'10Y Inflation Breakeven'},
+  dfii5:     {fredId:'DFII5',            label:'5Y Real Yield (TIPS)'},
+  dfii10:    {fredId:'DFII10',           label:'10Y Real Yield (TIPS)'},
+  dgs2:      {fredId:'DGS2',             label:'2Y Treasury Yield'},
+  dgs10:     {fredId:'DGS10',            label:'10Y Treasury Yield'},
+  dgs30:     {fredId:'DGS30',            label:'30Y Treasury Yield'},
+};
+
+// Pre-configured multi-series overlay views
+const MACRO_CHART_VIEWS = [
+  {label:'Inflation',ids:['CPIAUCSL','PCEPILFE','T5YIE'],          title:'Inflation: CPI vs Core PCE vs 5Y Breakeven'},
+  {label:'Credit',  ids:['BAMLH0A0HYM2','BAMLC0A0CM'],             title:'Credit Spreads: HY vs IG OAS'},
+  {label:'Yields',  ids:['DGS2','DGS10','DGS30'],                   title:'Treasury Yields: 2Y / 10Y / 30Y'},
+  {label:'Labor',   ids:['UNRATE','FEDFUNDS'],                      title:'Labor vs Policy: Unemployment / Fed Funds'},
+];
+
+function _chartBtn(id) {
+  if (!id || !MACRO_CHART_META[id]) return '';
+  return `<button class="chart-icon-btn" title="View history chart" onclick="event.stopPropagation();openMacroChart('${id}')" ontouchstart="event.stopPropagation();openMacroChart('${id}')">⊞</button>`;
+}
+
+// ── MACRO CHART MODAL ────────────────────────────────────────
+const _CHART_COLORS = ['#4da3ff','#f59e0b','#00d964','#ef4444'];
+let _mcState = {fredIds:[], obs:60, title:''};
+
+function openMacroChart(indicatorId) {
+  const meta = MACRO_CHART_META[indicatorId];
+  if (!meta) return;
+  _mcState = {fredIds:[meta.fredId], obs:60, title:meta.label};
+  _showMcModal();
+}
+
+function openMacroChartView(viewIdx) {
+  const v = MACRO_CHART_VIEWS[viewIdx];
+  if (!v) return;
+  _mcState = {fredIds:v.ids, obs:60, title:v.title};
+  _showMcModal();
+}
+
+function _showMcModal() {
+  document.getElementById('mcTitle').textContent = _mcState.title;
+  _mcBuildOverlayBtns();
+  _mcUpdatePeriodBtns(60);
+  document.getElementById('macroChartModal').classList.add('show');
+  document.addEventListener('keydown', _mcKeyHandler);
+  _mcLoad();
+}
+
+function closeMacroChart() {
+  document.getElementById('macroChartModal').classList.remove('show');
+  document.removeEventListener('keydown', _mcKeyHandler);
+}
+
+function _mcKeyHandler(e) { if (e.key === 'Escape') closeMacroChart(); }
+
+function setMacroChartPeriod(obs) {
+  _mcState.obs = obs;
+  _mcUpdatePeriodBtns(obs);
+  _mcLoad();
+}
+
+function _mcUpdatePeriodBtns(obs) {
+  const map = {'1Y':12,'3Y':36,'5Y':60,'10Y':120};
+  document.querySelectorAll('.mc-period-btn').forEach(b => {
+    b.classList.toggle('active', map[b.textContent.trim()] === obs);
+  });
+}
+
+function _mcBuildOverlayBtns() {
+  const container = document.getElementById('mcOverlayBtns');
+  container.innerHTML = MACRO_CHART_VIEWS.map((v,i) =>
+    `<button class="mc-overlay-btn" onclick="openMacroChartView(${i})">${v.label}</button>`
+  ).join('');
+}
+
+async function _mcLoad() {
+  const area    = document.getElementById('mcChartArea');
+  const loading = document.getElementById('mcLoading');
+  loading.style.display = 'flex';
+  area.querySelector('svg')?.remove();
+  area.querySelector('.mc-error')?.remove();
+  document.getElementById('mcLegend').innerHTML = '';
+
+  const {fredIds, obs} = _mcState;
+  try {
+    const data = await apiFetch(`/api/macro/history?series=${fredIds.join(',')}&obs=${obs}`);
+    loading.style.display = 'none';
+    const valid = (data.series || []).filter(s => s.data && s.data.length > 1);
+    if (!valid.length) {
+      area.insertAdjacentHTML('beforeend','<div class="mc-error mc-loading">NO DATA AVAILABLE</div>');
+      return;
+    }
+    _mcRenderChart(valid, area);
+    _mcRenderLegend(valid);
+  } catch(e) {
+    loading.style.display = 'none';
+    area.insertAdjacentHTML('beforeend','<div class="mc-error mc-loading">ERROR LOADING DATA</div>');
+  }
+}
+
+function _mcRenderLegend(seriesData) {
+  document.getElementById('mcLegend').innerHTML = seriesData.map((s,i) =>
+    `<div class="mc-legend-item">
+       <div class="mc-legend-swatch" style="background:${_CHART_COLORS[i%_CHART_COLORS.length]}"></div>
+       <span>${s.label}${s.unit?' ('+s.unit+')':''}</span>
+     </div>`
+  ).join('');
+}
+
+function _mcRenderChart(seriesData, container) {
+  const W=820, H=280;
+  const pad={t:22,r:24,b:44,l:54};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+
+  // Find Y range across all series
+  const allVals = seriesData.flatMap(s => s.data.map(d => d.value));
+  const rawMin=Math.min(...allVals), rawMax=Math.max(...allVals);
+  const vSpan=(rawMax-rawMin)||1, vPad=vSpan*0.12;
+  const yMin=rawMin-vPad, yMax=rawMax+vPad;
+
+  // Use longest series for X axis dates
+  const primary = seriesData.reduce((a,b) => b.data.length>a.data.length?b:a, seriesData[0]);
+  const n = primary.data.length;
+  if (n < 2) return;
+
+  const xS = i => pad.l + (i/(n-1))*cW;
+  const yS = v => pad.t + (1-(v-yMin)/(yMax-yMin))*cH;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<rect x="${pad.l}" y="${pad.t}" width="${cW}" height="${cH}" fill="rgba(0,0,0,0.18)" rx="2"/>`;
+
+  // Y grid lines + labels
+  for (let i=0; i<=5; i++) {
+    const v = yMin+(yMax-yMin)*(i/5);
+    const y = yS(v);
+    svg += `<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${pad.l+cW}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+    svg += `<text x="${(pad.l-6).toFixed(1)}" y="${(y+3.5).toFixed(1)}" fill="#6b7280" font-size="9" text-anchor="end" font-family="monospace">${_mcFmt(v)}</text>`;
+  }
+
+  // Zero line when range straddles zero
+  if (yMin<0 && yMax>0) {
+    const y0=yS(0);
+    svg += `<line x1="${pad.l}" y1="${y0.toFixed(1)}" x2="${pad.l+cW}" y2="${y0.toFixed(1)}" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    svg += `<text x="${(pad.l-6).toFixed(1)}" y="${(y0+3.5).toFixed(1)}" fill="rgba(255,255,255,0.35)" font-size="8" text-anchor="end" font-family="monospace">0</text>`;
+  }
+
+  // X axis date labels (7 evenly spaced)
+  for (let i=0; i<7; i++) {
+    const idx=Math.round(i*(n-1)/6);
+    const x=xS(idx);
+    const d=(primary.data[idx]?.date||'').substring(0,7);
+    svg += `<text x="${x.toFixed(1)}" y="${(pad.t+cH+14).toFixed(1)}" fill="#6b7280" font-size="8" text-anchor="middle" font-family="monospace">${d}</text>`;
+  }
+
+  // Data lines — shorter series right-aligned to match most-recent date
+  seriesData.forEach((s,ci) => {
+    const color=_CHART_COLORS[ci%_CHART_COLORS.length];
+    const offset=n-s.data.length;
+    const pts=s.data.map((d,i)=>
+      `${xS(i+offset).toFixed(1)},${yS(d.value).toFixed(1)}`
+    ).join(' ');
+    svg += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>`;
+    // Dot + label at last point
+    const last=s.data[s.data.length-1];
+    const lx=xS(n-1), ly=yS(last.value);
+    svg += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.5" fill="${color}"/>`;
+    // Last value badge (right margin)
+    svg += `<text x="${(lx+6).toFixed(1)}" y="${(ly+3.5).toFixed(1)}" fill="${color}" font-size="8" font-family="monospace">${_mcFmt(last.value)}</text>`;
+  });
+
+  svg += '</svg>';
+  container.insertAdjacentHTML('beforeend', svg);
+}
+
+function _mcFmt(v) {
+  const a=Math.abs(v);
+  if (a>=10000) return (v/1000).toFixed(0)+'K';
+  if (a>=1000)  return (v/1000).toFixed(1)+'K';
+  if (a>=100)   return v.toFixed(0);
+  if (a>=10)    return v.toFixed(1);
+  return v.toFixed(2);
+}
+
 function _showTooltip(btn, id) {
   const tt = document.getElementById('indicator-tooltip');
   if (!tt) return;
@@ -2068,7 +2306,7 @@ function renderMacro(data) {
     const fredUrl = FRED_URLS[s.id];
     const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
     return `<div class="macro-cell">
-      <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_tipBtn(s.id)}</span></div>
+      <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
       ${_sparkline(s.sparkline, s.positive_is_good)}
       <div class="macro-cell-sub">${s.description||''}</div>
@@ -2669,7 +2907,7 @@ function scorecardCell(s) {
   const arrow = s.change != null ? dirArrow(s.change) : '';
   const sigCls = signalColor(s.signal);
   return `<div class="scorecard-cell">
-    <div class="scorecard-label"><span>${s.label||''} ${indicatorTypeBadge(s.id)}</span>${_tipBtn(s.id)}</div>
+    <div class="scorecard-label"><span>${s.label||''} ${indicatorTypeBadge(s.id)}</span><span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
     <div class="scorecard-value ${cls}">${valStr}<span class="scorecard-arrow ${cls}">${arrow}</span></div>
     ${_sparkline(s.sparkline, s.positive_is_good)}
     <div class="scorecard-signal ${sigCls}">${s.signal||''}</div>
@@ -2789,7 +3027,7 @@ function renderSpreads(spreads) {
          {start:200,end:350,color:'rgba(127,29,29,0.3)',label:'>200 CRISIS',labelColor:'var(--red-dim)',last:true}];
 
     return `<div class="spread-cell">
-      <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span>${_tipBtn(s.id)}</div>
+      <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span><span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
       <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
       ${_sparkline(s.sparkline, false)}
@@ -2811,7 +3049,7 @@ function renderTipsPanel(breakevens, realYields) {
     const isBreakeven = s.id && s.id.includes('yie');
     const valCls = isBreakeven ? 'c-amber' : 'c-blue';
     return `<div class="tips-cell">
-      <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}${_tipBtn(s.id)}</div>
+      <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}<span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
       <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
       ${_sparkline(s.sparkline, null)}
@@ -4887,5 +5125,25 @@ fetchBDC();
 </script>
 <div id="indicator-tooltip"></div>
 <div id="ycTooltip" class="yc-tooltip"></div>
+
+<div id="macroChartModal" class="mc-modal" onclick="if(event.target===this)closeMacroChart()">
+  <div class="mc-inner">
+    <div class="mc-header">
+      <div class="mc-title" id="mcTitle">—</div>
+      <div class="mc-period-btns">
+        <button class="mc-period-btn" onclick="setMacroChartPeriod(12)">1Y</button>
+        <button class="mc-period-btn" onclick="setMacroChartPeriod(36)">3Y</button>
+        <button class="mc-period-btn active" onclick="setMacroChartPeriod(60)">5Y</button>
+        <button class="mc-period-btn" onclick="setMacroChartPeriod(120)">10Y</button>
+      </div>
+      <div class="mc-overlay-btns" id="mcOverlayBtns"></div>
+      <button class="mc-close" onclick="closeMacroChart()">✕</button>
+    </div>
+    <div class="mc-chart-area" id="mcChartArea">
+      <div class="mc-loading" id="mcLoading" style="display:none">LOADING…</div>
+    </div>
+    <div class="mc-legend" id="mcLegend"></div>
+  </div>
+</div>
 </body>
 </html>

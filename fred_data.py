@@ -23,6 +23,51 @@ _cache = {
     "indices":   {"data": None, "ts": 0},
 }
 
+_history_cache: dict = {}
+
+# Maps FRED series ID → display config for the history chart endpoint
+_HISTORY_META: dict = {
+    # Growth
+    "GDPC1":            {"label": "Real GDP QoQ Ann.",    "unit": "%",  "calc": "qoq"},
+    # Inflation
+    "CPIAUCSL":         {"label": "CPI YoY",              "unit": "%",  "calc": "yoy"},
+    "PCEPILFE":         {"label": "Core PCE YoY",         "unit": "%",  "calc": "yoy"},
+    "DPCCRC1M027SBEA":  {"label": "Core Goods PCE YoY",   "unit": "%",  "calc": "yoy"},
+    "DPCCRV1M027SBEA":  {"label": "Core Svcs PCE YoY",    "unit": "%",  "calc": "yoy"},
+    # Labor / policy
+    "UNRATE":           {"label": "Unemployment Rate",    "unit": "%",  "calc": "level"},
+    "FEDFUNDS":         {"label": "Fed Funds Rate",       "unit": "%",  "calc": "level"},
+    "M2SL":             {"label": "M2 YoY",               "unit": "%",  "calc": "yoy"},
+    "ICSA":             {"label": "Initial Claims",       "unit": "K",  "calc": "level"},
+    "JTSJOL":           {"label": "JOLTS Openings",       "unit": "K",  "calc": "level"},
+    # Consumer
+    "UMCSENT":          {"label": "UMich Sentiment",      "unit": "",   "calc": "level"},
+    "RSXFS":            {"label": "Retail Sales MoM",     "unit": "%",  "calc": "mom"},
+    "PSAVERT":          {"label": "Savings Rate",         "unit": "%",  "calc": "level"},
+    "DRCCLACBS":        {"label": "CC Delinquency",       "unit": "%",  "calc": "level"},
+    "CSUSHPISA":        {"label": "Case-Shiller HPI YoY", "unit": "%",  "calc": "yoy"},
+    "MORTGAGE30US":     {"label": "30Y Mortgage Rate",    "unit": "%",  "calc": "level"},
+    "HOUST":            {"label": "Housing Starts",       "unit": "K",  "calc": "level"},
+    "MANEMP":           {"label": "Mfg Employment",       "unit": "K",  "calc": "level"},
+    # Business sentiment
+    "MPMINDX":          {"label": "ISM Mfg PMI",          "unit": "",   "calc": "level"},
+    "NMFCI":            {"label": "ISM Services PMI",     "unit": "",   "calc": "level"},
+    "NFIBOPTIM":        {"label": "NFIB Optimism",        "unit": "",   "calc": "level"},
+    "NFCI":             {"label": "NFCI",                 "unit": "",   "calc": "level"},
+    # Credit spreads (FRED stores OAS as decimal; ×100 = bp)
+    "BAMLH0A0HYM2":     {"label": "HY OAS",               "unit": "bp", "calc": "level_bp"},
+    "BAMLC0A0CM":       {"label": "IG OAS",               "unit": "bp", "calc": "level_bp"},
+    # Breakevens / real yields
+    "T5YIE":            {"label": "5Y Breakeven",         "unit": "%",  "calc": "level"},
+    "T10YIE":           {"label": "10Y Breakeven",        "unit": "%",  "calc": "level"},
+    "DFII5":            {"label": "5Y Real Yield",        "unit": "%",  "calc": "level"},
+    "DFII10":           {"label": "10Y Real Yield",       "unit": "%",  "calc": "level"},
+    # Nominal yields
+    "DGS2":             {"label": "2Y Treasury",          "unit": "%",  "calc": "level"},
+    "DGS10":            {"label": "10Y Treasury",         "unit": "%",  "calc": "level"},
+    "DGS30":            {"label": "30Y Treasury",         "unit": "%",  "calc": "level"},
+}
+
 def _cache_valid(key):
     return (_cache[key]["data"] is not None and
             (time.time() - _cache[key]["ts"]) < CACHE_TTL)
@@ -1389,6 +1434,65 @@ def get_series_history(series_id: str, n_obs: int) -> list[dict]:
     except Exception as e:
         log.warning(f"get_series_history failed [{series_id}]: {e}")
         return []
+
+
+def get_macro_history(series_id: str, n_obs: int) -> dict:
+    """Fetch, transform, and cache history for a single FRED series.
+
+    Returns {"label": str, "unit": str, "data": [{"date": str, "value": float}]}.
+    The "data" list is oldest-first with n_obs entries after transformation.
+    Cached for CACHE_TTL (1 hour).
+    """
+    sid = series_id.upper()
+    key = f"{sid}_{n_obs}"
+    entry = _history_cache.get(key)
+    if entry and (time.time() - entry["ts"]) < CACHE_TTL:
+        return entry["data"]
+
+    meta = _HISTORY_META.get(sid, {"label": sid, "unit": "", "calc": "level"})
+    calc = meta["calc"]
+
+    # Fetch enough raw obs for the transformation (oldest-first from get_series_history)
+    fetch_n = (n_obs + 14) if calc == "yoy" else (n_obs + 2)
+    raw = get_series_history(sid, fetch_n)
+
+    try:
+        if calc == "yoy" and len(raw) >= 13:
+            data = []
+            for i in range(12, len(raw)):
+                curr, base = raw[i]["value"], raw[i - 12]["value"]
+                if base != 0:
+                    data.append({"date": raw[i]["date"],
+                                 "value": round((curr - base) / abs(base) * 100, 2)})
+            data = data[-n_obs:]
+        elif calc == "qoq" and len(raw) >= 2:
+            data = []
+            for i in range(1, len(raw)):
+                curr, prev = raw[i]["value"], raw[i - 1]["value"]
+                if prev != 0:
+                    data.append({"date": raw[i]["date"],
+                                 "value": round(((curr / prev) ** 4 - 1) * 100, 2)})
+            data = data[-n_obs:]
+        elif calc == "mom" and len(raw) >= 2:
+            data = []
+            for i in range(1, len(raw)):
+                curr, prev = raw[i]["value"], raw[i - 1]["value"]
+                if prev != 0:
+                    data.append({"date": raw[i]["date"],
+                                 "value": round((curr - prev) / abs(prev) * 100, 2)})
+            data = data[-n_obs:]
+        elif calc == "level_bp":
+            data = [{"date": d["date"], "value": round(d["value"] * 100, 1)}
+                    for d in raw[-n_obs:]]
+        else:
+            data = raw[-n_obs:]
+    except (ValueError, ZeroDivisionError) as e:
+        log.warning(f"get_macro_history transform failed [{sid}]: {e}")
+        data = []
+
+    result: dict = {"label": meta["label"], "unit": meta["unit"], "data": data}
+    _history_cache[key] = {"data": result, "ts": time.time()}
+    return result
 
 
 # ── STANDALONE TEST ───────────────────────────────────────────

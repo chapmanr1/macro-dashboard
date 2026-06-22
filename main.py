@@ -42,7 +42,7 @@ except ImportError:
         return {"error": "FedWatch module not loaded", "timestamp": datetime.utcnow().isoformat()}
 
 try:
-    from fred_data import get_macro, get_yields, get_economy, get_credit, get_economic_calendar
+    from fred_data import get_macro, get_yields, get_economy, get_credit, get_economic_calendar, get_macro_history
 except ImportError:
     def get_macro():
         return {"series": [], "timestamp": datetime.utcnow().isoformat(), "error": "FRED module not loaded"}
@@ -56,6 +56,8 @@ except ImportError:
                 "timestamp": datetime.utcnow().isoformat(), "error": "Credit module not loaded"}
     def get_economic_calendar():
         return []
+    def get_macro_history(series_id: str, n_obs: int) -> dict:
+        return {"label": series_id, "unit": "", "data": [], "error": "FRED module not loaded"}
 
 try:
     from news_feed import get_news
@@ -286,6 +288,27 @@ def api_regime_history():
     except Exception as e:
         log.error(f"Regime history error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "history": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/macro/history")
+def api_macro_history():
+    series_param = request.args.get("series", "")
+    obs_param    = request.args.get("obs", "60")
+    try:
+        n_obs = max(12, min(300, int(obs_param)))
+    except ValueError:
+        n_obs = 60
+    series_ids = [s.strip().upper() for s in series_param.split(",") if s.strip()][:4]
+    if not series_ids:
+        return jsonify({"error": "series parameter required"}), 400
+    try:
+        result = {"series": []}
+        for sid in series_ids:
+            h = get_macro_history(sid, n_obs)
+            result["series"].append({"id": sid, **h})
+        return jsonify(result)
+    except Exception as e:
+        log.error(f"Macro history error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "series": []}), 500
 
 @app.route("/api/health")
 def api_health():
