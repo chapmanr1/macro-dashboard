@@ -2201,7 +2201,7 @@ async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
   await Promise.allSettled([
-    apiFetch('/api/regime').then(d => { _lastRegime = d; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
