@@ -210,12 +210,14 @@
     .macro-cell, .scorecard-cell, .spread-cell, .tips-cell { cursor: pointer; }
 
     /* ── SPARKLINE DETAIL POPUP ── */
-    .sl-popup { position:fixed; z-index:10003; background:var(--bg2); border:1px solid rgba(59,130,246,0.3); border-radius:8px; width:360px; max-width:calc(100vw - 20px); box-shadow:0 10px 48px rgba(0,0,0,0.8); display:none; animation:modalFadeIn 0.15s ease; }
+    .sl-popup { position:absolute; z-index:10003; background:var(--bg2); border:1px solid rgba(59,130,246,0.3); border-radius:8px; width:360px; max-width:calc(100vw - 20px); box-shadow:0 10px 48px rgba(0,0,0,0.8); display:none; animation:modalFadeIn 0.15s ease; }
     .sl-popup.show { display:block; }
-    .sl-popup-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px 8px; border-bottom:1px solid var(--border); }
-    .sl-popup-title { font-size:9px; font-weight:700; letter-spacing:0.12em; color:var(--white); font-family:var(--font-mono); text-transform:uppercase; }
-    .sl-popup-close { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:0 2px; transition:color 0.15s; flex-shrink:0; }
-    .sl-popup-close:hover { color:var(--red); }
+    .sl-popup-header { display:flex; align-items:center; gap:4px; padding:10px 14px 8px; border-bottom:1px solid var(--border); }
+    .sl-popup-title { flex:1; font-size:9px; font-weight:700; letter-spacing:0.12em; color:var(--white); font-family:var(--font-mono); text-transform:uppercase; }
+    .sl-popup-expand { background:none; border:1px solid var(--border); color:var(--muted); cursor:pointer; font-size:11px; line-height:1; padding:2px 5px; border-radius:3px; transition:all 0.15s; flex-shrink:0; }
+    .sl-popup-expand:hover { border-color:var(--blue); color:var(--blue); background:rgba(59,130,246,0.08); }
+    .sl-popup-close { background:none; border:1px solid var(--border); color:var(--muted); cursor:pointer; font-size:11px; line-height:1; padding:2px 5px; border-radius:3px; transition:all 0.15s; flex-shrink:0; }
+    .sl-popup-close:hover { border-color:var(--red); color:var(--red); background:rgba(239,68,68,0.08); }
     .sl-popup-chart { padding:12px 14px 4px; }
     .sl-popup-chart svg { display:block; width:100%; height:auto; overflow:visible; }
     .sl-popup-table { padding:4px 14px 12px; max-height:180px; overflow-y:auto; }
@@ -224,7 +226,7 @@
     .sl-popup-row:last-child { border-bottom:none; }
     .sl-popup-row-date { color:var(--muted); }
     .sl-popup-row-val { font-weight:600; }
-    @media (max-width:640px) { .sl-popup { width:calc(100vw - 20px); left:10px !important; } }
+    @media (max-width:640px) { .sl-popup { position:fixed !important; left:10px !important; right:10px !important; top:auto !important; bottom:20px !important; width:calc(100vw - 20px); } }
 
     /* ── CHART ICON BUTTON ── */
     .chart-icon-btn { background:none; border:none; color:transparent; font-size:9px; cursor:pointer; padding:0 0 0 2px; line-height:1; -webkit-tap-highlight-color:transparent; transition:color 0.15s; flex-shrink:0; font-family:var(--font-ui); }
@@ -2147,20 +2149,28 @@ function _slStorePut(s) {
   };
 }
 
+let _slCurrentId = null;
+
 function openSLDetail(cell) {
   const id = cell.dataset.slId;
   if (!id) return;
   const d = _slStore[id];
   if (!d || !d.dated || d.dated.length < 2) return;
 
+  _slCurrentId = id;
   document.getElementById('slDetailTitle').textContent = d.label;
   document.getElementById('slDetailChart').innerHTML  = _slRenderChart(d);
   document.getElementById('slDetailTable').innerHTML  = _slRenderTable(d);
 
+  // Show/hide expand button depending on whether a full chart is available
+  const expBtn = document.getElementById('slDetailExpand');
+  if (expBtn) expBtn.style.display = MACRO_CHART_META[id] ? '' : 'none';
+
   const popup = document.getElementById('slDetailPopup');
   popup.classList.add('show');
 
-  // Position near the cell, clamped to viewport
+  // Position near the cell, clamped to viewport, then converted to document coords
+  // so the popup scrolls with the page (position:absolute).
   const rect = cell.getBoundingClientRect();
   const vw = window.innerWidth, vh = window.innerHeight;
   popup.style.left = '-9999px'; popup.style.top = '-9999px';
@@ -2170,8 +2180,9 @@ function openSLDetail(cell) {
   if (left < 10) left = 10;
   if (top + ph > vh - 10) top = rect.top - ph - 8;
   if (top < 10) top = Math.max(10, rect.bottom + 8);
-  popup.style.left = left + 'px';
-  popup.style.top  = top  + 'px';
+  // Add scroll offset to anchor to document coordinates
+  popup.style.left = (left + window.scrollX) + 'px';
+  popup.style.top  = (top  + window.scrollY) + 'px';
 
   setTimeout(() => document.addEventListener('click', _slOutsideDismiss, {capture:true}), 0);
 }
@@ -2179,6 +2190,13 @@ function openSLDetail(cell) {
 function closeSLDetail() {
   document.getElementById('slDetailPopup').classList.remove('show');
   document.removeEventListener('click', _slOutsideDismiss, true);
+  _slCurrentId = null;
+}
+
+function expandSLDetail() {
+  const id = _slCurrentId;
+  closeSLDetail();
+  if (id && MACRO_CHART_META[id]) openMacroChart(id);
 }
 
 function _slOutsideDismiss(e) {
@@ -5339,7 +5357,8 @@ fetchBDC();
 <div id="slDetailPopup" class="sl-popup">
   <div class="sl-popup-header">
     <span class="sl-popup-title" id="slDetailTitle">—</span>
-    <button class="sl-popup-close" onclick="closeSLDetail()">✕</button>
+    <button class="sl-popup-expand" id="slDetailExpand" onclick="expandSLDetail()" title="Open full history chart">⤢</button>
+    <button class="sl-popup-close" onclick="closeSLDetail()" title="Close">✕</button>
   </div>
   <div class="sl-popup-chart" id="slDetailChart"></div>
   <div class="sl-popup-table" id="slDetailTable"></div>
