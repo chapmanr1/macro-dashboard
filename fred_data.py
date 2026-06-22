@@ -110,6 +110,45 @@ def _safe_change(current, prior):
     return round(current - prior, 4)
 
 
+def _extract_sparkline(obs: list, calc: str, scale: float = 1, n: int = 12) -> list:
+    """Return up to n sparkline floats (oldest-first) from raw FRED observations."""
+    valid = [o for o in obs if o.get("value") not in (".", "", None)]
+    if len(valid) < 2:
+        return []
+    try:
+        if calc in ("latest", "latest_bp"):
+            vals = [float(o["value"]) * scale for o in reversed(valid[:n])]
+        elif calc == "mom_pct":
+            raw = []
+            for i in range(min(n, len(valid) - 1)):
+                curr = float(valid[i]["value"])
+                prev = float(valid[i + 1]["value"])
+                if prev != 0:
+                    raw.append(round(((curr - prev) / abs(prev)) * 100, 2))
+            vals = list(reversed(raw))
+        elif calc == "yoy":
+            raw = []
+            for i in range(min(n, len(valid) - 12)):
+                curr = float(valid[i]["value"])
+                ya   = float(valid[i + 12]["value"])
+                if ya != 0:
+                    raw.append(round(((curr - ya) / abs(ya)) * 100, 2))
+            vals = list(reversed(raw))
+        elif calc in ("qoq_annualized", "qoq"):
+            raw = []
+            for i in range(min(n, len(valid) - 1)):
+                curr = float(valid[i]["value"])
+                prev = float(valid[i + 1]["value"])
+                if prev != 0:
+                    raw.append(round(((curr / prev) ** 4 - 1) * 100, 2))
+            vals = list(reversed(raw))
+        else:
+            return []
+        return [v for v in vals if v is not None]
+    except (ValueError, ZeroDivisionError):
+        return []
+
+
 # ── PLAIN ENGLISH INTERPRETATION GENERATORS ──────────────────
 def _interp_gdp(val, change):
     if val is None: return "GDP data unavailable."
@@ -244,8 +283,8 @@ MACRO_SERIES = [
     {"id":"gdp",          "fred_id":"GDPC1",    "label":"GDP GROWTH",     "description":"Real GDP QoQ Annualized",       "suffix":"%","decimals":1,"limit":6,  "calc":"qoq_annualized","positive_is_good":True},
     {"id":"cpi",          "fred_id":"CPIAUCSL", "label":"CPI YOY",        "description":"Consumer Price Index YoY",       "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":False},
     {"id":"pce",          "fred_id":"PCEPILFE", "label":"CORE PCE YOY",   "description":"Core PCE Price Index YoY",       "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":False},
-    {"id":"unemployment", "fred_id":"UNRATE",   "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",              "suffix":"%","decimals":1,"limit":3,  "calc":"latest",        "positive_is_good":False},
-    {"id":"fed_funds",    "fred_id":"FEDFUNDS", "label":"FED FUNDS",      "description":"Effective Fed Funds Rate",       "suffix":"%","decimals":2,"limit":3,  "calc":"latest",        "positive_is_good":None},
+    {"id":"unemployment", "fred_id":"UNRATE",   "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",              "suffix":"%","decimals":1,"limit":13, "calc":"latest",        "positive_is_good":False},
+    {"id":"fed_funds",    "fred_id":"FEDFUNDS", "label":"FED FUNDS",      "description":"Effective Fed Funds Rate",       "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "positive_is_good":None},
     {"id":"m2",           "fred_id":"M2SL",     "label":"M2 YOY",         "description":"M2 Money Supply YoY",            "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":True},
 ]
 
@@ -266,26 +305,26 @@ ECONOMY_SERIES = {
     "growth": [
         {"id":"gdp",      "fred_id":"GDPC1",        "label":"GDP GROWTH",     "description":"Real GDP QoQ Annualized",     "suffix":"%","decimals":1,"limit":6,  "calc":"qoq_annualized","category":"growth","positive_is_good":True},
         {"id":"ism_proxy","fred_id":"MANEMP",        "label":"MFG EMPLOYMENT", "description":"Manufacturing Employment",     "suffix":"K","decimals":0,"limit":36, "calc":"latest",        "category":"growth","positive_is_good":True},
-        {"id":"houst",    "fred_id":"HOUST",         "label":"HOUSING STARTS", "description":"Housing Starts (Ann. Rate)",   "suffix":"K","decimals":0,"limit":3,  "calc":"latest",        "category":"growth","positive_is_good":True},
+        {"id":"houst",    "fred_id":"HOUST",         "label":"HOUSING STARTS", "description":"Housing Starts (Ann. Rate)",   "suffix":"K","decimals":0,"limit":13, "calc":"latest",        "category":"growth","positive_is_good":True},
     ],
     "inflation": [
         {"id":"cpi",      "fred_id":"CPIAUCSL",      "label":"CPI YOY",        "description":"Consumer Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "category":"inflation","positive_is_good":False},
         {"id":"pce",      "fred_id":"PCEPILFE",      "label":"CORE PCE YOY",   "description":"Core PCE Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "category":"inflation","positive_is_good":False},
-        {"id":"t5yie",    "fred_id":"T5YIE",         "label":"5Y BREAKEVEN",   "description":"5-Year Breakeven Inflation",   "suffix":"%","decimals":2,"limit":3,  "calc":"latest",        "category":"inflation","positive_is_good":None},
-        {"id":"t10yie",   "fred_id":"T10YIE",        "label":"10Y BREAKEVEN",  "description":"10-Year Breakeven Inflation",  "suffix":"%","decimals":2,"limit":3,  "calc":"latest",        "category":"inflation","positive_is_good":None},
+        {"id":"t5yie",    "fred_id":"T5YIE",         "label":"5Y BREAKEVEN",   "description":"5-Year Breakeven Inflation",   "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"inflation","positive_is_good":None},
+        {"id":"t10yie",   "fred_id":"T10YIE",        "label":"10Y BREAKEVEN",  "description":"10-Year Breakeven Inflation",  "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"inflation","positive_is_good":None},
     ],
     "labor": [
-        {"id":"unemployment","fred_id":"UNRATE",     "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",            "suffix":"%","decimals":1,"limit":3,  "calc":"latest",        "category":"labor","positive_is_good":False},
-        {"id":"icsa",     "fred_id":"ICSA",          "label":"JOBLESS CLAIMS", "description":"Initial Jobless Claims",       "suffix":"","decimals":0,"limit":3,   "calc":"latest",        "category":"labor","positive_is_good":False},
-        {"id":"jolts",    "fred_id":"JTSJOL",        "label":"JOLTS OPENINGS", "description":"Job Openings (Thousands)",     "suffix":"K","decimals":0,"limit":3,  "calc":"latest",        "category":"labor","positive_is_good":True},
+        {"id":"unemployment","fred_id":"UNRATE",     "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",            "suffix":"%","decimals":1,"limit":13, "calc":"latest",        "category":"labor","positive_is_good":False},
+        {"id":"icsa",     "fred_id":"ICSA",          "label":"JOBLESS CLAIMS", "description":"Initial Jobless Claims",       "suffix":"","decimals":0,"limit":13,  "calc":"latest",        "category":"labor","positive_is_good":False},
+        {"id":"jolts",    "fred_id":"JTSJOL",        "label":"JOLTS OPENINGS", "description":"Job Openings (Thousands)",     "suffix":"K","decimals":0,"limit":13, "calc":"latest",        "category":"labor","positive_is_good":True},
     ],
     "consumer": [
-        {"id":"umich",    "fred_id":"UMCSENT",       "label":"UMICH SENTIMENT","description":"Univ Michigan Sentiment",      "suffix":"","decimals":1, "limit":3,  "calc":"latest",        "category":"consumer","positive_is_good":True},
-        {"id":"retail",   "fred_id":"RSXFS",         "label":"RETAIL SALES",   "description":"Retail Sales MoM %",          "suffix":"%","decimals":1,"limit":3,  "calc":"mom_pct",       "category":"consumer","positive_is_good":True},
-        {"id":"savings",  "fred_id":"PSAVERT",       "label":"SAVINGS RATE",   "description":"Personal Savings Rate",        "suffix":"%","decimals":1,"limit":3,  "calc":"latest",        "category":"consumer","positive_is_good":True},
-        {"id":"cc_delinq","fred_id":"DRCCLACBS",     "label":"CC DELINQUENCY", "description":"Credit Card Delinquency Rate", "suffix":"%","decimals":2,"limit":3,  "calc":"latest",        "category":"consumer","positive_is_good":False},
-        {"id":"cs_hpi",   "fred_id":"CSUSHPISA",     "label":"CASE-SHILLER HPI","description":"Home Price Index YoY",        "suffix":"%","decimals":1,"limit":14, "calc":"yoy",           "category":"consumer","positive_is_good":True},
-        {"id":"mortgage", "fred_id":"MORTGAGE30US",  "label":"MORTGAGE 30Y",   "description":"30-Year Mortgage Rate",        "suffix":"%","decimals":2,"limit":3,  "calc":"latest",        "category":"consumer","positive_is_good":False},
+        {"id":"umich",    "fred_id":"UMCSENT",       "label":"UMICH SENTIMENT","description":"Univ Michigan Sentiment",      "suffix":"","decimals":1, "limit":13, "calc":"latest",        "category":"consumer","positive_is_good":True},
+        {"id":"retail",   "fred_id":"RSXFS",         "label":"RETAIL SALES",   "description":"Retail Sales MoM %",          "suffix":"%","decimals":1,"limit":13, "calc":"mom_pct",       "category":"consumer","positive_is_good":True},
+        {"id":"savings",  "fred_id":"PSAVERT",       "label":"SAVINGS RATE",   "description":"Personal Savings Rate",        "suffix":"%","decimals":1,"limit":13, "calc":"latest",        "category":"consumer","positive_is_good":True},
+        {"id":"cc_delinq","fred_id":"DRCCLACBS",     "label":"CC DELINQUENCY", "description":"Credit Card Delinquency Rate", "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"consumer","positive_is_good":False},
+        {"id":"cs_hpi",   "fred_id":"CSUSHPISA",     "label":"CASE-SHILLER HPI","description":"Home Price Index YoY",        "suffix":"%","decimals":1,"limit":26, "calc":"yoy",           "category":"consumer","positive_is_good":True},
+        {"id":"mortgage", "fred_id":"MORTGAGE30US",  "label":"MORTGAGE 30Y",   "description":"30-Year Mortgage Rate",        "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "category":"consumer","positive_is_good":False},
     ],
 }
 
@@ -867,6 +906,7 @@ def _fetch_macro():
                 "direction": _direction(change), "suffix": s["suffix"],
                 "decimals": s["decimals"], "positive_is_good": s["positive_is_good"],
                 "as_of": _obs_date(obs),
+                "sparkline": _extract_sparkline(obs, s["calc"]),
             })
         except Exception as e:
             log.warning(f"Macro fetch failed [{s['fred_id']}]: {e}")
@@ -876,7 +916,7 @@ def _fetch_macro():
                 "current": None, "prior": None, "change": None,
                 "direction": "FLAT", "suffix": s.get("suffix",""),
                 "decimals": s.get("decimals",2), "positive_is_good": s.get("positive_is_good",True),
-                "as_of": None,
+                "as_of": None, "sparkline": [],
             })
 
     result = {"series": series, "timestamp": ts, "errors": errors}
@@ -1014,6 +1054,7 @@ def _fetch_economy():
                     "signal":          _signal_word(s["id"], current, s["positive_is_good"]),
                     "interpretation":  _get_interpretation(s["id"], current, change),
                     "as_of":           _obs_date(obs),
+                    "sparkline":       _extract_sparkline(obs, s["calc"]),
                 })
                 raw_vals[s["id"]] = current
 
@@ -1113,7 +1154,7 @@ def _fetch_credit():
             "signal": "N/A", "signal_color": "muted",
         }
         try:
-            obs = _fetch_series(s["fred_id"], limit=3)
+            obs = _fetch_series(s["fred_id"], limit=13)
             raw     = _latest_val(obs)
             raw_pri = _prior_val(obs, offset=1)
             scale   = s.get("scale", 1)
@@ -1127,6 +1168,7 @@ def _fetch_credit():
                 "direction":    _direction(change),
                 "interpretation": _get_interpretation(s["id"], current, change),
                 "as_of":        _obs_date(obs),
+                "sparkline":    _extract_sparkline(obs, s.get("calc", "latest"), scale=scale),
             })
 
             # Signal for spreads

@@ -201,6 +201,11 @@
     #indicator-tooltip .tt-read strong { color:var(--white); }
     #indicator-tooltip .tt-thresh { font-size:9px; color:var(--amber); border-top:1px solid var(--border); padding-top:6px; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.04em; }
 
+    /* ── SPARKLINES ── */
+    .sparkline-svg { display:block; width:80px; height:20px; margin:4px 0 2px; overflow:visible; }
+    .sparkline-svg polyline { fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+    .sparkline-svg line { stroke-width:1.5; stroke-linecap:round; }
+
     /* ── MARKETS: FUTURES ── */
     .futures-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .futures-cell { background: var(--bg2); padding: 14px 16px; transition: background 0.15s, border-color 0.15s; border: 1px solid transparent; }
@@ -1869,6 +1874,29 @@ function _hideTooltip() {
   _activeTipBtn = null;
 }
 
+function _sparkline(vals, positiveIsGood) {
+  if (!vals || vals.length < 2) return '';
+  const W = 80, H = 20, pad = 1;
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const rng = mx - mn;
+  const last = vals[vals.length - 1], first = vals[0];
+  let stroke = 'var(--muted)';
+  if (rng > 0.001) {
+    const rising = last > first;
+    if (positiveIsGood === true)       stroke = rising ? 'var(--green)' : 'var(--red)';
+    else if (positiveIsGood === false) stroke = rising ? 'var(--red)'   : 'var(--green)';
+  }
+  if (rng < 0.001) {
+    return `<svg class="sparkline-svg" viewBox="0 0 ${W} ${H}"><line x1="${pad}" y1="${H/2}" x2="${W-pad}" y2="${H/2}" stroke="${stroke}"/></svg>`;
+  }
+  const pts = vals.map((v, i) => {
+    const x = pad + (i / (vals.length - 1)) * (W - 2 * pad);
+    const y = (H - pad) - ((v - mn) / rng) * (H - 2 * pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="sparkline-svg" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" stroke="${stroke}"/></svg>`;
+}
+
 document.addEventListener('click', e => { if (!e.target.classList.contains('info-btn')) _hideTooltip(); });
 document.addEventListener('touchstart', e => { if (!e.target.classList.contains('info-btn')) _hideTooltip(); }, {passive:true});
 
@@ -2028,6 +2056,7 @@ function renderMacro(data) {
     return `<div class="macro-cell">
       <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_tipBtn(s.id)}</span></div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
+      ${_sparkline(s.sparkline, s.positive_is_good)}
       <div class="macro-cell-sub">${s.description||''}</div>
       ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
     </div>`;
@@ -2748,6 +2777,7 @@ function renderSpreads(spreads) {
       <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span>${_tipBtn(s.id)}</div>
       <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
       <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
+      ${_sparkline(s.sparkline, false)}
       <div class="spread-signal" style="border-color:${sigBorder};color:${sigBorder}">${s.signal||''}</div>
       <div class="spread-interp">${s.interpretation||''}</div>
       ${spreadContextBar(s.value, maxBp, ctxZones)}
@@ -2769,6 +2799,7 @@ function renderTipsPanel(breakevens, realYields) {
       <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}${_tipBtn(s.id)}</div>
       <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
       <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
+      ${_sparkline(s.sparkline, null)}
       ${s.interpretation ? `<div class="tips-interp">${s.interpretation}</div>` : ''}
     </div>`;
   }).join('');
