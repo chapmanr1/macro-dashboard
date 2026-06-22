@@ -189,6 +189,18 @@
     .yc-spread-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; }
     .yc-tooltip { position: fixed; pointer-events: none; background: var(--bg3); border: 1px solid var(--border); color: var(--white); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; padding: 5px 10px; opacity: 0; transition: opacity 0.1s; z-index: 9999; white-space: nowrap; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
+    /* ── INDICATOR TOOLTIPS ── */
+    .info-btn { background:none; border:none; color:transparent; font-size:9px; cursor:pointer; padding:0 0 0 4px; line-height:1; -webkit-tap-highlight-color:transparent; transition:color 0.15s; flex-shrink:0; font-family:var(--font-ui); }
+    .macro-cell:hover .info-btn, .scorecard-cell:hover .info-btn, .tips-cell:hover .info-btn,
+    .spread-cell:hover .info-btn, .regime-ind:hover .info-btn, .index-cell:hover .info-btn { color:var(--muted); }
+    .info-btn:hover, .info-btn:focus { color:var(--blue) !important; outline:none; }
+    #indicator-tooltip { position:fixed; pointer-events:none; max-width:270px; width:max-content; background:var(--bg3); border:1px solid rgba(59,130,246,0.35); border-radius:6px; padding:10px 13px; z-index:10001; font-family:var(--font-ui); font-size:10px; line-height:1.55; color:var(--white); box-shadow:0 8px 28px rgba(0,0,0,0.65); display:none; }
+    #indicator-tooltip .tt-title { font-size:8px; font-weight:700; letter-spacing:0.14em; color:var(--blue); text-transform:uppercase; margin-bottom:6px; }
+    #indicator-tooltip .tt-body { color:var(--muted); margin-bottom:4px; }
+    #indicator-tooltip .tt-read { color:var(--white); margin-bottom:4px; }
+    #indicator-tooltip .tt-read strong { color:var(--white); }
+    #indicator-tooltip .tt-thresh { font-size:9px; color:var(--amber); border-top:1px solid var(--border); padding-top:6px; margin-top:2px; font-family:var(--font-mono); letter-spacing:0.04em; }
+
     /* ── MARKETS: FUTURES ── */
     .futures-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .futures-cell { background: var(--bg2); padding: 14px 16px; transition: background 0.15s, border-color 0.15s; border: 1px solid transparent; }
@@ -1777,6 +1789,90 @@ function _srcLink(source) {
 }
 
 // ════════════════════════════════════════════════════════════
+// INDICATOR TOOLTIPS
+// ════════════════════════════════════════════════════════════
+const INDICATOR_TOOLTIPS = {
+  gdp:            { title:'GDP GROWTH', what:'Real Gross Domestic Product, quarter-over-quarter annualized rate. Measures the economy\'s total output growth pace.', read:'Positive = expansion. Negative = contraction. Two consecutive negative quarters = technical recession.', thresholds:'Strong >2.5% | Trend 1.5-2.5% | Slow 0-1.5% | Contraction <0%' },
+  cpi:            { title:'CPI YoY', what:'Consumer Price Index, year-over-year change. Broadest measure of consumer inflation, including food and energy.', read:'Higher = more inflation. Fed target is ~2%. Above 4% = policy concern. Above 6% = crisis-level inflation.', thresholds:'Target ~2% | Elevated 3-4% | High 4-6% | Crisis >6%' },
+  pce:            { title:'CORE PCE YoY', what:'Personal Consumption Expenditures price index, excluding food & energy. The Federal Reserve\'s preferred inflation gauge.', read:'Fed targets 2%. Stickier than CPI because PCE weights shift with spending behavior. Critical for rate path decisions.', thresholds:'Target 2% | Elevated 2.5-3.5% | High >3.5% | Falsification trigger: 3 months below 2.5%' },
+  unemployment:   { title:'UNEMPLOYMENT RATE', what:'Percentage of the labor force that is jobless and actively seeking work (U-3 measure).', read:'Lower = stronger labor market. "Full employment" is ~4%. Rising unemployment at an accelerating pace is a recession signal.', thresholds:'Full employment <4% | Softening 4-5% | Weak 5-6% | Recession risk >6%' },
+  fed_funds:      { title:'FED FUNDS RATE', what:'Overnight lending rate set by the Federal Reserve. The primary monetary policy lever for controlling inflation and employment.', read:'Higher = tighter financial conditions, slowing inflation but also growth. Rate direction (hiking/cutting) matters as much as level.', thresholds:'Neutral ~2.5-3% | Restrictive >4% | Emergency stimulus <1%' },
+  m2:             { title:'M2 MONEY SUPPLY YoY', what:'Broad money supply growth including cash, checking, savings, and money market accounts.', read:'Rapid M2 growth historically leads inflation by 12-18 months. Declining M2 can signal deflationary pressure or credit contraction.', thresholds:'Historical avg ~6% | Inflationary >10% | Deflation risk <0%' },
+  hy_oas:         { title:'HY OAS — HIGH YIELD SPREAD', what:'Option-Adjusted Spread of US high-yield bonds over Treasuries, in basis points (bp). Measures the credit risk premium demanded for junk bonds.', read:'Tight spreads = risk-on, credit complacency. Widening spreads = default risk rising, credit stress. A leading recession indicator.', thresholds:'Tight <300bp | Normal 300-450bp | Wide 450-600bp | Crisis >600bp' },
+  ig_oas:         { title:'IG OAS — INVESTMENT GRADE SPREAD', what:'Option-Adjusted Spread of US investment-grade bonds over Treasuries. Measures corporate credit health for higher-quality issuers.', read:'IG spreads are tighter than HY but widen for the same reasons. Rising IG spreads signal systemic credit tightening.', thresholds:'Tight <80bp | Normal 80-130bp | Wide 130-200bp | Crisis >200bp' },
+  t5yie:          { title:'5Y BREAKEVEN INFLATION', what:'Market-implied inflation expectation for the next 5 years, derived from the spread between TIPS and nominal Treasury yields.', read:'Rising = markets expect more inflation. A sharp move above 3% signals unanchored inflation expectations — a major Fed credibility test.', thresholds:'Well-anchored 2-2.5% | Elevated 2.5-3% | Unanchored >3% | Deflation fear <1.5%' },
+  t10yie:         { title:'10Y BREAKEVEN INFLATION', what:'Market-implied inflation expectation for the next 10 years. A longer-horizon gauge of Fed credibility.', read:'More stable than 5Y. If 10Y diverges above 5Y, structural long-term inflation expectations are shifting — more concerning than short-term noise.', thresholds:'Well-anchored 2-2.5% | Elevated 2.5-3% | Unanchored >3%' },
+  dfii5:          { title:'5Y REAL YIELD (TIPS)', what:'Inflation-adjusted return on 5-year Treasury bonds (nominal yield minus 5Y inflation expectation). The true cost of money.', read:'Positive real yield = restrictive (slowing economy). Negative = financial repression (stimulus). Gold moves inversely with real yields.', thresholds:'Stimulative <0% | Neutral 0-1% | Restrictive >1% | Very tight >2%' },
+  dfii10:         { title:'10Y REAL YIELD (TIPS)', what:'Inflation-adjusted return on 10-year Treasury bonds. Critical for valuing long-duration assets: equities, real estate, gold.', read:'Rising real yields = headwind for equities and gold. Key input for equity risk premium. Negative = financial repression of savers.', thresholds:'Stimulative <0% | Neutral 0-1% | Restrictive >1% | Very tight >2%' },
+  t10y2y:         { title:'10Y–2Y YIELD SPREAD', what:'Difference between 10-year and 2-year Treasury yields. The most watched recession indicator in fixed income.', read:'Positive = normal, upward-sloping curve. Negative (inverted) = recession signal. Every post-WWII US recession was preceded by inversion.', thresholds:'Steep >1% | Normal 0-1% | Flat -0.25-0% | Inverted <-0.25% | Deep inversion <-0.75%' },
+  t10y3mo:        { title:'10Y–3MO YIELD SPREAD', what:'Spread between the 10-year Treasury and 3-month T-bill. The New York Fed\'s preferred recession prediction model input.', read:'NY Fed publishes a recession probability model using this spread. Inversion has predicted every US recession since 1960 with a ~6-18 month lead.', thresholds:'Steep >1% | Normal 0-1% | Inverted <0% | Deep inversion <-1%' },
+  mortgage:       { title:'30Y MORTGAGE RATE', what:'Average 30-year fixed mortgage rate from the Freddie Mac Primary Mortgage Market Survey. Directly determines housing affordability.', read:'Higher rates = fewer buyers, lower transaction volume, home price pressure. At 7%+, typical buyer payment rises 40-50% vs a 4% rate.', thresholds:'Affordable <4% | Normal 4-6% | Restrictive 6-7% | Unaffordable >7%' },
+  umich:          { title:'UMICH CONSUMER SENTIMENT', what:'University of Michigan Consumer Sentiment Index. Monthly survey of consumer views on personal finances and economic outlook.', read:'Leading indicator for consumer spending. Rapid drops often precede recessions. Tracks lower-income household sentiment well — different from Conference Board.', thresholds:'Strong >90 | Normal 70-90 | Weak 55-70 | Crisis-level <55' },
+  retail:         { title:'RETAIL SALES MoM', what:'Month-over-month change in retail and food service sales. The most direct monthly read on consumer spending momentum.', read:'Positive = consumers still spending. Negative for 2+ consecutive months = demand weakening. Must be adjusted for inflation for real growth.', thresholds:'Strong >0.5% | Normal 0-0.5% | Stalling -0.5-0% | Contraction <-0.5%' },
+  savings:        { title:'PERSONAL SAVINGS RATE', what:'Percentage of disposable personal income that households save rather than spend.', read:'Very low savings = spending beyond income (precarious). Rising savings = pulling back on consumption. Low savings rates precede consumer credit stress.', thresholds:'Healthy >6% | Low 3-6% | Stressed <3% | Historical average ~7%' },
+  cc_delinq:      { title:'CREDIT CARD DELINQUENCY', what:'Percentage of credit card balances 30+ days past due at commercial banks. Measures lower-income consumer financial stress.', read:'Rising delinquencies signal household balance sheet deterioration. Leading indicator of consumer credit contraction and bank loan losses.', thresholds:'Healthy <2% | Stress 2-3.5% | Crisis >3.5% | 2009 peak ~6.8%' },
+  cs_hpi:         { title:'CASE-SHILLER HPI YoY', what:'S&P/Case-Shiller National Home Price Index, year-over-year change. Tracks single-family home prices across 20 major metro areas.', read:'Rising prices = wealth effect for homeowners but worsening affordability. Negative = housing recession. Lags real economy by 6-12 months.', thresholds:'Strong >8% | Normal 3-8% | Flat 0-3% | Correction <0%' },
+  manemp:         { title:'MANUFACTURING EMPLOYMENT', what:'Total number of workers employed in the manufacturing sector (thousands). Tracks industrial labor market health.', read:'Structural decline over time, so watch the rate of change. Rapid monthly drops signal industrial recession. A lagging indicator.', thresholds:'Healthy: stable or growing | Warning: -30K/month | Crisis: -100K/month' },
+  houst:          { title:'HOUSING STARTS', what:'Annualized number of new residential construction projects broken ground. A leading indicator of construction sector activity.', read:'Leads GDP by 6-12 months. Highly rate-sensitive: high mortgage rates choke new construction. A bottom in starts often precedes economic recovery.', thresholds:'Strong >1.5M | Normal 1.2-1.5M | Weak 0.9-1.2M | Recession <0.9M' },
+  icsa:           { title:'INITIAL JOBLESS CLAIMS', what:'Weekly count of first-time unemployment insurance filings. The most timely labor market data available, updated every Thursday.', read:'Below 250K = tight market. Sustained rise above 300K = labor market softening. Spikes above 400K signal active recession. A leading indicator.', thresholds:'Very tight <225K | Healthy 225-275K | Softening 275-350K | Recession risk >350K' },
+  jolts:          { title:'JOLTS JOB OPENINGS', what:'Monthly count of unfilled job positions from the Job Openings and Labor Turnover Survey. Measures labor demand.', read:'High openings = tight labor, wage pressure. The quits rate within JOLTS (not shown) is even more powerful — high quits = worker confidence.', thresholds:'Very tight >10M | Tight 8-10M | Balanced 6-8M | Slack <6M' },
+  vix:            { title:'VIX — CBOE VOLATILITY INDEX', what:'30-day implied volatility of S&P 500 options, derived from option prices. Commonly called the "Fear Gauge."', read:'Low VIX = complacency (contrarian sell signal). High VIX = fear (potential buy signal). VIX spikes are typically mean-reverting within weeks.', thresholds:'Complacent <14 | Normal 14-20 | Cautious 20-30 | Fearful 30-40 | Panic >40' },
+  dxy:            { title:'US DOLLAR INDEX (DXY)', what:'Trade-weighted index of the US dollar against a basket of 6 major currencies (EUR 57.6%, JPY 13.6%, GBP 11.9%, CAD, SEK, CHF).', read:'Strong dollar = headwind for commodities, emerging markets, and US multinational earnings. Dollar strength in a crisis = global liquidity crunch.', thresholds:'Weak <96 | Neutral 96-103 | Strong 103-108 | Very strong >108' },
+  spx:            { title:'S&P 500 INDEX', what:'Market-cap-weighted index of 500 largest US publicly traded companies. The global benchmark for US equity performance.', read:'Watch vs 50-day and 200-day moving averages. Break below 200-day MA = major trend change signal. Death cross (50d below 200d) = sustained bear signal.', thresholds:'Bull market: above 200d MA | Correction: -10% from high | Bear market: -20% from high' },
+  djia:           { title:'DOW JONES INDUSTRIAL AVERAGE', what:'Price-weighted index of 30 large-cap US companies. Less diversified than S&P 500, but the most historically cited equity index.', read:'Use for long-term historical context. Dow vs SPX divergence can signal sector rotation (Dow is heavy financials/industrials vs tech-heavy SPX).', thresholds:'Tracks SPX broadly. Significant divergence signals sector rotation or index composition effects.' },
+  nasdaq:         { title:'NASDAQ COMPOSITE', what:'Market-cap-weighted index of ~3,300 mostly technology and growth companies traded on the Nasdaq exchange.', read:'More rate-sensitive than SPX due to heavy tech/growth weighting. Typically leads market moves in both directions. Watch NDX/SPX ratio for tech rotation.', thresholds:'Underperforms when yields rise sharply. NDX/SPX above recent highs = tech leadership, below = defensives outperforming.' },
+  rut:            { title:'RUSSELL 2000 INDEX', what:'Index of 2,000 US small-cap companies. More sensitive to domestic economic conditions than large-caps, which have global revenue diversification.', read:'Small caps lead economic turning points — they lack the foreign revenue buffer of multinationals. RUT vs SPX divergence = risk sentiment signal.', thresholds:'When RUT significantly lags SPX: credit tightening or domestic slowdown may be ahead.' },
+  regime_confidence: { title:'REGIME CONFIDENCE SCORE', what:'0-100% score measuring how decisively the current macro regime classification is supported by the underlying FRED indicator data.', read:'High = indicators align clearly around one regime. Low = mixed signals, regime may be in transition. Watch for rapid drops in confidence.', thresholds:'High >70% | Moderate 40-70% | Low/Transitioning <40%' },
+  recession_prob: { title:'RECESSION PROBABILITY', what:'Composite probability score (0-100) based on yield curve inversion, GDP growth, HY credit spreads, and unemployment trajectory.', read:'Not a forecast — a current conditions gauge. Rising score = more recession preconditions met simultaneously. Sustained readings above 70 are historically serious.', thresholds:'Low <25 | Moderate 25-50 | Elevated 50-70 | High 70-85 | Critical >85' },
+  k_shape:        { title:'K-SHAPE DIVERGENCE', what:'Tracks whether upper-income and lower-income households are experiencing diverging economic conditions — the "two-speed economy."', read:'High divergence = upper-income supported by assets/home values while lower-income is stressed by rates/delinquency. Precedes consumer slowdown.', thresholds:'Stable gap <15 | Emerging split 15-30 | Significant bifurcation >30' },
+};
+
+const REGIME_IND_TIP_IDS = {
+  'CPI YOY':'cpi', 'CORE PCE YOY':'pce', 'GDP ANNUALIZED':'gdp',
+  'UNEMPLOYMENT':'unemployment', 'FED FUNDS':'fed_funds',
+  '10Y-2Y SPREAD':'t10y2y', 'M2 YOY':'m2',
+};
+const INDEX_TIP_IDS = {
+  '^GSPC':'spx', '^DJI':'djia', '^IXIC':'nasdaq', '^RUT':'rut',
+};
+
+let _activeTipBtn = null;
+
+function _tipBtn(id) {
+  if (!id || !INDICATOR_TOOLTIPS[id]) return '';
+  return `<button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'${id}')" ontouchstart="event.stopPropagation();_showTooltip(this,'${id}')">ⓘ</button>`;
+}
+
+function _showTooltip(btn, id) {
+  const tt = document.getElementById('indicator-tooltip');
+  if (!tt) return;
+  const tip = INDICATOR_TOOLTIPS[id];
+  if (!tip) { _hideTooltip(); return; }
+  if (_activeTipBtn === btn) { _hideTooltip(); return; }
+  tt.innerHTML = `<div class="tt-title">${tip.title}</div><div class="tt-body">${tip.what}</div><div class="tt-read"><strong>How to read:</strong> ${tip.read}</div>${tip.thresholds ? `<div class="tt-thresh">▸ ${tip.thresholds}</div>` : ''}`;
+  tt.style.left = '-9999px'; tt.style.top = '-9999px'; tt.style.display = 'block';
+  const tw = tt.offsetWidth, th = tt.offsetHeight;
+  const rect = btn.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = rect.left, top = rect.bottom + 8;
+  if (left + tw > vw - 10) left = vw - tw - 10;
+  if (left < 10) left = 10;
+  if (top + th > vh - 10) top = rect.top - th - 8;
+  if (top < 60) top = rect.bottom + 8;
+  tt.style.left = left + 'px'; tt.style.top = top + 'px';
+  _activeTipBtn = btn;
+}
+
+function _hideTooltip() {
+  const tt = document.getElementById('indicator-tooltip');
+  if (tt) tt.style.display = 'none';
+  _activeTipBtn = null;
+}
+
+document.addEventListener('click', e => { if (!e.target.classList.contains('info-btn')) _hideTooltip(); });
+document.addEventListener('touchstart', e => { if (!e.target.classList.contains('info-btn')) _hideTooltip(); }, {passive:true});
+
+// ════════════════════════════════════════════════════════════
 // RENDER: OVERVIEW
 // ════════════════════════════════════════════════════════════
 function renderRegime(data) {
@@ -1801,7 +1897,7 @@ function renderRegime(data) {
   const indCards = indicators.map(ind => {
     const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
     return `<div class="regime-ind">
-      <div class="regime-ind-name">${ind.name||''}</div>
+      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${ind.name||''}${_tipBtn(REGIME_IND_TIP_IDS[ind.name]||'')}</div>
       <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
       <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
     </div>`;
@@ -1930,7 +2026,7 @@ function renderMacro(data) {
     const fredUrl = FRED_URLS[s.id];
     const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
     return `<div class="macro-cell">
-      <div class="macro-cell-label"><span>${s.label||s.id||''}</span>${fredTag}</div>
+      <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_tipBtn(s.id)}</span></div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
       <div class="macro-cell-sub">${s.description||''}</div>
       ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
@@ -2095,7 +2191,7 @@ function renderOverviewIndices(data) {
     const pct   = idx.pct_change != null ? arrow + ' ' + Math.abs(idx.pct_change).toFixed(2) + '%' : '--';
     const price = idx.price != null ? Number(idx.price).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
     return `<div class="regime-ind">
-      <div class="regime-ind-name">${NAMES[sym]}</div>
+      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${NAMES[sym]}${_tipBtn(INDEX_TIP_IDS[sym]||'')}</div>
       <div class="regime-ind-val ${cls}">${price}</div>
       <div class="regime-ind-signal ${cls}">${pct}</div>
     </div>`;
@@ -2293,7 +2389,7 @@ function renderMarkets(data) {
     const url = YAHOO_URLS[idx.symbol] || '';
     const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
     return `<${tag} class="index-cell"${attrs}>
-      <div class="index-abbr">${idx.abbr||''}</div>
+      <div class="index-abbr" style="display:flex;align-items:center;justify-content:space-between">${idx.abbr||''}${_tipBtn(INDEX_TIP_IDS[idx.symbol]||'')}</div>
       <div class="index-label">${idx.label||''}</div>
       <div class="index-price ${dayCls}">${idx.price != null ? fmtN(idx.price,2) : '--'}</div>
       <div class="index-day ${dayCls}">${arrow} ${idx.change != null ? fmt(Math.abs(idx.change),2) : '--'} (${idx.pct_change != null ? fmt(idx.pct_change,2) : '--'}%)</div>
@@ -2530,7 +2626,7 @@ function scorecardCell(s) {
   const arrow = s.change != null ? dirArrow(s.change) : '';
   const sigCls = signalColor(s.signal);
   return `<div class="scorecard-cell">
-    <div class="scorecard-label">${s.label||''} ${indicatorTypeBadge(s.id)}</div>
+    <div class="scorecard-label"><span>${s.label||''} ${indicatorTypeBadge(s.id)}</span>${_tipBtn(s.id)}</div>
     <div class="scorecard-value ${cls}">${valStr}<span class="scorecard-arrow ${cls}">${arrow}</span></div>
     <div class="scorecard-signal ${sigCls}">${s.signal||''}</div>
     <div class="scorecard-desc">${s.description||''}</div>
@@ -2649,7 +2745,7 @@ function renderSpreads(spreads) {
          {start:200,end:350,color:'rgba(127,29,29,0.3)',label:'>200 CRISIS',labelColor:'var(--red-dim)',last:true}];
 
     return `<div class="spread-cell">
-      <div class="spread-lbl">${s.label||''} — ${s.description||''}</div>
+      <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span>${_tipBtn(s.id)}</div>
       <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
       <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
       <div class="spread-signal" style="border-color:${sigBorder};color:${sigBorder}">${s.signal||''}</div>
@@ -2670,7 +2766,7 @@ function renderTipsPanel(breakevens, realYields) {
     const isBreakeven = s.id && s.id.includes('yie');
     const valCls = isBreakeven ? 'c-amber' : 'c-blue';
     return `<div class="tips-cell">
-      <div class="tips-label">${s.label||''}</div>
+      <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}${_tipBtn(s.id)}</div>
       <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
       <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
       ${s.interpretation ? `<div class="tips-interp">${s.interpretation}</div>` : ''}
@@ -4743,6 +4839,7 @@ initDashDnD();
 fetchWatchlist();
 fetchBDC();
 </script>
+<div id="indicator-tooltip"></div>
 <div id="ycTooltip" class="yc-tooltip"></div>
 </body>
 </html>
