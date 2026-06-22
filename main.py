@@ -244,6 +244,32 @@ def api_watchlist():
         log.error(f"Watchlist error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "items": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
+@app.route("/api/watchlist/load")
+def api_watchlist_load():
+    import json as _json
+    try:
+        with open("watchlist.json") as f:
+            data = _json.load(f)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({"tickers": []})
+    except Exception as e:
+        log.error(f"Watchlist load error: {e}")
+        return jsonify({"error": str(e), "tickers": []}), 500
+
+@app.route("/api/watchlist/save", methods=["POST"])
+def api_watchlist_save():
+    import json as _json
+    try:
+        data = request.get_json(force=True) or {}
+        tickers = [t.strip().upper() for t in (data.get("tickers") or []) if t.strip()]
+        with open("watchlist.json", "w") as f:
+            _json.dump({"tickers": tickers}, f)
+        return jsonify({"ok": True, "tickers": tickers})
+    except Exception as e:
+        log.error(f"Watchlist save error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/briefing")
 def api_briefing():
     try:

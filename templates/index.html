@@ -3716,6 +3716,14 @@ const ST_DEF = {
 
 function stLoad(){try{return Object.assign({},ST_DEF,JSON.parse(localStorage.getItem(ST_KEY))||{});}catch{return Object.assign({},ST_DEF);}}
 function stSave(d){localStorage.setItem(ST_KEY,JSON.stringify(d));}
+function _syncWatchlist(){
+    const tickers = stLoad().watchlist || [];
+    fetch('/api/watchlist/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tickers})
+    }).catch(() => {});
+}
 function sLoad(){try{return JSON.parse(localStorage.getItem(S_KEY))||{};}catch{return{};}}
 function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
@@ -4126,7 +4134,7 @@ function _bindDrawer(){
       if(!t)return;
       const d=stLoad(); d.watchlist=d.watchlist||[];
       if(!d.watchlist.includes(t))d.watchlist.push(t);
-      stSave(d); wlInp.value=''; renderDrawer(); applyAppSettings(); fetchWatchlist();
+      stSave(d); _syncWatchlist(); wlInp.value=''; renderDrawer(); applyAppSettings(); fetchWatchlist();
     };
     wlBtn.addEventListener('click',addTicker);
     wlInp.addEventListener('keydown',e=>{if(e.key==='Enter')addTicker();});
@@ -4134,7 +4142,7 @@ function _bindDrawer(){
   document.querySelectorAll('.wl-ticker-del').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const d=stLoad(); d.watchlist=(d.watchlist||[]).filter((_,i)=>i!==+btn.dataset.idx);
-      stSave(d); renderDrawer(); applyAppSettings(); fetchWatchlist();
+      stSave(d); _syncWatchlist(); renderDrawer(); applyAppSettings(); fetchWatchlist();
     });
   });
   document.getElementById('stShowBDC')?.addEventListener('change',e=>{
@@ -5437,6 +5445,25 @@ applySettings();
 initDashDnD();
 fetchWatchlist();
 fetchBDC();
+// Load watchlist from server if localStorage is empty
+(function() {
+    const d = stLoad();
+    if (!d.watchlist || !d.watchlist.length) {
+        fetch('/api/watchlist/load')
+            .then(r => r.json())
+            .then(data => {
+                if (data.tickers && data.tickers.length) {
+                    const nd = stLoad();
+                    nd.watchlist = data.tickers;
+                    stSave(nd);
+                    renderDrawer();
+                    applyAppSettings();
+                    fetchWatchlist();
+                }
+            })
+            .catch(() => {});
+    }
+})();
 </script>
 <div id="indicator-tooltip"></div>
 <div id="ycTooltip" class="yc-tooltip"></div>

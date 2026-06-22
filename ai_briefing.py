@@ -208,6 +208,46 @@ def _build_economic_calendar():
     }
 
 
+def _load_watchlist_tickers() -> list:
+    """Read watchlist tickers from server-side watchlist.json."""
+    try:
+        with open("watchlist.json") as f:
+            data = json.load(f)
+        return [t.upper() for t in data.get("tickers", []) if str(t).strip()]
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _get_watchlist_context(tickers: list, news_articles: list) -> str:
+    """Fetch live quotes + news mentions for watchlist tickers. Returns formatted context block."""
+    if not tickers:
+        return ""
+    try:
+        quotes = get_quotes(tickers)
+    except Exception as e:
+        log.warning(f"Watchlist quotes failed: {e}")
+        quotes = {}
+
+    def _mentions(article: dict, ticker: str) -> bool:
+        text = f"{article.get('title', '')} {article.get('description', '')}".upper()
+        return ticker.upper() in text
+
+    lines = []
+    for ticker in tickers:
+        q = quotes.get(ticker.upper(), {})
+        try:
+            price = round(float(q["close"]), 2)
+            pct   = round(float(q["percent_change"]), 2)
+            arrow = "▲" if pct > 0 else "▼" if pct < 0 else "→"
+            price_str = f"${price} {arrow}{pct:+.2f}%"
+        except (KeyError, TypeError, ValueError):
+            price_str = "no data"
+        relevant = [a for a in news_articles if _mentions(a, ticker)]
+        news_str = f" | NEWS: {relevant[0].get('title', '')[:120]}" if relevant else ""
+        lines.append(f"  {ticker}: {price_str}{news_str}")
+    return "\n".join(lines)
+
+
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
 def get_briefing():
     """Generate AI morning briefing from current dashboard data."""
@@ -256,6 +296,8 @@ def get_briefing():
     tech_data    = _calculate_technicals()
     key_levels   = _calculate_key_levels(tech_data)
     calendar     = _build_economic_calendar()
+    watchlist_tickers   = _load_watchlist_tickers()
+    watchlist_context   = _get_watchlist_context(watchlist_tickers, top_news)
 
     # ── BUILD CONTEXT ─────────────────────────────────────────
     regime_label      = regime_data.get("label") or regime_data.get("regime", "UNKNOWN")
@@ -354,13 +396,19 @@ Provide ACTIONABLE, SPECIFIC items — never generic:
 - At least 3-4 concrete watch points with numbers
 
 ═══ COUNTER-THESIS RISK ═══
-What is Ryan potentially missing? What would challenge his current view? Be specific.
+Name the SINGLE data point or market signal most inconsistent with Ryan's stagflation thesis. Quantify it (e.g., "Core PCE at X% is Y bps below the 3.5% level that would confirm stagflation"). Then in one sentence explain why it might be noise rather than signal.
 
 ═══ POSITIONING IMPLICATIONS ═══
 Based on the current regime AND today's action: 1-2 specific actionable considerations.
 
+═══ WATCHLIST STOCKS ═══
+For each stock listed in the WATCHLIST DATA below, write 1-2 sentences: the day's price move in context, any relevant macro/sector tailwind or headwind, and if there's breaking news, what it means. Skip any ticker with "no data". If the watchlist is empty, omit this section entirely.
+
+═══ CFP EXAM CONNECTION ═══
+One sentence connecting today's most notable market condition to a CFP curriculum topic (choose from: time value of money, retirement income planning, portfolio management, risk management/insurance, estate planning, tax planning, or economic analysis).
+
 REQUIREMENTS:
-- Maximum 650 words total
+- Maximum 750 words total
 - Use specific numbers and levels throughout
 - Reference actual data points from the context provided
 - Address the ACTUAL CURRENT REGIME shown in the data
@@ -415,6 +463,13 @@ FORMAT: Use the ═══ SECTION NAME ═══ headers exactly as shown above.
         kl_spy = json.dumps(key_levels.get("spy", {}), indent=2)
         kl_ty  = json.dumps(key_levels.get("ten_year", {}), indent=2)
         kl_vix = json.dumps(key_levels.get("vix", {}), indent=2)
+
+        wl_block = ""
+        if watchlist_context:
+            wl_block = f"""
+═══ WATCHLIST DATA ═══
+{watchlist_context}
+"""
 
         user_message = f"""Generate today's macro briefing.
 
@@ -475,12 +530,12 @@ Laggards today: {context['institutional']['sector_laggards']}
 Today ({context['day_of_week']}): {json.dumps(context['calendar']['today'])}
 Tomorrow: {json.dumps(context['calendar']['tomorrow'])}
 This week: {context['calendar']['this_week']}
-
+{wl_block}
 Generate the briefing now. Be specific, reference actual numbers, address the actual current regime."""
 
         message = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1500,
+            max_tokens=2500,
             system=system_prompt,
             messages=[{"role": "user", "content": user_message}],
         )
