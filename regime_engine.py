@@ -107,13 +107,13 @@ def _fetch_indicators():
     errors = []
 
     fetches = [
-        ("cpi",          SERIES["cpi_yoy"],      13, "yoy"),
-        ("pce",          SERIES["pce_yoy"],       13, "yoy"),
+        ("cpi",          SERIES["cpi_yoy"],      16, "yoy"),
+        ("pce",          SERIES["pce_yoy"],       16, "yoy"),
         ("unemployment", SERIES["unemployment"],   2, "latest"),
         ("gdp",          SERIES["gdp_growth"],     5, "qoq"),
         ("fed_funds",    SERIES["fed_funds"],       2, "latest"),
         ("t10y2y",       SERIES["t10y2y"],          2, "latest"),
-        ("m2",           SERIES["m2"],             13, "yoy"),
+        ("m2",           SERIES["m2"],             16, "yoy"),
     ]
 
     for key, series_id, limit, calc in fetches:
