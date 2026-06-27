@@ -2417,40 +2417,7 @@ function renderRegime(data) {
     if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
   }
 
-  // CENTER: indicator cards + positioning
-  const indCards = indicators.map(ind => {
-    const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
-    return `<div class="regime-ind">
-      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${ind.name||''}${_tipBtn(REGIME_IND_TIP_IDS[ind.name]||'')}</div>
-      <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
-      <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
-    </div>`;
-  }).join('');
-
-  const posItems = positioning.map(p => {
-    const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
-    const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
-    const assetEsc = (p.asset_class||'').replace(/"/g,'&quot;');
-    return `<div class="pos-item ${cls}" data-asset="${assetEsc}">${pre}${p.asset_class||''}<span class="pos-item-arrow">&#9654;</span></div>`;
-  }).join('');
-
-  const centerEl = document.getElementById('regimeCenter');
-  if (centerEl) {
-    setEl('regimeCenter', `
-      <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
-      ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
-    const grid = document.getElementById('posGrid');
-    if (grid) {
-      grid.addEventListener('click', e => {
-        const item = e.target.closest('.pos-item');
-        if (!item) return;
-        const asset = item.dataset.asset;
-        if (_openPositioningAsset === asset) { closePositioningDetail(); return; }
-        showPositioningDetail(asset);
-      });
-    }
-    if (_openPositioningAsset) showPositioningDetail(_openPositioningAsset);
-  }
+  // CENTER is handled by renderRegimeCenterCards() after all data settles
 
   // RIGHT: key risks
   const riskItems = risks.length
@@ -2463,6 +2430,91 @@ function renderRegime(data) {
     ${riskItems}`);
 
   checkAlerts('regime', data);
+}
+
+function renderRegimeCenterCards() {
+  if (!_lastRegimeData) return;
+  const positioning = _lastRegimeData.asset_class_positioning || [];
+  const mkt    = _lastMarket  || {};
+  const ylds   = _lastYields  || {};
+  const crd    = _lastCredit  || {};
+
+  const sigCls = s => s === 'BULLISH' ? 'c-green' : s === 'BEARISH' ? 'c-red' : 'c-amber';
+
+  const cards = [];
+
+  // 10Y-2Y SPREAD
+  const sp1  = (ylds.spreads || []).find(s => s.label === '10Y-2Y');
+  const v12  = sp1 ? sp1.value : null;
+  const s12  = v12 === null ? 'NEUTRAL' : v12 >= 0.5 ? 'BULLISH' : v12 >= 0 ? 'NEUTRAL' : v12 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
+  cards.push({ name: '10Y-2Y SPREAD', value: v12 !== null ? (v12 >= 0 ? '+' : '') + fmt(v12,2) + '%' : '--', signal: s12 });
+
+  // 10Y-3M SPREAD
+  const sp2  = (ylds.spreads || []).find(s => s.label === '10Y-3MO');
+  const v13  = sp2 ? sp2.value : null;
+  const s13  = v13 === null ? 'NEUTRAL' : v13 >= 0.5 ? 'BULLISH' : v13 >= 0 ? 'NEUTRAL' : v13 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
+  cards.push({ name: '10Y-3M SPREAD', value: v13 !== null ? (v13 >= 0 ? '+' : '') + fmt(v13,2) + '%' : '--', signal: s13 });
+
+  // VIX
+  const vixV = mkt.vix ? mkt.vix.value : null;
+  const sVix = vixV === null ? 'NEUTRAL' : vixV < 15 ? 'BULLISH' : vixV < 25 ? 'NEUTRAL' : vixV < 35 ? 'NEUTRAL-BEARISH' : 'BEARISH';
+  cards.push({ name: 'VIX', value: vixV !== null ? fmt(vixV,1) : '--', signal: sVix });
+
+  // USD INDEX
+  const dxy  = (mkt.currencies || []).find(c => c.label === 'DXY');
+  const dxyV = dxy ? dxy.price : null;
+  const dSig = (mkt.dollar_signal || '').toUpperCase();
+  const sDxy = dSig.includes('VERY STRONG') ? 'BEARISH' : dSig.includes('STRONG') ? 'NEUTRAL-BEARISH' : dSig.includes('WEAK') ? 'BULLISH' : 'NEUTRAL';
+  cards.push({ name: 'USD INDEX', value: dxyV !== null ? fmt(dxyV,1) : '--', signal: sDxy });
+
+  // HY SPREADS
+  const hy   = (crd.spreads || []).find(s => s.id === 'hy_oas');
+  const hyV  = hy ? hy.value : null;
+  const sHy  = hy && hy.signal ? (hy.signal === 'TIGHT' ? 'BULLISH' : hy.signal === 'NORMAL' ? 'NEUTRAL' : 'BEARISH') : 'NEUTRAL';
+  cards.push({ name: 'HY SPREADS', value: hyV !== null ? fmt(hyV,0) + 'bp' : '--', signal: sHy });
+
+  // 5Y BREAKEVEN
+  const be   = (crd.breakevens || []).find(s => s.id === 't5yie');
+  const beV  = be ? be.value : null;
+  const sBe  = beV === null ? 'NEUTRAL' : beV > 3.0 ? 'BEARISH' : beV > 2.5 ? 'NEUTRAL-BEARISH' : beV >= 1.5 ? 'NEUTRAL' : 'BULLISH';
+  cards.push({ name: '5Y BREAKEVEN', value: beV !== null ? fmt(beV,2) + '%' : '--', signal: sBe });
+
+  // 10Y REAL YIELD
+  const ry   = (crd.real_yields || []).find(s => s.id === 'dfii10');
+  const ryV  = ry ? ry.value : null;
+  const sRy  = ryV === null ? 'NEUTRAL' : ryV > 2.5 ? 'BEARISH' : ryV > 1.5 ? 'NEUTRAL-BEARISH' : ryV >= 0 ? 'NEUTRAL' : 'BULLISH';
+  cards.push({ name: '10Y REAL YIELD', value: ryV !== null ? fmt(ryV,2) + '%' : '--', signal: sRy });
+
+  const cardHtml = cards.map(c => `<div class="regime-ind">
+    <div class="regime-ind-name">${c.name}</div>
+    <div class="regime-ind-val ${sigCls(c.signal)}">${c.value}</div>
+    <div class="regime-ind-signal ${sigCls(c.signal)}">${c.signal}</div>
+  </div>`).join('');
+
+  const posItems = positioning.map(p => {
+    const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
+    const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
+    const assetEsc = (p.asset_class||'').replace(/"/g,'&quot;');
+    return `<div class="pos-item ${cls}" data-asset="${assetEsc}">${pre}${p.asset_class||''}<span class="pos-item-arrow">&#9654;</span></div>`;
+  }).join('');
+
+  const centerEl = document.getElementById('regimeCenter');
+  if (!centerEl) return;
+  setEl('regimeCenter', `
+    <div class="regime-indicators">${cardHtml}</div>
+    ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
+
+  const grid = document.getElementById('posGrid');
+  if (grid) {
+    grid.addEventListener('click', e => {
+      const item = e.target.closest('.pos-item');
+      if (!item) return;
+      const asset = item.dataset.asset;
+      if (_openPositioningAsset === asset) { closePositioningDetail(); return; }
+      showPositioningDetail(asset);
+    });
+  }
+  if (_openPositioningAsset) showPositioningDetail(_openPositioningAsset);
 }
 
 function showRegimeExplain() {
@@ -2884,13 +2936,15 @@ async function fetchOverview() {
   await Promise.allSettled([
     apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
-    apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/yields').then(d => { _lastYields = d; renderYields(d); }).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
     apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
     apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
+    apiFetch('/api/credit').then(d => { _lastCredit = d; }).catch(() => {}),
     loadBriefing().catch(() => {}),
   ]);
+  renderRegimeCenterCards();
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
 }
@@ -3639,6 +3693,7 @@ async function fetchNews() {
 // DAILY PREP SUMMARY EXPORT
 // ════════════════════════════════════════════════════════════
 let _lastRegime = null, _lastMarket = null, _lastFedWatch = null, _lastHeadlines = [];
+let _lastYields = null, _lastCredit = null;
 let _notifications = [];
 let _calendarChecked = false;
 
