@@ -216,12 +216,12 @@ REGIME_LABELS = {
 }
 
 REGIME_DESCRIPTIONS = {
-    "STRONG GROWTH":   "Economy expanding with controlled inflation",
-    "REFLATION":       "Growth accelerating from trough",
-    "OVERHEATING":     "Growth running too hot",
-    "STAGFLATION_RISK": "Growth slowing with persistent inflation",
-    "STAGFLATION":     "Stagnant growth with elevated inflation",
-    "RECESSION":       "Economic contraction underway",
+    "STRONG GROWTH":    "Economic expansion is broad-based with inflation trending toward target. Risk assets typically outperform as earnings growth outpaces discount rate headwinds.",
+    "REFLATION":        "Growth is recovering from a trough with commodity prices leading the upturn. This is the regime where cyclicals and inflation-linked assets historically outperform most aggressively.",
+    "OVERHEATING":      "Above-trend growth is generating inflationary pressure that will eventually force a policy tightening response. Duration and rate-sensitive assets are most vulnerable.",
+    "STAGFLATION_RISK": "Growth momentum is decelerating while inflation remains above Fed target. The policy constraint is binding — the Fed cannot cut without risking re-acceleration, and cannot tighten further without pushing growth negative.",
+    "STAGFLATION":      "Growth is stagnant or contracting while inflation remains elevated. This is the most difficult regime for traditional 60/40 portfolios as both stocks and bonds face simultaneous headwinds.",
+    "RECESSION":        "Economic output is contracting as demand destruction leads the cycle. Defensive positioning, quality credit, and duration typically outperform risk assets.",
 }
 
 # ── ASSET CLASS POSITIONING BY REGIME ─────────────────────────

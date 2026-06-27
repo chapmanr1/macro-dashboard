@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import time
 
-from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING
+from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING, FALSIFICATION_TRIGGERS
 
 log = logging.getLogger(__name__)
 
@@ -463,6 +463,11 @@ def get_regime():
         risks       = _build_risks(internal_label, ind, scores)
         positioning = POSITIONING.get(display_label, [])
 
+        falsification_triggers = [
+            {"label": t["label"], "full_label": t["full_label"]}
+            for t in FALSIFICATION_TRIGGERS
+        ]
+
         result = {
             "label":                  display_label,
             "internal_label":         internal_label,
@@ -471,6 +476,7 @@ def get_regime():
             "indicator_breakdown":    breakdown,
             "key_risks":              risks,
             "asset_class_positioning": positioning,
+            "falsification_triggers": falsification_triggers,
             "timestamp":              ts,
             "data_errors":            fetch_errors,
             "raw_indicators":         {

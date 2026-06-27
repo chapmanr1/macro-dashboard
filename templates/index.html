@@ -137,6 +137,10 @@
     .re-risks { padding: 0 16px 14px; }
     .re-risk-item { font-size: 10px; color: var(--amber); padding: 4px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
     .re-risk-item:last-child { border-bottom: none; }
+    .regime-narrative { font-size: 10px; color: var(--fg); line-height: 1.6; margin-bottom: 10px; letter-spacing: 0.02em; }
+    .regime-thesis-title { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .regime-thesis-item { font-size: 9px; color: var(--red); padding: 3px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
+    .regime-thesis-item:last-child { border-bottom: none; }
     .regime-risks-title { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
     .regime-risk-item { font-size: 10px; color: var(--amber); padding: 3px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
     .regime-risk-item:last-child { border-bottom: none; }
@@ -1179,13 +1183,15 @@
           </div>
         </div>
 
-        <!-- CENTER: indicator cards + positioning -->
+        <!-- CENTER: narrative + thesis breaks + positioning -->
         <div class="ov-col-center" id="regimeCenter">
-          <div class="regime-indicators">
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-          </div>
+          <div class="skel" style="height:10px;margin-bottom:5px"></div>
+          <div class="skel" style="height:10px;margin-bottom:12px;width:80%"></div>
+          <div class="skel" style="height:8px;margin-bottom:5px;width:120px"></div>
+          <div class="skel" style="height:9px;margin-bottom:3px"></div>
+          <div class="skel" style="height:9px;margin-bottom:3px"></div>
+          <div class="skel" style="height:9px;margin-bottom:3px"></div>
+          <div class="skel" style="height:9px"></div>
         </div>
 
         <!-- RIGHT: key risks + market driving -->
@@ -2409,15 +2415,12 @@ function renderRegime(data) {
     if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
   }
 
-  // CENTER: indicator cards + positioning
-  const indCards = indicators.map(ind => {
-    const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
-    return `<div class="regime-ind">
-      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${ind.name||''}${_tipBtn(REGIME_IND_TIP_IDS[ind.name]||'')}</div>
-      <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
-      <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
-    </div>`;
-  }).join('');
+  // CENTER: narrative + thesis-break conditions + positioning
+  const falsif   = data.falsification_triggers || [];
+  const thesisHtml = falsif.length
+    ? `<div class="regime-thesis-title">THESIS BREAKS IF</div>
+       <div>${falsif.map(t => `<div class="regime-thesis-item">▸ ${t.label}</div>`).join('')}</div>`
+    : '';
 
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
@@ -2429,8 +2432,9 @@ function renderRegime(data) {
   const centerEl = document.getElementById('regimeCenter');
   if (centerEl) {
     setEl('regimeCenter', `
-      <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
-      ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
+      ${data.description ? `<div class="regime-narrative">${data.description}</div>` : ''}
+      ${thesisHtml}
+      ${posItems ? `<div class="regime-positioning" style="margin-top:10px"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
     const grid = document.getElementById('posGrid');
     if (grid) {
       grid.addEventListener('click', e => {
