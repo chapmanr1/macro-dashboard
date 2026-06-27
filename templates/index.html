@@ -114,6 +114,29 @@
     .regime-ind-name { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 3px; text-transform: uppercase; }
     .regime-ind-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
     .regime-ind-signal { font-family: var(--font-ui); font-size: 8px; margin-top: 2px; letter-spacing: 0.08em; }
+    .regime-tag { cursor: pointer; transition: opacity 0.15s; }
+    .regime-tag:hover { opacity: 0.8; }
+    /* Regime explain modal */
+    #regime-explain-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 9000; }
+    .re-panel { background: var(--bg2); border: 1px solid var(--border2); max-width: 580px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .re-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .re-label { font-family: var(--font-ui); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .re-confidence { font-family: var(--font-ui); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-left: auto; }
+    .re-close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1; }
+    .re-close-btn:hover { color: var(--white); }
+    .re-desc { font-size: 10px; color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; line-height: 1.5; }
+    .re-section-title { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; padding: 10px 16px 6px; }
+    .re-ind-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 6px; padding: 0 16px 12px; }
+    .re-ind-card { background: var(--bg3); border: 1px solid var(--border); padding: 10px 12px; border-radius: 4px; }
+    .re-ind-name { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+    .re-ind-val { font-family: var(--font-mono); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .re-signal { font-family: var(--font-ui); font-size: 8px; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 3px; display: inline-block; }
+    .re-signal.bullish { color: var(--green); background: rgba(74,222,128,0.1); }
+    .re-signal.bearish { color: var(--red); background: rgba(248,113,113,0.1); }
+    .re-signal.neutral { color: var(--amber); background: rgba(251,191,36,0.1); }
+    .re-risks { padding: 0 16px 14px; }
+    .re-risk-item { font-size: 10px; color: var(--amber); padding: 4px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
+    .re-risk-item:last-child { border-bottom: none; }
     .regime-risks-title { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; }
     .regime-risk-item { font-size: 10px; color: var(--amber); padding: 3px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
     .regime-risk-item:last-child { border-bottom: none; }
@@ -1156,13 +1179,11 @@
           </div>
         </div>
 
-        <!-- CENTER: indicator cards + positioning -->
+        <!-- CENTER: suggested positioning -->
         <div class="ov-col-center" id="regimeCenter">
-          <div class="regime-indicators">
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-          </div>
+          <div class="regime-pos-title">SUGGESTED POSITIONING</div>
+          <div class="skel" style="height:24px;margin-bottom:4px"></div><div class="skel" style="height:24px;margin-bottom:4px"></div>
+          <div class="skel" style="height:24px;margin-bottom:4px"></div><div class="skel" style="height:24px"></div>
         </div>
 
         <!-- RIGHT: key risks + market driving -->
@@ -2376,22 +2397,17 @@ function renderRegime(data) {
 
   const cssLabel = label.replace(/\s+/g, '-');
 
-  // LEFT: regime tag + confidence
+  // LEFT: regime tag + confidence (tag is clickable — opens explain popup)
   const leftEl = document.getElementById('regimeLeft');
-  if (leftEl) setEl('regimeLeft', `
-    <div class="regime-tag ${cssLabel}">${label}</div>
-    <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>`);
+  if (leftEl) {
+    setEl('regimeLeft', `
+      <div class="regime-tag ${cssLabel}">${label}</div>
+      <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span> &nbsp;&#9432; CLICK TO EXPLAIN</div>`);
+    const regimeTag = leftEl.querySelector('.regime-tag');
+    if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
+  }
 
-  // CENTER: indicator cards + positioning
-  const indCards = indicators.map(ind => {
-    const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
-    return `<div class="regime-ind">
-      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${ind.name||''}${_tipBtn(REGIME_IND_TIP_IDS[ind.name]||'')}</div>
-      <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
-      <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
-    </div>`;
-  }).join('');
-
+  // CENTER: suggested positioning only (indicator signals moved to popup)
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
     const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
@@ -2401,10 +2417,10 @@ function renderRegime(data) {
 
   const centerEl = document.getElementById('regimeCenter');
   if (centerEl) {
-    setEl('regimeCenter', `
-      <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
-      ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
-    // re-attach event delegation
+    setEl('regimeCenter',
+      posItems
+        ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>`
+        : '<div class="c-muted" style="font-size:10px;padding:4px 0">--</div>');
     const grid = document.getElementById('posGrid');
     if (grid) {
       grid.addEventListener('click', e => {
@@ -2415,7 +2431,6 @@ function renderRegime(data) {
         showPositioningDetail(asset);
       });
     }
-    // re-open panel if one was open before re-render
     if (_openPositioningAsset) showPositioningDetail(_openPositioningAsset);
   }
 
@@ -2430,6 +2445,45 @@ function renderRegime(data) {
     ${riskItems}`);
 
   checkAlerts('regime', data);
+}
+
+function showRegimeExplain() {
+  const data = _lastRegimeData;
+  if (!data) return;
+  const label = data.label || 'UNKNOWN';
+  const cssLabel = label.replace(/\s+/g, '-');
+  const labelEl = document.getElementById('reModalLabel');
+  labelEl.textContent = label;
+  labelEl.className = `re-label regime-tag ${cssLabel}`;
+  document.getElementById('reModalConf').textContent =
+    `CONFIDENCE ${data.confidence_score != null ? fmt(data.confidence_score, 0) + '%' : '--'}`;
+  document.getElementById('reModalDesc').textContent = data.description || '';
+
+  const indHtml = (data.indicator_breakdown || []).map(ind => {
+    const sig = (ind.signal || '').toLowerCase();
+    const cls = sig === 'bullish' ? 'bullish' : sig === 'bearish' ? 'bearish' : 'neutral';
+    const valCls = sig === 'bullish' ? 'c-green' : sig === 'bearish' ? 'c-red' : 'c-amber';
+    return `<div class="re-ind-card">
+      <div class="re-ind-name">${ind.name || ''}</div>
+      <div class="re-ind-val ${valCls}">${ind.value !== undefined ? ind.value : '--'}</div>
+      <span class="re-signal ${cls}">${ind.signal || ''}</span>
+    </div>`;
+  }).join('');
+  setEl('reModalInds', indHtml || '<div class="c-muted" style="font-size:10px">No data</div>');
+
+  const risks = data.key_risks || [];
+  setEl('reModalRisks', risks.length
+    ? risks.map(r => `<div class="re-risk-item">▸ ${r}</div>`).join('')
+    : '<div class="c-muted" style="font-size:10px">NO FLAGS</div>');
+
+  const modal = document.getElementById('regime-explain-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRegimeExplain() {
+  document.getElementById('regime-explain-modal').style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 async function showPositioningDetail(asset) {
@@ -5377,8 +5431,12 @@ function _updateModalStats(data) {
 // ── Modal event listeners ────────────────────────────────────
 document.getElementById('modal-close').addEventListener('click', closeChartModal);
 document.querySelector('.chart-modal-overlay').addEventListener('click', closeChartModal);
+document.getElementById('regime-explain-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('regime-explain-modal')) closeRegimeExplain();
+});
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('chart-modal').style.display === 'flex') closeChartModal();
+  if (e.key === 'Escape' && document.getElementById('regime-explain-modal').style.display === 'flex') closeRegimeExplain();
 });
 document.querySelectorAll('.modal-period-btn').forEach(btn => {
   btn.addEventListener('click', e => {
@@ -5495,6 +5553,22 @@ fetchBDC();
       <div class="mc-loading" id="mcLoading" style="display:none">LOADING…</div>
     </div>
     <div class="mc-legend" id="mcLegend"></div>
+  </div>
+</div>
+
+<!-- REGIME EXPLAIN MODAL -->
+<div id="regime-explain-modal">
+  <div class="re-panel">
+    <div class="re-header">
+      <span class="re-label" id="reModalLabel">--</span>
+      <span class="re-confidence" id="reModalConf">--</span>
+      <button class="re-close-btn" onclick="closeRegimeExplain()">&#215;</button>
+    </div>
+    <div class="re-desc" id="reModalDesc"></div>
+    <div class="re-section-title">INDICATOR SIGNALS</div>
+    <div class="re-ind-grid" id="reModalInds"></div>
+    <div class="re-section-title">KEY RISK FLAGS</div>
+    <div class="re-risks" id="reModalRisks"></div>
   </div>
 </div>
 </body>
