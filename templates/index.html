@@ -1179,11 +1179,13 @@
           </div>
         </div>
 
-        <!-- CENTER: suggested positioning -->
+        <!-- CENTER: indicator cards + positioning -->
         <div class="ov-col-center" id="regimeCenter">
-          <div class="regime-pos-title">SUGGESTED POSITIONING</div>
-          <div class="skel" style="height:24px;margin-bottom:4px"></div><div class="skel" style="height:24px;margin-bottom:4px"></div>
-          <div class="skel" style="height:24px;margin-bottom:4px"></div><div class="skel" style="height:24px"></div>
+          <div class="regime-indicators">
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+          </div>
         </div>
 
         <!-- RIGHT: key risks + market driving -->
@@ -2407,7 +2409,16 @@ function renderRegime(data) {
     if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
   }
 
-  // CENTER: suggested positioning only (indicator signals moved to popup)
+  // CENTER: indicator cards + positioning
+  const indCards = indicators.map(ind => {
+    const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
+    return `<div class="regime-ind">
+      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${ind.name||''}${_tipBtn(REGIME_IND_TIP_IDS[ind.name]||'')}</div>
+      <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
+      <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
+    </div>`;
+  }).join('');
+
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
     const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
@@ -2417,10 +2428,9 @@ function renderRegime(data) {
 
   const centerEl = document.getElementById('regimeCenter');
   if (centerEl) {
-    setEl('regimeCenter',
-      posItems
-        ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>`
-        : '<div class="c-muted" style="font-size:10px;padding:4px 0">--</div>');
+    setEl('regimeCenter', `
+      <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
+      ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
     const grid = document.getElementById('posGrid');
     if (grid) {
       grid.addEventListener('click', e => {
