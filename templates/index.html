@@ -2404,7 +2404,7 @@ function renderRegime(data) {
   if (leftEl) {
     setEl('regimeLeft', `
       <div class="regime-tag ${cssLabel}">${label}</div>
-      <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span> &nbsp;&#9432; CLICK TO EXPLAIN</div>`);
+      <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>`);
     const regimeTag = leftEl.querySelector('.regime-tag');
     if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
   }
