@@ -2447,46 +2447,46 @@ function renderRegimeCenterCards() {
   const sp1  = (ylds.spreads || []).find(s => s.label === '10Y-2Y');
   const v12  = sp1 ? sp1.value : null;
   const s12  = v12 === null ? 'NEUTRAL' : v12 >= 0.5 ? 'BULLISH' : v12 >= 0 ? 'NEUTRAL' : v12 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: '10Y-2Y SPREAD', value: v12 !== null ? (v12 >= 0 ? '+' : '') + fmt(v12,2) + '%' : '--', signal: s12 });
+  cards.push({ name: '10Y-2Y SPREAD', tipId:'t10y2y',  value: v12 !== null ? (v12 >= 0 ? '+' : '') + fmt(v12,2) + '%' : '--', signal: s12 });
 
   // 10Y-3M SPREAD
   const sp2  = (ylds.spreads || []).find(s => s.label === '10Y-3MO');
   const v13  = sp2 ? sp2.value : null;
   const s13  = v13 === null ? 'NEUTRAL' : v13 >= 0.5 ? 'BULLISH' : v13 >= 0 ? 'NEUTRAL' : v13 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: '10Y-3M SPREAD', value: v13 !== null ? (v13 >= 0 ? '+' : '') + fmt(v13,2) + '%' : '--', signal: s13 });
+  cards.push({ name: '10Y-3M SPREAD', tipId:'t10y3mo', value: v13 !== null ? (v13 >= 0 ? '+' : '') + fmt(v13,2) + '%' : '--', signal: s13 });
 
   // VIX
   const vixV = mkt.vix ? mkt.vix.value : null;
   const sVix = vixV === null ? 'NEUTRAL' : vixV < 15 ? 'BULLISH' : vixV < 25 ? 'NEUTRAL' : vixV < 35 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: 'VIX', value: vixV !== null ? fmt(vixV,1) : '--', signal: sVix });
+  cards.push({ name: 'VIX',           tipId:'vix',     value: vixV !== null ? fmt(vixV,1) : '--', signal: sVix });
 
   // USD INDEX
   const dxy  = (mkt.currencies || []).find(c => c.label === 'DXY');
   const dxyV = dxy ? dxy.price : null;
   const dSig = (mkt.dollar_signal || '').toUpperCase();
   const sDxy = dSig.includes('VERY STRONG') ? 'BEARISH' : dSig.includes('STRONG') ? 'NEUTRAL-BEARISH' : dSig.includes('WEAK') ? 'BULLISH' : 'NEUTRAL';
-  cards.push({ name: 'USD INDEX', value: dxyV !== null ? fmt(dxyV,1) : '--', signal: sDxy });
+  cards.push({ name: 'USD INDEX',      tipId:'dxy',     value: dxyV !== null ? fmt(dxyV,1) : '--', signal: sDxy });
 
   // HY SPREADS
   const hy   = (crd.spreads || []).find(s => s.id === 'hy_oas');
   const hyV  = hy ? hy.value : null;
   const sHy  = hy && hy.signal ? (hy.signal === 'TIGHT' ? 'BULLISH' : hy.signal === 'NORMAL' ? 'NEUTRAL' : 'BEARISH') : 'NEUTRAL';
-  cards.push({ name: 'HY SPREADS', value: hyV !== null ? fmt(hyV,0) + 'bp' : '--', signal: sHy });
+  cards.push({ name: 'HY SPREADS',    tipId:'hy_oas',  value: hyV !== null ? fmt(hyV,0) + 'bp' : '--', signal: sHy });
 
   // 5Y BREAKEVEN
   const be   = (crd.breakevens || []).find(s => s.id === 't5yie');
   const beV  = be ? be.value : null;
   const sBe  = beV === null ? 'NEUTRAL' : beV > 3.0 ? 'BEARISH' : beV > 2.5 ? 'NEUTRAL-BEARISH' : beV >= 1.5 ? 'NEUTRAL' : 'BULLISH';
-  cards.push({ name: '5Y BREAKEVEN', value: beV !== null ? fmt(beV,2) + '%' : '--', signal: sBe });
+  cards.push({ name: '5Y BREAKEVEN',  tipId:'t5yie',   value: beV !== null ? fmt(beV,2) + '%' : '--', signal: sBe });
 
   // 10Y REAL YIELD
   const ry   = (crd.real_yields || []).find(s => s.id === 'dfii10');
   const ryV  = ry ? ry.value : null;
   const sRy  = ryV === null ? 'NEUTRAL' : ryV > 2.5 ? 'BEARISH' : ryV > 1.5 ? 'NEUTRAL-BEARISH' : ryV >= 0 ? 'NEUTRAL' : 'BULLISH';
-  cards.push({ name: '10Y REAL YIELD', value: ryV !== null ? fmt(ryV,2) + '%' : '--', signal: sRy });
+  cards.push({ name: '10Y REAL YIELD',tipId:'dfii10',  value: ryV !== null ? fmt(ryV,2) + '%' : '--', signal: sRy });
 
   const cardHtml = cards.map(c => `<div class="regime-ind">
-    <div class="regime-ind-name">${c.name}</div>
+    <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${c.name}${_tipBtn(c.tipId)}</div>
     <div class="regime-ind-val ${sigCls(c.signal)}">${c.value}</div>
     <div class="regime-ind-signal ${sigCls(c.signal)}">${c.signal}</div>
   </div>`).join('');
@@ -2937,7 +2937,7 @@ async function fetchOverview() {
     apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/yields').then(d => { _lastYields = d; renderYields(d); }).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
-    apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
+    apiFetch('/api/market').then(d => { _lastMarket = d; renderOverviewIndices(d); }).catch(() => {}),
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
     apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
     apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
