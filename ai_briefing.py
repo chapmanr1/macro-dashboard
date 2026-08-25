@@ -5,6 +5,7 @@ import os
 import json
 import logging
 import pytz
+import threading
 from datetime import datetime, timedelta
 from twelve_data import get_quotes
 from fred_data import get_series_history
@@ -14,6 +15,9 @@ log = logging.getLogger(__name__)
 CACHE_FILE  = "briefing_cache.json"
 CACHE_HOURS = 6
 EASTERN     = pytz.timezone("America/New_York")
+
+# Prevents concurrent requests from each triggering a separate Anthropic API call
+_generation_lock = threading.Lock()
 
 
 def _now_et():
@@ -276,6 +280,23 @@ def get_briefing():
             "from_cache":   True,
         }
 
+    with _generation_lock:
+        # Re-check cache after acquiring lock — a concurrent request may have
+        # already generated and saved it while we were waiting.
+        cached = _load_cache()
+        if cached and _cache_valid(cached):
+            return {
+                "status":       "success",
+                "briefing":     cached["briefing"],
+                "generated_at": cached["generated_at"],
+                "from_cache":   True,
+            }
+
+        return _generate_briefing(api_key)
+
+
+def _generate_briefing(api_key: str) -> dict:
+    """Call Anthropic and generate a new briefing. Must be called under _generation_lock."""
     # ── FETCH DASHBOARD DATA ──────────────────────────────────
     try:
         from regime_engine import get_regime
@@ -536,7 +557,13 @@ Generate the briefing now. Be specific, reference actual numbers, address the ac
         message = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=2500,
-            system=system_prompt,
+            system=[
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
             messages=[{"role": "user", "content": user_message}],
         )
 
