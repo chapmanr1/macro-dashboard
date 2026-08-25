@@ -293,7 +293,7 @@ def _fetch_market_data() -> dict:
     # FRED index cache — reads only, never blocks. Cache was pre-warmed at startup
     # by _warm_fred_index_cache(); if not yet ready, indices are empty this request
     # and the result is cached for only 30 s so the next request retries.
-    fred_idx     = get_index_data(cache_only=True)
+    fred_idx     = get_index_data()
     fred_indices = fred_idx.get("indices", [])
     fred_vix     = fred_idx.get("vix")
     fred_dxy     = fred_idx.get("dxy")  # FRED DTWEXBGS — Trade Weighted Dollar Index

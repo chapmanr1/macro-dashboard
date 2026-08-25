@@ -567,7 +567,7 @@ Generate the briefing now. Be specific, reference actual numbers, address the ac
             messages=[{"role": "user", "content": user_message}],
         )
 
-        briefing_text = message.content[0].text
+        briefing_text = next(block.text for block in message.content if block.type == "text")
         _save_cache(briefing_text)
 
         return {
