@@ -8,7 +8,8 @@ import urllib.request
 import urllib.parse
 import json as _json
 from datetime import datetime, timezone
-from twelve_data import get_quotes, get_time_series, get_profile, get_statistics, search_symbols, to_td_symbol
+import fmp_data
+from twelve_data import get_quotes, get_time_series, get_profile, search_symbols, to_td_symbol
 
 log = logging.getLogger(__name__)
 
@@ -328,7 +329,6 @@ def get_company_analysis(symbol: str) -> dict:
         quotes  = get_quotes([sym])
         q       = quotes.get(sym, {})
         prof    = get_profile(sym)
-        stats   = get_statistics(sym)
 
         # ── Price fields from /quote ──────────────────────────
         price    = _sf(q, "close")
@@ -348,55 +348,11 @@ def get_company_analysis(symbol: str) -> dict:
         country = prof.get("country", "") or ""
         hq      = ", ".join(filter(None, [city, country]))
 
-        # ── Statistics fields (may all be None on free tier) ──
-        vm    = stats.get("valuations_metrics") or {}
-        fin   = stats.get("financials") or {}
-        sinfo = stats.get("statistics") or {}
-        divs  = stats.get("dividends_and_splits") or {}
+        # ── Fundamentals from FMP free tier ──────────────────
+        info: dict = fmp_data.get_fundamentals(sym)
 
-        eps  = _sf(fin, "diluted_eps_ttm")
-        bvps = _sf(fin, "book_value_per_share_mrq")
-
-        # debtToEquity: TD gives ratio (e.g. 1.52), yfinance gives ×100 (152).
-        # Helper functions check de < 50, so keep TD's value and adjust the
-        # Buffett scorecard threshold comment — value already in same scale.
-        de_ratio = _sf(fin, "total_debt_to_equity_mrq")
-
-        # Build a flat info dict for the valuation helpers
-        info: dict = {
-            "trailingPE":                   _sf(vm, "trailing_pe"),
-            "forwardPE":                    _sf(vm, "forward_pe"),
-            "priceToBook":                  _sf(vm, "price_to_book_mrq"),
-            "priceToSalesTrailing12Months": _sf(vm, "price_to_sales_ttm"),
-            "enterpriseToEbitda":           _sf(vm, "enterprise_to_ebitda"),
-            "pegRatio":                     _sf(vm, "peg_ratio"),
-            "profitMargins":                _sf(fin, "profit_margin"),
-            "operatingMargins":             _sf(fin, "operating_margin_ttm"),
-            "grossMargins":                 None,  # TD gives $ not ratio; not available
-            "returnOnEquity":               _sf(fin, "return_on_equity_ttm"),
-            "returnOnAssets":               _sf(fin, "return_on_assets_ttm"),
-            "trailingEps":                  eps,
-            "forwardEps":                   None,  # not in TD free stats
-            "bookValue":                    bvps,
-            "totalCash":                    _sf(fin, "total_cash_mrq"),
-            "freeCashflow":                 None,  # not in TD free stats
-            "debtToEquity":                 de_ratio * 100 if de_ratio is not None else None,
-            "currentRatio":                 _sf(fin, "current_ratio_mrq"),
-            "quickRatio":                   None,  # not in TD free stats
-            "revenueGrowth":                _sf(fin, "quarterly_revenue_growth_yoy"),
-            "earningsGrowth":               _sf(fin, "quarterly_earnings_growth_yoy"),
-            "marketCap":                    _sf(vm, "market_capitalization"),
-            "beta":                         _sf(sinfo, "beta"),
-            "dividendYield":                _sf(divs, "forward_annual_dividend_yield"),
-            "sharesOutstanding":            None,
-            "totalAssets":                  None,
-            "totalLiab":                    None,
-            "totalCurrentAssets":           None,
-            "totalCurrentLiabilities":      None,
-            "longTermDebt":                 None,
-            "targetMeanPrice":              None,
-            "recommendationKey":            "",
-        }
+        eps  = info.get("trailingEps")
+        bvps = info.get("bookValue")
 
         gnum  = calculate_graham_number(eps, bvps)
         gmgn  = round((gnum - price) / price * 100, 1) if gnum and price else None
