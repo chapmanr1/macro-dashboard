@@ -11,7 +11,7 @@ from fred_data import get_index_data
 
 log = logging.getLogger(__name__)
 
-CACHE_TTL = 1200  # 20 minutes — conserves Twelve Data free-tier credits (800/day)
+CACHE_TTL = 3600  # 60 minutes — keeps TD daily calls at ~72/day (well under 800 free-tier limit)
 
 def _warm_fred_index_cache() -> None:
     """Background thread: fetch FRED index data at startup so it's ready for the first request."""
