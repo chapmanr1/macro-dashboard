@@ -1062,6 +1062,27 @@
     .rh-date { flex-shrink: 0; min-width: 22px; font-size: 7px; color: var(--muted); text-align: center; }
     .rh-empty { padding: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
 
+    /* ── REGIME HISTORY PERIOD ROWS ── */
+    .rh-period-list { padding: 8px 14px 12px; }
+    .rh-period { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 6px; overflow: hidden; }
+    .rh-period-hdr { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; background: var(--bg2); transition: background 0.15s; }
+    .rh-period-hdr:hover { background: var(--bg3); }
+    .rh-chip { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 3px; color: #000; flex-shrink: 0; font-family: var(--font-ui); }
+    .rh-period-dates { font-size: 9px; color: var(--muted); font-family: var(--font-mono); flex: 1; }
+    .rh-period-dur   { font-size: 9px; color: var(--muted2); font-family: var(--font-mono); }
+    .rh-period-conf  { font-size: 9px; color: var(--muted2); font-family: var(--font-mono); width: 36px; text-align: right; }
+    .rh-period-chevron { font-size: 10px; color: var(--muted2); transition: transform 0.2s; }
+    .rh-period.expanded .rh-period-chevron { transform: rotate(180deg); }
+    .rh-period-body { display: none; padding: 12px; background: var(--bg); border-top: 1px solid var(--border); }
+    .rh-period.expanded .rh-period-body { display: block; }
+    .rh-ind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .rh-ind-col-label { font-size: 8px; font-weight: 600; letter-spacing: 0.14em; color: var(--muted2); text-transform: uppercase; font-family: var(--font-ui); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .rh-ind-row { display: flex; justify-content: space-between; padding: 2px 0; }
+    .rh-ind-name { font-size: 9px; color: var(--muted); font-family: var(--font-ui); }
+    .rh-ind-val  { font-size: 9px; color: var(--white); font-family: var(--font-mono); }
+    .rh-ind-val.null { color: var(--muted2); }
+    .rh-empty-periods { padding: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+
     /* ── MARKET BREADTH ── */
     .breadth-wrap { padding: 12px 14px; }
     .breadth-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
@@ -1271,8 +1292,8 @@
       <div class="section-meta">90-DAY</div>
     </div>
     <div id="regimeHistoryContent">
-      <div class="regime-history-wrap">
-        <div class="skel" style="height:44px;width:100%"></div>
+      <div class="rh-period-list">
+        <div class="skel" style="height:54px;width:100%"></div>
       </div>
     </div>
 
@@ -2905,29 +2926,70 @@ const REGIME_COLORS = {
 };
 
 function renderRegimeHistory(data) {
-  const history = data.history || [];
-  if (!history.length) {
-    setEl('regimeHistoryContent', '<div class="regime-history-wrap"><div class="rh-empty">NO HISTORY YET — POPULATES DAILY AS REGIME IS ASSESSED</div></div>');
+  const periods = data.periods || [];
+  const wrap = document.getElementById('regimeHistoryContent');
+  if (!wrap) return;
+  if (!periods.length) {
+    wrap.innerHTML = '<div class="rh-period-list"><div class="rh-empty-periods">NO HISTORY YET — POPULATES DAILY AS REGIME IS ASSESSED</div></div>';
     return;
   }
-  const blocks = history.map((h, i) => {
-    const color = REGIME_COLORS[h.label] || REGIME_COLORS['STAGFLATION RISK'];
-    const short = h.label ? h.label.replace('STRONG ', 'STR ').replace('STAGFLATION RISK', 'STAG RISK') : '?';
-    const title = `${h.date}: ${h.label} (${h.confidence}%)`;
-    return `<div class="rh-block" style="background:${color}" title="${title}">
-      <div class="rh-block-label">${short}</div>
+  const IND_LABELS = {
+    cpi_yoy:      'CPI YoY',
+    pce_yoy:      'Core PCE YoY',
+    gdp_growth:   'GDP Growth',
+    unemployment: 'Unemployment',
+    fed_funds:    'Fed Funds',
+    t10y2y:       '10Y–2Y Spread',
+    hy_spread:    'HY Spread',
+  };
+  function fmtIndVal(key, val) {
+    if (val === null || val === undefined) return '<span class="rh-ind-val null">—</span>';
+    const v = parseFloat(val);
+    if (isNaN(v)) return '<span class="rh-ind-val null">—</span>';
+    const disp = key === 'hy_spread' ? Math.round(v) + ' bp' : v.toFixed(2) + '%';
+    return `<span class="rh-ind-val">${disp}</span>`;
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d + 'T12:00:00Z');
+    return dt.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', timeZone:'UTC'});
+  }
+  function indGrid(ei, xi, startDate, endDate, isCurrent) {
+    const keys = Object.keys(IND_LABELS);
+    const e = ei || {}, x = xi || {};
+    const entryRows = keys.map(k =>
+      `<div class="rh-ind-row"><span class="rh-ind-name">${IND_LABELS[k]}</span>${fmtIndVal(k, e[k])}</div>`
+    ).join('');
+    const exitRows = keys.map(k =>
+      `<div class="rh-ind-row"><span class="rh-ind-name">${IND_LABELS[k]}</span>${fmtIndVal(k, x[k])}</div>`
+    ).join('');
+    const exitLabel = isCurrent ? 'CURRENT READINGS' : `AT EXIT — ${fmtDate(endDate)}`;
+    return `<div class="rh-ind-grid">
+      <div><div class="rh-ind-col-label">AT ENTRY — ${fmtDate(startDate)}</div>${entryRows}</div>
+      <div><div class="rh-ind-col-label">${exitLabel}</div>${exitRows}</div>
+    </div>`;
+  }
+  const rows = periods.map((p, i) => {
+    const color = REGIME_COLORS[p.display_label] || REGIME_COLORS['STAGFLATION RISK'];
+    const endStr = p.is_current ? 'Present' : fmtDate(p.end_date);
+    const conf = p.avg_confidence != null ? Math.round(p.avg_confidence) + '%' : '—';
+    return `<div class="rh-period" id="rh-period-${i}">
+      <div class="rh-period-hdr" onclick="togglePeriod(${i})">
+        <div class="rh-chip" style="background:${color}">${p.display_label || p.label}</div>
+        <div class="rh-period-dates">${fmtDate(p.start_date)} → ${endStr}</div>
+        <div class="rh-period-dur">${p.duration_days}d</div>
+        <div class="rh-period-conf">${conf}</div>
+        <div class="rh-period-chevron">&#9660;</div>
+      </div>
+      <div class="rh-period-body">${indGrid(p.entry_indicators, p.exit_indicators, p.start_date, p.end_date, p.is_current)}</div>
     </div>`;
   }).join('');
-  const dates = history.map((h, i) => {
-    const d = h.date || '';
-    const short = d.slice(5); // MM-DD
-    return `<div class="rh-date">${i === 0 || i === history.length-1 ? short : ''}</div>`;
-  }).join('');
-  setEl('regimeHistoryContent', `
-    <div class="regime-history-wrap">
-      <div class="regime-history-timeline">${blocks}</div>
-      <div class="rh-date-row">${dates}</div>
-    </div>`);
+  wrap.innerHTML = `<div class="rh-period-list">${rows}</div>`;
+}
+
+function togglePeriod(idx) {
+  const el = document.getElementById('rh-period-' + idx);
+  if (el) el.classList.toggle('expanded');
 }
 
 async function fetchOverview() {

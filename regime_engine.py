@@ -391,7 +391,7 @@ HISTORY_FILE     = Path(".regime_history.json")
 HISTORY_MAX_DAYS = 90
 
 
-def _record_regime_history(label: str, internal_label: str, confidence: int) -> None:
+def _record_regime_history(label: str, internal_label: str, confidence: int, indicators: dict = None) -> None:
     """Append regime entry to history file. Only records when regime changes or date changes."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
     try:
@@ -402,12 +402,15 @@ def _record_regime_history(label: str, internal_label: str, confidence: int) -> 
         # Skip if same regime on same date
         if history and history[-1].get("label") == label and history[-1].get("date") == today:
             return
-        history.append({
+        entry = {
             "date":       today,
             "label":      label,
             "internal":   internal_label,
             "confidence": confidence,
-        })
+        }
+        if indicators:
+            entry["indicators"] = indicators
+        history.append(entry)
         # Trim to rolling 90-day window
         cutoff = (datetime.utcnow() - timedelta(days=HISTORY_MAX_DAYS)).strftime("%Y-%m-%d")
         history = [h for h in history if h.get("date", "") >= cutoff]
@@ -427,6 +430,99 @@ def get_regime_history() -> list[dict]:
     except Exception as e:
         log.warning(f"Failed to read regime history: {e}")
         return []
+
+
+def get_enriched_regime_history() -> list:
+    """
+    Returns regime history grouped into contiguous periods with FRED indicator context.
+    Groups consecutive same-label entries into periods and backfills indicator readings
+    from FRED for entries that predate the snapshot-capture feature.
+    Returns newest period first.
+    """
+    # Import inside function to guard against circular imports at module load time
+    from fred_data import get_macro_history
+
+    _SERIES_MAP = [
+        ("CPIAUCSL",     "cpi_yoy"),
+        ("PCEPILFE",     "pce_yoy"),
+        ("GDPC1",        "gdp_growth"),
+        ("UNRATE",       "unemployment"),
+        ("FEDFUNDS",     "fed_funds"),
+        ("T10Y2Y",       "t10y2y"),
+        ("BAMLH0A0HYM2", "hy_spread"),
+    ]
+
+    raw = get_regime_history()
+    if not raw:
+        return []
+
+    _fred_cache: dict = {}
+
+    def _get_fred_value(series_id: str, target_date: str):
+        """Return FRED observation value closest to target_date (within ±92 days)."""
+        if series_id not in _fred_cache:
+            try:
+                _fred_cache[series_id] = get_macro_history(series_id, 120).get("data", [])
+            except Exception as exc:
+                log.warning(f"Regime history FRED backfill failed for {series_id}: {exc}")
+                _fred_cache[series_id] = []
+        points = _fred_cache[series_id]
+        if not points:
+            return None
+        try:
+            tgt = datetime.strptime(target_date, "%Y-%m-%d")
+            closest = min(points, key=lambda p: abs(
+                (datetime.strptime(p["date"], "%Y-%m-%d") - tgt).days
+            ))
+            delta = abs((datetime.strptime(closest["date"], "%Y-%m-%d") - tgt).days)
+            return closest["value"] if delta <= 92 else None
+        except Exception:
+            return None
+
+    def _build_snapshot(entry: dict, date_str: str) -> dict:
+        """Return indicator snapshot, backfilling from FRED if the entry has no stored indicators."""
+        if entry.get("indicators"):
+            return entry["indicators"]
+        return {key: _get_fred_value(sid, date_str) for sid, key in _SERIES_MAP}
+
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    periods = []
+    i = 0
+
+    while i < len(raw):
+        label = raw[i].get("label", "")
+        start_idx = i
+        while i < len(raw) and raw[i].get("label") == label:
+            i += 1
+        end_idx = i - 1
+
+        start_date = raw[start_idx]["date"]
+        end_date   = raw[end_idx]["date"]
+        is_current = (end_idx == len(raw) - 1)
+
+        try:
+            s = datetime.strptime(start_date, "%Y-%m-%d")
+            e = datetime.strptime(today_str if is_current else end_date, "%Y-%m-%d")
+            duration_days = max(1, (e - s).days + 1)
+        except ValueError:
+            duration_days = 1
+
+        confs = [raw[j].get("confidence", 0) for j in range(start_idx, end_idx + 1)]
+        avg_confidence = round(sum(confs) / len(confs)) if confs else 0
+
+        periods.append({
+            "label":            label,
+            "display_label":    label.replace("_", " "),
+            "start_date":       start_date,
+            "end_date":         end_date,
+            "duration_days":    duration_days,
+            "is_current":       is_current,
+            "avg_confidence":   avg_confidence,
+            "entry_indicators": _build_snapshot(raw[start_idx], start_date),
+            "exit_indicators":  _build_snapshot(raw[end_idx],   end_date),
+        })
+
+    return list(reversed(periods))
 
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
@@ -489,7 +585,16 @@ def get_regime():
         _cache["data"] = result
         _cache["ts"]   = time.time()
 
-        _record_regime_history(display_label, internal_label, confidence)
+        _snap = {
+            "cpi_yoy":      ind.get("cpi"),
+            "pce_yoy":      ind.get("pce"),
+            "gdp_growth":   ind.get("gdp"),
+            "unemployment": ind.get("unemployment"),
+            "fed_funds":    ind.get("fed_funds"),
+            "t10y2y":       ind.get("t10y2y"),
+            "hy_spread":    None,  # not fetched here; backfilled by get_enriched_regime_history()
+        }
+        _record_regime_history(display_label, internal_label, confidence, _snap)
         log.info(f"Regime classified: {display_label} ({confidence}% confidence)")
         return result
 

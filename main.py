@@ -26,13 +26,15 @@ except ImportError:
         return {"status": "no_api_key", "message": "AI briefing module not loaded"}
 
 try:
-    from regime_engine import get_regime, get_regime_history
+    from regime_engine import get_regime, get_regime_history, get_enriched_regime_history
 except ImportError:
     def get_regime():
         return {"label": "UNAVAILABLE", "confidence_score": 0,
                 "indicator_breakdown": [], "key_risks": ["Regime engine not loaded"],
                 "asset_class_positioning": [], "timestamp": datetime.utcnow().isoformat()}
     def get_regime_history():
+        return []
+    def get_enriched_regime_history():
         return []
 
 try:
@@ -318,10 +320,11 @@ def api_fedwatch():
 @app.route("/api/regime/history")
 def api_regime_history():
     try:
-        return jsonify({"history": get_regime_history(), "timestamp": datetime.utcnow().isoformat()})
+        periods = get_enriched_regime_history()
+        return jsonify({"periods": periods, "timestamp": datetime.utcnow().isoformat()})
     except Exception as e:
         log.error(f"Regime history error: {e}\n{traceback.format_exc()}")
-        return jsonify({"error": str(e), "history": [], "timestamp": datetime.utcnow().isoformat()}), 500
+        return jsonify({"error": str(e), "periods": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/macro/history")
 def api_macro_history():
