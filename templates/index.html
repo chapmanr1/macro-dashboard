@@ -5223,7 +5223,15 @@ async function refreshBriefing() {
   timestamp.textContent = 'GENERATING...';
 
   try {
-    await fetch('/api/briefing/refresh', { method: 'POST' });
+    const res  = await fetch('/api/briefing/refresh', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.status === 'rate_limited') {
+      content.innerHTML = `<div class="briefing-error">&#9888; ${data.message}</div>`;
+      timestamp.textContent = 'RATE LIMITED';
+      return;
+    }
+
     await loadBriefing();
   } catch (err) {
     content.innerHTML = `<div class="briefing-error">&#9888; Refresh failed: ${err.message}</div>`;

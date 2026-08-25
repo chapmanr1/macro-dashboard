@@ -586,8 +586,22 @@ Generate the briefing now. Be specific, reference actual numbers, address the ac
         }
 
 
-def force_regenerate():
-    """Force regeneration ignoring cache."""
+def force_regenerate() -> dict:
+    """Force regeneration ignoring cache, with 15-minute rate limit."""
+    cached = _load_cache()
+    if cached and "generated_at" in cached:
+        cached_time = datetime.fromisoformat(cached["generated_at"])
+        if cached_time.tzinfo is None:
+            cached_time = EASTERN.localize(cached_time)
+        age = _now_et() - cached_time
+        cooldown = timedelta(minutes=15)
+        if age < cooldown:
+            remaining = int((cooldown - age).total_seconds() / 60) + 1
+            return {
+                "status":       "rate_limited",
+                "message":      f"Briefing refreshed recently — next manual refresh available in {remaining} minutes.",
+                "generated_at": cached["generated_at"],
+            }
     try:
         os.remove(CACHE_FILE)
     except FileNotFoundError:
