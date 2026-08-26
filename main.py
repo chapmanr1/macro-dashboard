@@ -374,6 +374,39 @@ def api_thesis():
         log.error(f"Thesis data error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "triggers": [], "integrity": {"label": "UNAVAILABLE", "level": "red"}}), 500
 
+@app.route("/api/journal/snapshot")
+def api_journal_snapshot():
+    try:
+        from fred_data import get_thesis_data
+        regime  = get_regime()
+        macro   = get_macro()
+        yields  = get_yields()
+        thesis  = get_thesis_data()
+        series  = {s["id"]: s.get("current") for s in macro.get("series", [])}
+        indicators = {
+            "cpi_yoy":      series.get("cpi"),
+            "core_pce":     series.get("pce"),
+            "gdp_growth":   series.get("gdp"),
+            "unemployment": series.get("unemployment"),
+            "fed_funds":    series.get("fed_funds"),
+            "spread_10y2y": yields.get("t10y2y"),
+        }
+        trigger_snapshot = [
+            {"id": t.get("id"), "label": t.get("label"),
+             "status": t.get("status"), "current_value": t.get("current_value")}
+            for t in (thesis.get("triggers") or [])
+        ]
+        return jsonify({
+            "regime":            regime.get("label", "UNKNOWN"),
+            "regime_confidence": regime.get("confidence"),
+            "indicators":        indicators,
+            "trigger_snapshot":  trigger_snapshot,
+            "timestamp":         datetime.utcnow().isoformat(),
+        })
+    except Exception as e:
+        log.error(f"Journal snapshot error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/global")
 def api_global():
     try:

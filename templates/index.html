@@ -1211,6 +1211,58 @@
     .thesis-bdc-save { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 4px 10px; background: transparent; border: 1px solid var(--blue); color: var(--blue); cursor: pointer; border-radius: 3px; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
     .thesis-bdc-save:hover { background: var(--blue); color: var(--bg); }
     .thesis-bdc-stamp { font-size: 8px; color: var(--muted2); letter-spacing: 0.06em; }
+    /* ── JOURNAL TAB ── */
+    .jnl-toolbar { display:flex; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .jnl-new-btn { font-family:var(--font-ui); font-size:9px; font-weight:700; letter-spacing:.1em; padding:6px 14px; background:var(--orange); color:var(--bg); border:none; cursor:pointer; border-radius:3px; -webkit-tap-highlight-color:transparent; }
+    .jnl-new-btn:hover { opacity:.85; }
+    .jnl-search { background:var(--bg3); border:1px solid var(--border2); color:var(--white); font-family:var(--font-mono); font-size:10px; padding:5px 10px; border-radius:3px; width:180px; }
+    .jnl-search:focus { outline:none; border-color:var(--orange); }
+    .jnl-filter { background:var(--bg3); border:1px solid var(--border2); color:var(--muted); font-family:var(--font-ui); font-size:9px; letter-spacing:.06em; padding:5px 10px; border-radius:3px; cursor:pointer; }
+    .jnl-export-btn { font-family:var(--font-ui); font-size:8px; font-weight:700; letter-spacing:.1em; padding:6px 12px; background:transparent; border:1px solid var(--border2); color:var(--muted); cursor:pointer; border-radius:3px; margin-left:auto; -webkit-tap-highlight-color:transparent; }
+    .jnl-export-btn:hover { border-color:var(--white); color:var(--white); }
+    .jnl-count { font-size:8px; color:var(--muted2); letter-spacing:.06em; }
+    .jnl-form-wrap { border-bottom:2px solid var(--orange); background:var(--bg2); }
+    .jnl-snapshot { display:flex; gap:14px; padding:8px 14px; background:var(--bg3); border-bottom:1px solid var(--border); flex-wrap:wrap; align-items:center; min-height:36px; }
+    .jnl-snap-regime { font-family:var(--font-ui); font-size:11px; font-weight:700; letter-spacing:.1em; }
+    .jnl-snap-ind { font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:.05em; }
+    .jnl-snap-note { font-size:8px; color:var(--muted2); letter-spacing:.06em; margin-left:auto; }
+    .jnl-fields { padding:12px 14px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .jnl-field-lbl { font-size:8px; font-weight:700; letter-spacing:.1em; color:var(--muted); margin-bottom:3px; }
+    .jnl-ta { width:100%; background:var(--bg3); border:1px solid var(--border2); color:var(--white); font-family:var(--font-mono); font-size:11px; line-height:1.55; padding:8px 10px; border-radius:3px; resize:vertical; min-height:90px; box-sizing:border-box; }
+    .jnl-ta:focus { outline:none; border-color:var(--orange); }
+    .jnl-ta[readonly] { opacity:.5; cursor:default; resize:none; }
+    .jnl-ta.full-width { grid-column:1/-1; min-height:120px; }
+    .jnl-tags-input { width:100%; background:var(--bg3); border:1px solid var(--border2); color:var(--white); font-family:var(--font-mono); font-size:11px; padding:6px 10px; border-radius:3px; box-sizing:border-box; }
+    .jnl-tags-input:focus { outline:none; border-color:var(--orange); }
+    .jnl-form-footer { display:flex; gap:8px; padding:10px 14px 14px; border-top:1px solid var(--border); align-items:center; flex-wrap:wrap; }
+    .jnl-save-btn { font-family:var(--font-ui); font-size:9px; font-weight:700; letter-spacing:.1em; padding:7px 18px; background:var(--orange); color:var(--bg); border:none; cursor:pointer; border-radius:3px; -webkit-tap-highlight-color:transparent; }
+    .jnl-save-btn:hover { opacity:.85; }
+    .jnl-cancel-btn { font-family:var(--font-ui); font-size:9px; letter-spacing:.1em; padding:7px 14px; background:transparent; border:1px solid var(--border2); color:var(--muted); cursor:pointer; border-radius:3px; -webkit-tap-highlight-color:transparent; }
+    .jnl-cancel-btn:hover { border-color:var(--muted); color:var(--white); }
+    .jnl-entry { border-bottom:1px solid var(--border); }
+    .jnl-entry-hdr { display:flex; gap:10px; align-items:center; padding:10px 14px; cursor:pointer; transition:background .1s; }
+    .jnl-entry-hdr:hover { background:var(--bg2); }
+    .jnl-entry-date { font-family:var(--font-mono); font-size:9px; color:var(--muted2); white-space:nowrap; min-width:75px; line-height:1.4; }
+    .jnl-entry-regime { font-family:var(--font-ui); font-size:8px; font-weight:700; letter-spacing:.08em; padding:2px 7px; border-radius:2px; white-space:nowrap; flex-shrink:0; }
+    .jnl-entry-preview { font-size:9px; color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .jnl-entry-tags { display:flex; gap:4px; flex-wrap:nowrap; overflow:hidden; flex-shrink:0; max-width:180px; }
+    .jnl-tag { font-size:7px; letter-spacing:.06em; padding:2px 6px; background:var(--bg3); border:1px solid var(--border2); color:var(--muted2); border-radius:2px; white-space:nowrap; }
+    .jnl-entry-chevron { font-size:10px; color:var(--muted2); flex-shrink:0; transition:transform .2s; }
+    .jnl-entry-chevron.open { transform:rotate(180deg); }
+    .jnl-entry-body { padding:0 14px 14px; display:none; }
+    .jnl-entry-body.open { display:block; }
+    .jnl-body-snapshot { display:flex; gap:14px; flex-wrap:wrap; padding:8px 0 10px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+    .jnl-body-ind { font-family:var(--font-mono); font-size:9px; color:var(--muted); }
+    .jnl-body-ind span { color:var(--white); }
+    .jnl-body-section { margin-bottom:10px; }
+    .jnl-body-label { font-size:8px; font-weight:700; letter-spacing:.1em; color:var(--muted2); margin-bottom:4px; }
+    .jnl-body-text { font-size:10px; color:var(--white); line-height:1.65; white-space:pre-wrap; }
+    .jnl-edit-btn { font-family:var(--font-ui); font-size:8px; letter-spacing:.08em; padding:4px 10px; background:transparent; border:1px solid var(--border2); color:var(--muted); cursor:pointer; border-radius:3px; margin-top:10px; -webkit-tap-highlight-color:transparent; }
+    .jnl-edit-btn:hover { border-color:var(--orange); color:var(--orange); }
+    .jnl-lock-note { font-size:8px; color:var(--muted2); letter-spacing:.06em; margin-top:10px; }
+    .jnl-empty { padding:48px 20px; text-align:center; color:var(--muted2); font-size:11px; letter-spacing:.08em; line-height:2; }
+    .jnl-trg-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+    .jnl-trg-item { font-size:8px; letter-spacing:.06em; }
   </style>
 </head>
 <body>
@@ -1249,6 +1301,7 @@
   <button class="tab-btn" data-tab="economy">ECONOMY</button>
   <button class="tab-btn" data-tab="credit">CREDIT</button>
   <button class="tab-btn" data-tab="news">NEWS</button>
+  <button class="tab-btn" data-tab="journal">JOURNAL</button>
 </div>
 <div class="terminal">
 
@@ -1776,6 +1829,73 @@
 
   </div><!-- /tab-news -->
 
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- JOURNAL TAB                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-journal">
+
+    <div class="section-header">
+      <div class="section-title" style="color:var(--orange)">&#11045; THESIS JOURNAL</div>
+      <div class="section-line"></div>
+      <div class="section-meta">PERSONAL MACRO RECORD · ENTRIES CANNOT BE DELETED</div>
+    </div>
+
+    <div class="jnl-toolbar">
+      <button class="jnl-new-btn" onclick="jnlOpenForm()">+ NEW ENTRY</button>
+      <input class="jnl-search" id="jnlSearch" type="text" placeholder="Search entries..."
+        oninput="jnlRender()" />
+      <select class="jnl-filter" id="jnlFilter" onchange="jnlRender()">
+        <option value="ALL">ALL REGIMES</option>
+        <option value="STAGFLATION">STAGFLATION</option>
+        <option value="STAGFLATION_RISK">STAGFLATION RISK</option>
+        <option value="REFLATION">REFLATION</option>
+        <option value="STRONG_GROWTH">STRONG GROWTH</option>
+        <option value="CONTRACTION">CONTRACTION</option>
+        <option value="OVERHEATING">OVERHEATING</option>
+      </select>
+      <span class="jnl-count" id="jnlCount"></span>
+      <button class="jnl-export-btn" onclick="jnlExport()">EXPORT .TXT</button>
+    </div>
+
+    <div id="jnlFormWrap" style="display:none" class="jnl-form-wrap">
+      <div class="jnl-snapshot" id="jnlSnapshot">
+        <span class="jnl-snap-note">Loading market context...</span>
+      </div>
+      <div class="jnl-fields">
+        <div style="grid-column:1/-1">
+          <div class="jnl-field-lbl">CURRENT VIEW — your macro thesis in your own words</div>
+          <textarea class="jnl-ta full-width" id="jnlView" placeholder="What is your current macro view?"></textarea>
+        </div>
+        <div>
+          <div class="jnl-field-lbl">SUPPORTING EVIDENCE</div>
+          <textarea class="jnl-ta" id="jnlEvidence" placeholder="What data supports this view?"></textarea>
+        </div>
+        <div>
+          <div class="jnl-field-lbl">WHAT WOULD CHANGE MY MIND</div>
+          <textarea class="jnl-ta" id="jnlChangeMind" placeholder="Specific conditions that would cause you to update..."></textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="jnl-field-lbl">POSITIONING IMPLICATIONS</div>
+          <textarea class="jnl-ta" id="jnlPositioning" placeholder="How does this view affect client portfolios?"></textarea>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="jnl-field-lbl">TAGS (comma-separated &mdash; e.g. Fed meeting, CPI print)</div>
+          <input class="jnl-tags-input" id="jnlTags" type="text" placeholder="Fed meeting, CPI print, Client meeting" />
+        </div>
+      </div>
+      <div class="jnl-form-footer">
+        <button class="jnl-save-btn" onclick="jnlSaveEntry()">SAVE ENTRY</button>
+        <button class="jnl-cancel-btn" onclick="jnlCloseForm()">CANCEL</button>
+        <span style="font-size:8px;color:var(--muted2);letter-spacing:.05em">
+          Date, regime &amp; indicators locked at save &middot; text fields editable 24h
+        </span>
+      </div>
+    </div>
+
+    <div id="jnlList" class="jnl-list"></div>
+
+  </div><!-- /tab-journal -->
+
 </div><!-- /terminal -->
 
 <!-- SETTINGS OVERLAY + DRAWER -->
@@ -2051,6 +2171,7 @@ function fetchTab(tabId) {
     case 'economy':  return fetchEconomy();
     case 'credit':   return fetchCredit();
     case 'news':     return fetchNews();
+    case 'journal':  return fetchJournal();
   }
 }
 
@@ -3318,6 +3439,281 @@ function saveBdcReading() {
   d.bdcNonAccrualDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
   stSave(d);
   if (_macroThesisData) renderThesis(_macroThesisData);
+}
+
+// ════════════════════════════════════════════════════════════
+// THESIS JOURNAL
+// ════════════════════════════════════════════════════════════
+let _jnlSnapshot = null;
+let _jnlExpanded = new Set();
+let _jnlEditId   = null;
+
+function fetchJournal() { jnlRender(); }
+
+function jnlRegimeColor(r) {
+  return {STAGFLATION:'var(--red)',STAGFLATION_RISK:'var(--amber)',
+    REFLATION:'var(--blue)',STRONG_GROWTH:'var(--green)',
+    CONTRACTION:'var(--muted)',OVERHEATING:'var(--orange)'}[r]||'var(--muted2)';
+}
+
+function jnlRender() {
+  const d = stLoad();
+  const all = (d.journalEntries || []).filter(e => e.created_at);  // new-format only
+  const filter = document.getElementById('jnlFilter')?.value || 'ALL';
+  const search = (document.getElementById('jnlSearch')?.value || '').toLowerCase().trim();
+  const entries = all.slice().reverse();  // reverse chron
+  const filtered = entries.filter(e => {
+    if (filter !== 'ALL' && e.regime !== filter) return false;
+    if (search) {
+      const blob = [e.view, e.evidence, e.change_mind, e.positioning,
+        (e.tags||[]).join(' ')].join(' ').toLowerCase();
+      if (!blob.includes(search)) return false;
+    }
+    return true;
+  });
+  const countEl = document.getElementById('jnlCount');
+  if (countEl) countEl.textContent =
+    `${filtered.length} of ${all.length} ${all.length === 1 ? 'entry' : 'entries'}`;
+  const listEl = document.getElementById('jnlList');
+  if (!listEl) return;
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="jnl-empty">${
+      all.length ? 'NO ENTRIES MATCH FILTER<br><span style="font-size:9px">Try a different regime or search term</span>'
+      : 'NO ENTRIES YET<br><span style="font-size:9px">Click + NEW ENTRY to start your intellectual track record</span>'
+    }</div>`;
+    return;
+  }
+  listEl.innerHTML = filtered.map(e => jnlRenderEntry(e)).join('');
+}
+
+function jnlRenderEntry(entry) {
+  const expanded = _jnlExpanded.has(entry.id);
+  const date  = new Date(entry.created_at);
+  const dateStr = date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const timeStr = date.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const editable = new Date() < new Date(entry.editable_until);
+  const color = jnlRegimeColor(entry.regime);
+  const preview = (entry.view||'').slice(0,100) + ((entry.view||'').length>100?'…':'');
+  const tags = (entry.tags||[]).map(t=>`<span class="jnl-tag">${_xe(t)}</span>`).join('');
+  const ind = entry.indicators || {};
+  const fmtV = (v,dp=2) => v!=null ? (+v).toFixed(dp)+'%' : '--';
+
+  let bodyHtml = '';
+  if (expanded) {
+    const indRow = `<div class="jnl-body-snapshot">
+      <div class="jnl-body-ind">CPI YoY <span>${fmtV(ind.cpi_yoy)}</span></div>
+      <div class="jnl-body-ind">Core PCE <span>${fmtV(ind.core_pce)}</span></div>
+      <div class="jnl-body-ind">GDP <span>${fmtV(ind.gdp_growth)}</span></div>
+      <div class="jnl-body-ind">UE <span>${fmtV(ind.unemployment)}</span></div>
+      <div class="jnl-body-ind">FF <span>${fmtV(ind.fed_funds)}</span></div>
+      <div class="jnl-body-ind">10Y-2Y <span>${fmtV(ind.spread_10y2y,3)}</span></div>
+      ${entry.regime_confidence!=null?`<div class="jnl-body-ind">Confidence <span>${entry.regime_confidence}%</span></div>`:''}
+    </div>`;
+    const sections = [
+      ['CURRENT VIEW', entry.view],
+      ['SUPPORTING EVIDENCE', entry.evidence],
+      ['WHAT WOULD CHANGE MY MIND', entry.change_mind],
+      ['POSITIONING IMPLICATIONS', entry.positioning],
+    ].filter(([,t])=>t).map(([lbl,txt])=>`<div class="jnl-body-section">
+      <div class="jnl-body-label">${lbl}</div>
+      <div class="jnl-body-text">${_xe(txt)}</div>
+    </div>`).join('');
+    let trgHtml = '';
+    if ((entry.trigger_snapshot||[]).length) {
+      const items = entry.trigger_snapshot.map(t=>{
+        const cls = t.status==='TRIGGERED'?'red':t.status==='APPROACHING'?'amber':'muted2';
+        const cv = t.current_value!=null?` (${(+t.current_value).toFixed(2)})`:'';
+        return `<span class="jnl-trg-item" style="color:var(--${cls})">${_xe(t.label||t.id)}: ${t.status||'--'}${cv}</span>`;
+      }).join('');
+      trgHtml = `<div class="jnl-body-section">
+        <div class="jnl-body-label">TRIGGER SNAPSHOT AT TIME OF WRITING</div>
+        <div class="jnl-trg-row">${items}</div>
+      </div>`;
+    }
+    const editBlock = editable
+      ? `<button class="jnl-edit-btn" onclick="jnlOpenEdit('${entry.id}')">EDIT &mdash; locks in ${jnlTimeLeft(entry.editable_until)}</button>`
+      : `<div class="jnl-lock-note">&#128274; 24-hour edit window closed &mdash; entry is permanently locked.</div>`;
+    bodyHtml = `<div class="jnl-entry-body open">${indRow}${sections}${trgHtml}${editBlock}</div>`;
+  } else {
+    bodyHtml = `<div class="jnl-entry-body"></div>`;
+  }
+
+  return `<div class="jnl-entry" id="jnl-${entry.id}">
+    <div class="jnl-entry-hdr" onclick="jnlToggle('${entry.id}')">
+      <div class="jnl-entry-date">${dateStr}<br><span style="font-size:8px">${timeStr}</span></div>
+      <div class="jnl-entry-regime" style="background:${color}22;color:${color};border:1px solid ${color}55">${entry.regime||'UNKNOWN'}</div>
+      <div class="jnl-entry-preview">${preview||'<span style="color:var(--muted2)">No view written</span>'}</div>
+      <div class="jnl-entry-tags">${tags}</div>
+      <span class="jnl-entry-chevron${expanded?' open':''}">&#9660;</span>
+    </div>
+    ${bodyHtml}
+  </div>`;
+}
+
+function jnlToggle(id) {
+  if (_jnlExpanded.has(id)) _jnlExpanded.delete(id); else _jnlExpanded.add(id);
+  jnlRender();
+}
+
+function jnlTimeLeft(isoStr) {
+  const ms = new Date(isoStr) - new Date();
+  if (ms <= 0) return '0h';
+  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
+  return `${h}h ${m}m`;
+}
+
+function jnlRenderSnapshot(snap) {
+  const ind = snap.indicators || {};
+  const fmtV = (v,dp=2) => v!=null ? (+v).toFixed(dp)+'%' : '--';
+  const color = jnlRegimeColor(snap.regime);
+  setEl('jnlSnapshot',
+    `<span class="jnl-snap-regime" style="color:${color}">${snap.regime||'UNKNOWN'}</span>`+
+    (snap.regime_confidence!=null?`<span class="jnl-snap-ind">${snap.regime_confidence}% confidence</span>`:'')+
+    `<span class="jnl-snap-ind">CPI YoY ${fmtV(ind.cpi_yoy)}</span>`+
+    `<span class="jnl-snap-ind">Core PCE ${fmtV(ind.core_pce)}</span>`+
+    `<span class="jnl-snap-ind">GDP ${fmtV(ind.gdp_growth)}</span>`+
+    `<span class="jnl-snap-ind">UE ${fmtV(ind.unemployment)}</span>`+
+    `<span class="jnl-snap-ind">FF ${fmtV(ind.fed_funds)}</span>`+
+    `<span class="jnl-snap-ind">10Y-2Y ${fmtV(ind.spread_10y2y,3)}</span>`+
+    `<span class="jnl-snap-note">&#128274; Auto-populated &middot; locked on save</span>`
+  );
+}
+
+function jnlOpenForm() {
+  _jnlEditId = null;
+  const wrap = document.getElementById('jnlFormWrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  ['jnlView','jnlEvidence','jnlChangeMind','jnlPositioning'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.removeAttribute('readonly'); }
+  });
+  const tagsEl = document.getElementById('jnlTags');
+  if (tagsEl) tagsEl.value = '';
+  setEl('jnlSnapshot', '<span class="jnl-snap-note">Loading market context...</span>');
+  apiFetch('/api/journal/snapshot').then(snap => {
+    _jnlSnapshot = snap;
+    jnlRenderSnapshot(snap);
+  }).catch(() => {
+    setEl('jnlSnapshot',
+      '<span class="jnl-snap-note" style="color:var(--red)">Could not load market context &mdash; entry will save without snapshot.</span>');
+  });
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function jnlOpenEdit(id) {
+  const d = stLoad();
+  const entry = (d.journalEntries||[]).find(e=>e.id===id);
+  if (!entry || new Date() >= new Date(entry.editable_until)) return;
+  _jnlEditId = id;
+  _jnlSnapshot = {
+    regime: entry.regime, regime_confidence: entry.regime_confidence,
+    indicators: entry.indicators, trigger_snapshot: entry.trigger_snapshot,
+  };
+  const wrap = document.getElementById('jnlFormWrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  const fields = {jnlView:entry.view, jnlEvidence:entry.evidence,
+    jnlChangeMind:entry.change_mind, jnlPositioning:entry.positioning};
+  Object.entries(fields).forEach(([id,val])=>{
+    const el = document.getElementById(id);
+    if (el) { el.value = val||''; el.removeAttribute('readonly'); }
+  });
+  const tagsEl = document.getElementById('jnlTags');
+  if (tagsEl) tagsEl.value = (entry.tags||[]).join(', ');
+  jnlRenderSnapshot(_jnlSnapshot);
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function jnlCloseForm() {
+  const wrap = document.getElementById('jnlFormWrap');
+  if (wrap) wrap.style.display = 'none';
+  _jnlEditId = null; _jnlSnapshot = null;
+}
+
+function jnlSaveEntry() {
+  const viewEl = document.getElementById('jnlView');
+  const view = (viewEl?.value||'').trim();
+  if (!view) {
+    if (viewEl) viewEl.style.borderColor = 'var(--red)';
+    return;
+  }
+  if (viewEl) viewEl.style.borderColor = '';
+  const tags = (document.getElementById('jnlTags')?.value||'')
+    .split(',').map(t=>t.trim()).filter(Boolean);
+  const d = stLoad();
+  if (!d.journalEntries) d.journalEntries = [];
+
+  if (_jnlEditId) {
+    const idx = d.journalEntries.findIndex(e=>e.id===_jnlEditId);
+    if (idx !== -1 && new Date() < new Date(d.journalEntries[idx].editable_until)) {
+      d.journalEntries[idx].view        = view;
+      d.journalEntries[idx].evidence    = (document.getElementById('jnlEvidence')?.value||'').trim();
+      d.journalEntries[idx].change_mind = (document.getElementById('jnlChangeMind')?.value||'').trim();
+      d.journalEntries[idx].positioning = (document.getElementById('jnlPositioning')?.value||'').trim();
+      d.journalEntries[idx].tags        = tags;
+    }
+  } else {
+    const now = new Date();
+    const snap = _jnlSnapshot || {};
+    d.journalEntries.push({
+      id:               (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():now.getTime().toString(36),
+      created_at:       now.toISOString(),
+      editable_until:   new Date(now.getTime()+86400000).toISOString(),
+      regime:           snap.regime||'UNKNOWN',
+      regime_confidence:snap.regime_confidence||null,
+      indicators:       snap.indicators||{},
+      trigger_snapshot: snap.trigger_snapshot||[],
+      view,
+      evidence:    (document.getElementById('jnlEvidence')?.value||'').trim(),
+      change_mind: (document.getElementById('jnlChangeMind')?.value||'').trim(),
+      positioning: (document.getElementById('jnlPositioning')?.value||'').trim(),
+      tags,
+    });
+  }
+  stSave(d);
+  jnlCloseForm();
+  jnlRender();
+}
+
+function jnlExport() {
+  const entries = (stLoad().journalEntries||[]).filter(e=>e.created_at).slice().reverse();
+  if (!entries.length) { alert('No journal entries to export.'); return; }
+  const fmtV = (v,dp=2) => v!=null ? (+v).toFixed(dp)+'%' : '--';
+  const sep = '='.repeat(70);
+  const lines = entries.map(e => {
+    const ind = e.indicators||{};
+    const dateStr = new Date(e.created_at).toLocaleString('en-US',{dateStyle:'long',timeStyle:'short'});
+    const parts = [
+      sep,
+      `DATE: ${dateStr}`,
+      `REGIME: ${e.regime}${e.regime_confidence!=null?' ('+e.regime_confidence+'% confidence)':''}`,
+      `INDICATORS: CPI YoY ${fmtV(ind.cpi_yoy)} | Core PCE ${fmtV(ind.core_pce)} | GDP ${fmtV(ind.gdp_growth)} | UE ${fmtV(ind.unemployment)} | FF ${fmtV(ind.fed_funds)} | 10Y-2Y ${fmtV(ind.spread_10y2y,3)}`,
+    ];
+    if ((e.tags||[]).length) parts.push(`TAGS: ${e.tags.join(', ')}`);
+    const fields = [
+      ['CURRENT VIEW', e.view],
+      ['SUPPORTING EVIDENCE', e.evidence],
+      ['WHAT WOULD CHANGE MY MIND', e.change_mind],
+      ['POSITIONING IMPLICATIONS', e.positioning],
+    ];
+    fields.forEach(([lbl,txt])=>{ if(txt){parts.push('',`${lbl}:`,txt);} });
+    if ((e.trigger_snapshot||[]).length) {
+      parts.push('','TRIGGER SNAPSHOT AT TIME OF WRITING:');
+      e.trigger_snapshot.forEach(t=>{
+        const cv = t.current_value!=null?' ('+((+t.current_value).toFixed(2))+')':'';
+        parts.push(`  ${t.label||t.id}: ${t.status||'--'}${cv}`);
+      });
+    }
+    return parts.join('\n');
+  });
+  const header = `MACRO THESIS JOURNAL\nRyan Chapman · Exported ${new Date().toLocaleString('en-US')}\n${sep}\n`;
+  const txt = header + '\n' + lines.join('\n\n');
+  const blob = new Blob([txt],{type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`thesis-journal-${new Date().toISOString().slice(0,10)}.txt`; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -4733,14 +5129,13 @@ function _s3(d){
 
 // ── S4: Thesis Journal ────────────────────────────────────────
 function _s4(d){
-  const entries=(d.journalEntries||[]).slice(-5).reverse();
-  const eHtml=entries.length
-    ?entries.map((e,i)=>`<div class="journal-entry"><span class="journal-entry-date">${_xe(e.date)}</span><span class="journal-entry-text">${_xe(e.text)}</span><button class="journal-entry-del" data-idx="${i}">✕</button></div>`).join('')
-    :'<div style="font-size:9px;color:var(--muted);padding:8px 0">No entries yet.</div>';
+  const count = (d.journalEntries||[]).filter(e=>e.created_at).length;
   return _sh('04','THESIS JOURNAL',false)+
-    `<textarea id="journalText" class="journal-textarea" placeholder="Enter thesis note..." rows="3"></textarea>
-    <button id="journalAdd" class="journal-add-btn">+ ADD DATED ENTRY</button>
-    <div class="journal-entries" id="journalList">${eHtml}</div>`+
+    `<div style="font-size:9px;color:var(--muted);line-height:1.7;padding:4px 0 8px">
+      The full journal has moved to the <strong style="color:var(--white)">JOURNAL</strong> tab.<br>
+      ${count>0?`<span style="color:var(--orange)">${count} ${count===1?'entry':'entries'}</span> saved.`:'No entries yet.'}
+    </div>
+    <button onclick="document.querySelector('[data-tab=journal]')?.click()" class="journal-add-btn">OPEN JOURNAL TAB &rarr;</button>`+
     _se;
 }
 
@@ -4883,25 +5278,6 @@ function _bindDrawer(){
   });
   const saEl=document.getElementById('stAlertSens');
   if(saEl)saEl.addEventListener('change',()=>{ const d=stLoad();d.alertSensitivity=saEl.value;stSave(d); });
-
-  // S4 journal
-  document.getElementById('journalAdd')?.addEventListener('click',()=>{
-    const ta=document.getElementById('journalText'); const txt=(ta?.value||'').trim();
-    if(!txt)return;
-    const d=stLoad(); d.journalEntries=d.journalEntries||[];
-    const now=new Date();
-    d.journalEntries.push({date:now.toLocaleDateString('en-US',{month:'short',day:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}),text:txt});
-    if(d.journalEntries.length>50)d.journalEntries=d.journalEntries.slice(-50);
-    stSave(d); ta.value=''; renderDrawer();
-  });
-  document.querySelectorAll('.journal-entry-del').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const d=stLoad(); const disp=(d.journalEntries||[]).slice(-5).reverse();
-      const toRemove=disp[+btn.dataset.idx];
-      d.journalEntries=(d.journalEntries||[]).filter(e=>e!==toRemove);
-      stSave(d); renderDrawer();
-    });
-  });
 
   // S5 news
   document.querySelectorAll('.st-src-cb').forEach(cb=>{
@@ -5244,10 +5620,7 @@ function exportIndicatorsCSV(){
   });
   _dl('macro_indicators_'+_td()+'.csv',rows.map(r=>r.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')).join('\n'),'text/csv');
 }
-function exportJournalTxt(){
-  const d=stLoad();
-  _dl('thesis_journal_'+_td()+'.txt',(d.journalEntries||[]).map(e=>`[${e.date}]\n${e.text}`).join('\n\n---\n\n')||'No entries.','text/plain');
-}
+function exportJournalTxt(){ jnlExport(); }
 function exportRegimeJSON(){
   const d=stLoad();
   _dl('regime_settings_'+_td()+'.json',JSON.stringify({regimeLabels:d.regimeLabels,thresholds:{inflation:d.inflationThreshold,growth:d.growthThreshold,PCE:d.thresholdPCE,GDP:d.thresholdGDP,HY:d.thresholdHY,productivity:d.thresholdProductivity,BDC:d.thresholdBDC},probabilities:{bull:d.bullProb,base:d.baseProb,bear:d.bearProb},exportedAt:new Date().toISOString()},null,2),'application/json');
