@@ -716,14 +716,9 @@
     html[data-theme="terminal-green"] .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
     html[data-theme="terminal-green"] .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 
-    /* ── OVERVIEW: COLLAPSIBLE SECTIONS ── */
-    .ov-collapsible .ov-sec-body { overflow: hidden; max-height: 9999px; transition: max-height 0.28s ease; }
-    .ov-collapsible.collapsed .ov-sec-body { max-height: 0 !important; }
-    .section-header.collapsible { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
-    .section-header.collapsible:hover { background: var(--bg3); }
-    .section-header.collapsible:hover .section-title { color: var(--white); }
-    .ov-sec-chevron { font-size: 9px; color: var(--muted2); transition: transform 0.25s; margin-left: 4px; flex-shrink: 0; }
-    .ov-collapsible.collapsed .ov-sec-chevron { transform: rotate(-90deg); }
+    /* ── OVERVIEW: SECTIONS (always expanded) ── */
+    .ov-collapsible .ov-sec-body { overflow: visible; }
+    .thesis-trigger-card[data-tipkey] { cursor: pointer; }
 
     .ov-anchor { scroll-margin-top: 80px; }
 
@@ -1383,11 +1378,10 @@
 
     <div id="ov-anchor-thesis" class="ov-anchor"></div>
     <div id="ov-sec-thesis" class="ov-collapsible">
-      <div class="section-header collapsible" onclick="toggleOvSection('thesis')">
+      <div class="section-header">
         <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
         <div class="section-meta" id="thesisTimestamp">--</div>
-        <button class="thesis-detach-btn" onclick="event.stopPropagation();thesisDetach()" title="Float panel">&#10696;</button>
-        <span class="ov-sec-chevron">&#9660;</span>
+        <button class="thesis-detach-btn" onclick="thesisDetach()" title="Float panel">&#10696;</button>
       </div>
       <div class="ov-sec-body">
         <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
@@ -1421,11 +1415,9 @@
 
     <div id="ov-anchor-rates" class="ov-anchor"></div>
     <div id="ov-sec-yields" class="ov-collapsible">
-      <div class="section-header collapsible" onclick="toggleOvSection('yields')">
+      <div class="section-header">
         <div class="section-title">YIELD CURVE</div>
-        <div class="section-line"></div>
         <div class="section-meta" id="yieldsTimestamp">--</div>
-        <span class="ov-sec-chevron">&#9660;</span>
       </div>
       <div class="ov-sec-body">
         <div id="yieldsContent">
@@ -1443,11 +1435,9 @@
     </div>
 
     <div id="ov-sec-fedwatch" class="ov-collapsible">
-      <div class="section-header collapsible" id="fedwatch-header" onclick="toggleOvSection('fedwatch')">
+      <div class="section-header" id="fedwatch-header">
         <div class="section-title">FED RATE PATH</div>
-        <div class="section-line"></div>
         <div class="section-meta" id="fedwatchTimestamp">--</div>
-        <span class="ov-sec-chevron">&#9660;</span>
       </div>
       <div class="ov-sec-body">
         <div id="fedwatchContent">
@@ -1466,11 +1456,9 @@
 
     <div id="ov-anchor-chart" class="ov-anchor"></div>
     <div id="ov-sec-chart" class="ov-collapsible">
-      <div class="section-header collapsible" onclick="toggleOvSection('chart')">
+      <div class="section-header">
         <div class="section-title">MACRO TIME SERIES</div>
-        <div class="section-line"></div>
         <div class="section-meta" id="macroChartTimestamp">--</div>
-        <span class="ov-sec-chevron">&#9660;</span>
       </div>
       <div class="ov-sec-body">
         <div class="macro-chart-controls">
@@ -1497,11 +1485,9 @@
 
     <div id="ov-anchor-history" class="ov-anchor"></div>
     <div id="ov-sec-history" class="ov-collapsible">
-      <div class="section-header collapsible" id="regime-history-header" onclick="toggleOvSection('history')">
+      <div class="section-header" id="regime-history-header">
         <div class="section-title">REGIME HISTORY</div>
-        <div class="section-line"></div>
         <div class="section-meta">90-DAY</div>
-        <span class="ov-sec-chevron">&#9660;</span>
       </div>
       <div class="ov-sec-body">
         <div id="regimeHistoryContent">
@@ -2271,6 +2257,7 @@ const INDICATOR_TOOLTIPS = {
   nfci:           { title:'NFCI — CHICAGO FED FIN. CONDITIONS', what:'Chicago Fed National Financial Conditions Index. Weekly composite of 105 measures of financial activity across money, debt, equity markets, and banking. Normalized to zero (average) with positive = tighter than normal.', read:'Negative (below zero) = looser than historical average = supportive conditions. Positive = tighter. Above +1.0 = significant financial stress across the system.', thresholds:'Easy <-0.6 | Normal -0.6 to +0.2 | Tightening +0.2 to +1.0 | Stress >+1.0' },
   pce_goods:      { title:'CORE GOODS PCE YoY', what:'Core PCE Price Index for goods, excluding food and energy. Tracks inflation in physical goods: cars, electronics, furniture, apparel, and other durable/nondurable items.', read:'Goods inflation is typically more volatile than services and more directly tied to supply chains. When goods deflate (as post-2022), it helps bring down headline PCE toward target.', thresholds:'Deflationary <0% | Contained 0-2% | Elevated 2-4% | High >4%' },
   pce_svc:        { title:'CORE SERVICES PCE YoY', what:'Core PCE Price Index for services, excluding food and energy. Covers shelter, healthcare, financial services, recreation, and other labor-intensive services — the stickiest inflation component.', read:'Services inflation is driven by wages and rent, making it very slow to fall. Even if goods deflate, high services PCE keeps headline PCE above target. The Fed\'s most watched inflation sub-component.', thresholds:'Target <2.5% | Elevated 2.5-4% | High 4-5.5% | Crisis >5.5%' },
+  thesis_integrity:  { title:'THESIS INTEGRITY', what:'An overall score for how well the current macro data supports the stagflation thesis. It monitors 4 specific falsification triggers — the data conditions that would disprove the thesis. INTACT means no triggers have fired; WEAKENING means conditions are moving against the thesis; COMPROMISED means one or more triggers have been met.', read:'Think of this like a thesis health score. Ryan\'s base case (50% probability) is that stagflation persists 2-3 years. This panel tells you in real time whether the incoming data is supporting or undermining that view. If a trigger fires, it doesn\'t automatically mean the thesis is wrong — it means you need to revisit the probability weighting.', thresholds:'INTACT: No falsification triggers met | WEAKENING: 1+ triggers approaching threshold | COMPROMISED: 1+ triggers fully met' },
   thesis_core_pce:   { title:'CORE PCE — FALSIFICATION TRIGGER', what:'Core Personal Consumption Expenditures Price Index, the Fed\'s preferred inflation gauge. Excludes food and energy prices, which are volatile and largely outside the Fed\'s control. Published monthly by the Bureau of Economic Analysis.', read:'This is Ryan\'s primary thesis monitor. Sustained cooling below 2.5% for 3 consecutive months would mean inflation is retreating toward target — the key condition that would challenge the stagflation thesis. Current elevated readings confirm the thesis remains intact.', thresholds:'Thesis intact >2.5% | Approaching 2.5-3.0% | TRIGGERED: <2.5% for 3 consecutive months' },
   thesis_gdp:        { title:'REAL GDP GROWTH — FALSIFICATION TRIGGER', what:'Real Gross Domestic Product, annualized quarterly growth rate. Measures the inflation-adjusted total output of the US economy. Published quarterly by the Bureau of Economic Analysis, with advance, preliminary, and final revisions.', read:'The stagflation thesis requires weak or negative growth paired with elevated inflation. Above-trend GDP (>2.5%) sustained for 2 consecutive quarters would indicate demand remains robust — inconsistent with stagflation and more aligned with the 20% goldilocks bull case.', thresholds:'Contraction <0% | Weak 0-1.5% | Trend 1.5-2.5% | TRIGGERED: >2.5% for 2 consecutive quarters' },
   thesis_hy:         { title:'HY OAS CREDIT SPREAD — FALSIFICATION TRIGGER', what:'ICE BofA High Yield Option-Adjusted Spread — the extra yield investors demand to hold junk-rated corporate bonds over risk-free US Treasuries. Measured in basis points (100bp = 1%). A direct measure of perceived credit risk in the economy.', read:'Wide spreads (>400bp) signal stress in the credit market and support the private credit cascade risk thesis. Tight spreads (<300bp) indicate investors are complacent about credit risk — historically a sign that the bear case is losing probability. The 30% bear case depends on sustained spread widening.', thresholds:'Tight (risk-on) <300bp | TRIGGERED: <300bp sustained | Elevated 300-500bp | Stress >500bp | Crisis >700bp' },
@@ -3352,8 +3339,9 @@ function renderThesisIntegrity(integrity, triggers) {
   const fired   = triggers.filter(t => t.status === 'TRIGGERED').length;
   const partial = triggers.filter(t => (t.status||'').startsWith('MET (')).length;
   const score   = `${fired} triggered · ${partial} partially met`;
-  setEl('thesisIntegrityCard', `<div class="thesis-integrity-card">
-    <div class="thesis-integrity-label ${integrity.level}">${integrity.label}</div>
+  const tipBtn  = _tipBtn('thesis_integrity');
+  setEl('thesisIntegrityCard', `<div class="thesis-integrity-card" data-tipkey="thesis_integrity" onclick="_showTooltip(this,'thesis_integrity')" style="cursor:pointer">
+    <div class="thesis-integrity-label ${integrity.level}">${integrity.label}${tipBtn}</div>
     <div class="thesis-integrity-desc">
       <span style="color:var(--white);font-weight:700;letter-spacing:0.1em">STAGFLATION THESIS</span><br>${integrity.desc}
     </div>
@@ -3388,7 +3376,8 @@ function renderThesisTrigger(t) {
     ? `<div class="trigger-sustained">CONSECUTIVE PERIODS MET: ${t.sustained_count||0}/${t.required}</div>` : '';
   const tipKey = _THESIS_TIP_MAP[t.id];
   const infoBtn = tipKey ? _tipBtn(tipKey) : '';
-  return `<div class="thesis-trigger-card">
+  const cardClick = tipKey ? `data-tipkey="${tipKey}" onclick="_showTooltip(this,'${tipKey}')"` : '';
+  return `<div class="thesis-trigger-card" ${cardClick}>
     <div class="thesis-trigger-hdr">
       <div class="thesis-trigger-lbl">${t.full_label || t.label || ''}${infoBtn}</div>
       <div class="trigger-status ${sCls}">${status || '--'}</div>
@@ -6275,31 +6264,6 @@ function toggleBriefing() {
 // Auto-reload every 6 hours
 setInterval(loadBriefing, 6 * 60 * 60 * 1000);
 
-// ════════════════════════════════════════════════════════════
-// OVERVIEW SECTION COLLAPSE + SUB-NAV
-// ════════════════════════════════════════════════════════════
-function toggleOvSection(key) {
-  const el = document.getElementById('ov-sec-' + key);
-  if (!el) return;
-  const collapsed = el.classList.toggle('collapsed');
-  const d = stLoad();
-  if (!d.collapsedOvSections) d.collapsedOvSections = {};
-  d.collapsedOvSections[key] = collapsed;
-  stSave(d);
-}
-
-
-// Restore collapsed Overview sections on load
-(function() {
-  const d = stLoad();
-  const c = d.collapsedOvSections || {};
-  ['thesis', 'yields', 'fedwatch', 'chart', 'history'].forEach(key => {
-    if (c[key]) {
-      const el = document.getElementById('ov-sec-' + key);
-      if (el) el.classList.add('collapsed');
-    }
-  });
-})();
 
 // ════════════════════════════════════════════════════════════
 // CHART MODAL

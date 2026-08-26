@@ -163,6 +163,27 @@ Keep it to 1-2 sentences per change. Goal: Ryan should understand
 his dashboard more deeply after every session, not just have
 more working code.
 
+## Universal ⓘ rule — NON-NEGOTIABLE
+Every data point, indicator, metric, or labeled value added to the
+dashboard MUST have an ⓘ definition button. No exceptions.
+
+Implementation pattern:
+1. Add an entry to `INDICATOR_TOOLTIPS` in `templates/index.html`
+   using the `{ title, what, read, thresholds }` format:
+   - `title`: Short display name (ALL CAPS)
+   - `what`: What this indicator is and where it comes from
+   - `read`: How to interpret the current value in context
+   - `thresholds`: Key levels and what they mean
+2. Use `_tipBtn('your_key')` to generate the button — it
+   automatically wires click/touch to `_showTooltip()`
+3. For clickable cards or rows (not just labels), also add
+   `onclick="_showTooltip(this,'your_key')"` to the container element
+
+The dashboard is a teaching tool. Ryan should be able to tap any
+number and learn exactly what it means, where it comes from, and how
+to interpret it in the current macro context. If you add data without
+an ⓘ button, flag it explicitly and add it in the same commit.
+
 ## Known bugs and open work (as of June 2026)
 - Sector rotation may need batching fix for 8/min rate limit
 - Graham/Buffett scorecards currently show limited data due to
