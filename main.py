@@ -364,6 +364,16 @@ def api_macro_chart():
         log.error(f"Macro chart error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "series": []}), 500
 
+@app.route("/api/thesis")
+def api_thesis():
+    try:
+        from fred_data import get_thesis_data
+        data = get_thesis_data()
+        return jsonify({**data, "timestamp": datetime.utcnow().isoformat()})
+    except Exception as e:
+        log.error(f"Thesis data error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "triggers": [], "integrity": {"label": "UNAVAILABLE", "level": "red"}}), 500
+
 @app.route("/api/global")
 def api_global():
     try:

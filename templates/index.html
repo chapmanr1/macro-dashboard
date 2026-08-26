@@ -24,6 +24,12 @@
       --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
       --font: var(--font-mono);
       --nav-bg: #0a1628;
+      --regime-strong-growth: #4ade80;
+      --regime-reflation:     #60a5fa;
+      --regime-overheating:   #fb923c;
+      --regime-stagflation:   #f87171;
+      --regime-risk:          #fca5a5;
+      --regime-contraction:   #f87171;
     }
     html, body { background: var(--bg); color: var(--white); font-family: var(--font-mono); font-size: 12px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
 
@@ -100,12 +106,12 @@
     .ov-cell { padding: 12px 14px; }
     .ov-cell-div { border-bottom: 1px solid var(--border); }
     .regime-tag { display: block; font-family: var(--font-ui); font-size: 16px; font-weight: 700; letter-spacing: 0.12em; padding: 10px 16px 6px; color: var(--amber); margin-bottom: 2px; text-transform: uppercase; }
-    .regime-tag.STRONG-GROWTH { color: #4ade80; }
-    .regime-tag.RECESSION { color: #f87171; }
-    .regime-tag.REFLATION { color: #60a5fa; }
-    .regime-tag.OVERHEATING { color: #fb923c; }
-    .regime-tag.STAGFLATION { color: #f87171; }
-    .regime-tag.STAGFLATION-RISK { color: #fca5a5; }
+    .regime-tag.STRONG-GROWTH { color: var(--regime-strong-growth); }
+    .regime-tag.RECESSION { color: var(--regime-contraction); }
+    .regime-tag.REFLATION { color: var(--regime-reflation); }
+    .regime-tag.OVERHEATING { color: var(--regime-overheating); }
+    .regime-tag.STAGFLATION { color: var(--regime-stagflation); }
+    .regime-tag.STAGFLATION-RISK { color: var(--regime-risk); }
     .regime-confidence { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; padding: 0 16px 10px; }
     .regime-confidence span { color: var(--white); }
     .regime-indicators { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 6px; }
@@ -171,7 +177,7 @@
     .pd-table th { color: var(--muted); font-size: 8px; letter-spacing: 0.1em; text-align: left; padding: 2px 6px; border-bottom: 1px solid var(--border); }
     .pd-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
     .pd-table tr:last-child td { border-bottom: none; }
-    .pd-cell-sector { color: var(--fg); }
+    .pd-cell-sector { color: var(--muted); }
     .pd-cell-etf { color: var(--amber); font-family: monospace; white-space: nowrap; }
     .pd-cell-meta { color: #6b7280; white-space: nowrap; }
     .pd-cell-rationale { color: #6b7280; }
@@ -318,12 +324,12 @@
     .sector-cell { padding: 10px 10px 8px; text-align: center; transition: opacity 0.15s; }
     .sector-cell-label { font-family: var(--font-ui); font-size: 8px; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 4px; }
     .sector-cell-pct { font-family: var(--font-mono); font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-    .sector-cell-ticker { font-family: var(--font-mono); font-size: 7px; color: var(--muted); letter-spacing: 0.1em; }
+    .sector-cell-ticker { font-family: var(--font-mono); font-size: 8px; color: var(--muted); letter-spacing: 0.1em; }
 
     /* ── MARKETS: VIX GAUGE ── */
     .vix-wrap { padding: 16px; border-bottom: 1px solid var(--border); background: var(--bg2); }
     .vix-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-    .vix-value { font-family: var(--font-mono); font-size: 36px; font-weight: 600; line-height: 1; }
+    .vix-value { font-family: var(--font-mono); font-size: 36px; font-weight: 600; line-height: 1; min-height: 42px; }
     .vix-change { font-family: var(--font-mono); font-size: 11px; }
     .vix-level-badge { font-family: var(--font-ui); font-size: 10px; font-weight: 600; letter-spacing: 0.12em; padding: 3px 12px; border: 1px solid; border-radius: 3px; }
     .vix-track { position: relative; height: 12px; border-radius: 6px; background: linear-gradient(to right, #22c55e 0% 24%, #16a34a 24% 34%, #f59e0b 34% 44%, #f97316 44% 56%, #ef4444 56% 70%, #7f1d1d 70% 100%); margin-bottom: 6px; }
@@ -343,7 +349,7 @@
     .currency-cell { background: var(--bg2); padding: 14px 16px; transition: background 0.15s, border-color 0.15s; border: 1px solid transparent; }
     .currency-cell:hover { background: var(--bg3); border-color: var(--blue); }
     .currency-label { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 5px; text-transform: uppercase; font-weight: 600; }
-    .currency-price { font-family: var(--font-mono); font-size: 28px; font-weight: 600; line-height: 1; margin-bottom: 4px; }
+    .currency-price { font-family: var(--font-mono); font-size: 28px; font-weight: 600; line-height: 1; margin-bottom: 4px; min-height: 34px; }
     .currency-change { font-family: var(--font-mono); font-size: 10px; margin-bottom: 6px; }
     .currency-signal { font-size: 9px; color: var(--muted); line-height: 1.4; border-top: 1px solid var(--border); padding-top: 6px; }
     .cot-wrap { padding: 6px 0 10px; }
@@ -356,7 +362,7 @@
     .cot-bar-fill { position: absolute; height: 100%; transition: left 0.5s, width 0.5s; border-radius: 1px; }
     .cot-score-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
     .cot-score { font-size: 11px; font-weight: 700; font-family: var(--font-mono); }
-    .cot-signal-lbl { font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .cot-signal-lbl { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
     .cot-meta { font-size: 8px; color: var(--muted); margin-top: 4px; }
     @media (max-width: 640px) { .cot-row { grid-template-columns: 72px 1fr 62px; gap: 6px; } }
 
@@ -399,17 +405,17 @@
     .spread-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .spread-cell { background: var(--bg2); padding: 16px; }
     .spread-lbl { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
-    .spread-value { font-family: var(--font-mono); font-size: 36px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
+    .spread-value { font-family: var(--font-mono); font-size: 36px; font-weight: 600; line-height: 1; margin-bottom: 2px; min-height: 42px; }
     .spread-unit-txt { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
     .spread-change { font-family: var(--font-mono); font-size: 10px; margin-bottom: 8px; }
     .spread-signal { display: inline-block; font-family: var(--font-ui); font-size: 8px; font-weight: 600; letter-spacing: 0.12em; padding: 2px 8px; border: 1px solid; margin-bottom: 10px; border-radius: 3px; }
     .spread-interp { font-size: 10px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 10px; }
     .spread-ctx-wrap { }
-    .spread-ctx-lbl { font-size: 7px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 4px; }
+    .spread-ctx-lbl { font-size: 8px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 4px; }
     .spread-ctx-track { height: 8px; border-radius: 2px; position: relative; background: var(--border2); overflow: visible; }
     .spread-ctx-zone { position: absolute; top: 0; height: 100%; }
     .spread-ctx-marker { position: absolute; top: -4px; width: 2px; height: 16px; background: white; border-radius: 1px; transform: translateX(-50%); box-shadow: 0 0 4px rgba(255,255,255,0.5); }
-    .spread-ctx-labels { display: flex; justify-content: space-between; font-size: 7px; color: var(--muted); margin-top: 3px; }
+    .spread-ctx-labels { display: flex; justify-content: space-between; font-size: 8px; color: var(--muted); margin-top: 3px; }
 
     /* ── CREDIT: BREAKEVENS / REAL YIELDS ── */
     .tips-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
@@ -436,7 +442,7 @@
     .trigger-item { padding: 12px 14px; border-bottom: 1px solid var(--border); }
     .trigger-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
     .trigger-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--white); }
-    .trigger-status { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; padding: 2px 8px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
+    .trigger-status { font-size: 8px; font-weight: 700; letter-spacing: 0.12em; padding: 2px 8px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
     .trigger-status.not-met { border-color: var(--muted); color: var(--muted); }
     .trigger-status.approaching { border-color: var(--amber); color: var(--amber); }
     .trigger-status.triggered { border-color: var(--green); color: var(--green); background: rgba(0,217,100,0.06); }
@@ -504,7 +510,7 @@
     .cal-event:last-child { border-bottom: none; }
     .cal-time { font-size: 9px; color: var(--muted); }
     .cal-name { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .cal-impact { font-size: 7px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 6px; text-align: center; }
+    .cal-impact { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 6px; text-align: center; }
     .cal-impact.HIGH { color: var(--red); border: 1px solid var(--red-dim); }
     .cal-impact.MEDIUM { color: var(--amber); border: 1px solid var(--amber-dim); }
     .cal-impact.LOW { color: var(--muted); border: 1px solid var(--border2); }
@@ -675,6 +681,42 @@
     html[data-theme="midnight"] .modal-action-btn { border-color: rgba(77,163,255,0.3); }
     html[data-theme="midnight"] .modal-action-btn:hover { background: rgba(77,163,255,0.1); }
     html[data-theme="midnight"] .notif-bell.has-notif { color: #ff6b6b; }
+
+    /* ── TERMINAL GREEN THEME ── */
+    html[data-theme="terminal-green"] {
+      --bg: #070f04; --bg2: #0a1607; --bg3: #0e1e0b;
+      --border: #1a3312; --border2: #244a1a;
+      --green: #00d964; --green-dim: #00873e;
+      --amber: #88ff00; --amber-dim: #4a8800;
+      --red: #ff4444; --red-dim: #881a1a;
+      --blue: #00cc88; --white: #c8ffcc;
+      --muted: #5aaa66; --muted2: #2a5530;
+      --nav-bg: #030a02;
+      --regime-strong-growth: #00d964;
+      --regime-reflation: #00cc88;
+      --regime-overheating: #88ff00;
+      --regime-stagflation: #ff4444;
+      --regime-risk: #ff7777;
+      --regime-contraction: #ff4444;
+    }
+    html[data-theme="terminal-green"] .topbar { background: var(--nav-bg); border-color: var(--border); }
+    html[data-theme="terminal-green"] .tab-nav { background: var(--nav-bg); border-color: var(--border); }
+    html[data-theme="terminal-green"] .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+    html[data-theme="terminal-green"] .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── OVERVIEW: COLLAPSIBLE SECTIONS ── */
+    .ov-collapsible .ov-sec-body { overflow: hidden; }
+    .ov-collapsible.collapsed .ov-sec-body { display: none; }
+    .section-header.collapsible { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .section-header.collapsible:hover .section-title { color: var(--white); }
+    .ov-sec-chevron { font-size: 9px; color: var(--muted2); transition: transform 0.2s; margin-left: 6px; flex-shrink: 0; }
+    .ov-collapsible.collapsed .ov-sec-chevron { transform: rotate(-90deg); }
+
+    /* ── OVERVIEW: SUB-NAVIGATION ── */
+    .ov-subnav { position: sticky; top: calc(80px + env(safe-area-inset-top, 0px)); z-index: 100; display: flex; background: var(--bg3); border-bottom: 1px solid var(--border); padding: 0 6px; }
+    .ov-subnav-btn { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted2); padding: 6px 10px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; text-transform: uppercase; transition: color 0.12s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+    .ov-subnav-btn:hover { color: var(--white); }
+    .ov-anchor { scroll-margin-top: 118px; }
 
     /* ── FONT SIZES ── */
     html[data-fontsize="compact"] body { font-size:11px; }
@@ -1046,7 +1088,7 @@
     .fedwatch-h-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 5px; }
     .fedwatch-h-yield { font-size: 16px; font-weight: 700; }
     .fedwatch-h-cuts { font-size: 9px; letter-spacing: 0.06em; margin-top: 3px; }
-    .fedwatch-h-dir { font-size: 7px; font-weight: 700; letter-spacing: 0.14em; margin-top: 4px; padding: 2px 5px; display: inline-block; }
+    .fedwatch-h-dir { font-size: 8px; font-weight: 700; letter-spacing: 0.14em; margin-top: 4px; padding: 2px 5px; display: inline-block; }
     .fedwatch-h-dir.CUTS { color: var(--green); border: 1px solid var(--green-dim); }
     .fedwatch-h-dir.HIKES { color: var(--red); border: 1px solid var(--red-dim); }
     .fedwatch-h-dir.HOLD { color: var(--muted); border: 1px solid var(--border2); }
@@ -1057,9 +1099,9 @@
     .regime-history-timeline { display: flex; gap: 3px; min-height: 56px; align-items: flex-end; flex-wrap: nowrap; }
     .rh-block { flex-shrink: 0; min-width: 22px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 3px; cursor: default; transition: opacity 0.15s; position: relative; }
     .rh-block:hover { opacity: 0.8; }
-    .rh-block-label { font-size: 7px; font-weight: 700; letter-spacing: 0.06em; writing-mode: vertical-lr; transform: rotate(180deg); color: rgba(0,0,0,0.7); white-space: nowrap; overflow: hidden; max-height: 38px; }
+    .rh-block-label { font-size: 8px; font-weight: 700; letter-spacing: 0.06em; writing-mode: vertical-lr; transform: rotate(180deg); color: rgba(0,0,0,0.7); white-space: nowrap; overflow: hidden; max-height: 38px; }
     .rh-date-row { display: flex; gap: 3px; margin-top: 4px; }
-    .rh-date { flex-shrink: 0; min-width: 22px; font-size: 7px; color: var(--muted); text-align: center; }
+    .rh-date { flex-shrink: 0; min-width: 22px; font-size: 8px; color: var(--muted); text-align: center; }
     .rh-empty { padding: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
 
     /* ── REGIME HISTORY PERIOD ROWS ── */
@@ -1145,6 +1187,30 @@
     .mc-legend-line { width: 12px; height: 2px; border-radius: 1px; flex-shrink: 0; }
     .mc-est-note { font-size: 8px; color: var(--muted2); font-family: var(--font-ui); letter-spacing: 0.06em; padding: 0 14px 5px; background: var(--bg2); }
     @media (max-width: 640px) { .mc-toggle-group { display: none; } .mc-sep { display: none; } }
+
+    /* ── THESIS INTEGRITY SECTION ── */
+    .thesis-integrity-card { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .thesis-integrity-label { font-family: var(--font-ui); font-size: 22px; font-weight: 700; letter-spacing: 0.12em; min-width: 100px; }
+    .thesis-integrity-label.green { color: var(--green); }
+    .thesis-integrity-label.amber { color: var(--amber); }
+    .thesis-integrity-label.red   { color: var(--red); }
+    .thesis-integrity-desc { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; line-height: 1.5; flex: 1; }
+    .thesis-integrity-score { font-family: var(--font-mono); font-size: 9px; color: var(--muted2); letter-spacing: 0.08em; white-space: nowrap; }
+    .thesis-trigger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .thesis-trigger-card { background: var(--bg2); padding: 12px 14px; }
+    .thesis-trigger-hdr { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .thesis-trigger-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--white); line-height: 1.35; max-width: 180px; }
+    .thesis-spark-wrap { margin: 4px 0 2px; }
+    .thesis-trigger-val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; line-height: 1; margin-bottom: 1px; }
+    .thesis-trigger-sub { font-size: 8px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 5px; }
+    .thesis-interp { font-size: 9px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 5px; }
+    .thesis-bdc-wrap { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+    .thesis-bdc-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+    .thesis-bdc-input { background: var(--bg3); border: 1px solid var(--border2); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; width: 80px; border-radius: 3px; -webkit-appearance: none; }
+    .thesis-bdc-input:focus { outline: none; border-color: var(--blue); }
+    .thesis-bdc-save { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 4px 10px; background: transparent; border: 1px solid var(--blue); color: var(--blue); cursor: pointer; border-radius: 3px; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+    .thesis-bdc-save:hover { background: var(--blue); color: var(--bg); }
+    .thesis-bdc-stamp { font-size: 8px; color: var(--muted2); letter-spacing: 0.06em; }
   </style>
 </head>
 <body>
@@ -1191,6 +1257,14 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel active" id="tab-overview">
 
+    <div class="ov-subnav">
+      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-thesis')">THESIS</button>
+      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-regime')">NOW</button>
+      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-rates')">RATES</button>
+      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-chart')">CHART</button>
+      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-history')">HISTORY</button>
+    </div>
+
     <!-- AI MORNING BRIEFING -->
     <section id="ai-briefing-section" class="briefing-section">
       <div class="section-header" onclick="toggleBriefing()">
@@ -1209,6 +1283,28 @@
       </div>
     </section>
 
+    <div id="ov-anchor-thesis" class="ov-anchor"></div>
+    <div id="ov-sec-thesis" class="ov-collapsible">
+      <div class="section-header collapsible" onclick="toggleOvSection('thesis')">
+        <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
+        <div class="section-line"></div>
+        <div class="section-meta" id="thesisTimestamp">--</div>
+        <span class="ov-sec-chevron">&#9660;</span>
+      </div>
+      <div class="ov-sec-body">
+        <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
+        <div id="thesisTriggerGrid" class="thesis-trigger-grid">
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+        </div>
+        <div style="padding:5px 14px 7px;font-size:8px;color:var(--muted2);letter-spacing:0.06em;border-top:1px solid var(--border)">
+          Triggers also visible in Credit tab &#183; FRED data updated hourly &#183; BDC = manual from earnings reports
+        </div>
+      </div>
+    </div>
+
+    <div id="ov-anchor-regime" class="ov-anchor"></div>
     <div class="section-header">
       <div class="section-title">REGIME STATUS</div>
       <div class="section-line"></div>
@@ -1276,75 +1372,98 @@
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
     </div>
 
-    <div class="section-header">
-      <div class="section-title">YIELD CURVE</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="yieldsTimestamp">--</div>
-    </div>
-    <div id="yieldsContent">
-      <div class="yc-wrap">
-        <div class="yc-chart"><div class="skel" style="height:160px;width:100%"></div></div>
-        <div class="yc-spreads">
-          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+    <div id="ov-anchor-rates" class="ov-anchor"></div>
+    <div id="ov-sec-yields" class="ov-collapsible">
+      <div class="section-header collapsible" onclick="toggleOvSection('yields')">
+        <div class="section-title">YIELD CURVE</div>
+        <div class="section-line"></div>
+        <div class="section-meta" id="yieldsTimestamp">--</div>
+        <span class="ov-sec-chevron">&#9660;</span>
+      </div>
+      <div class="ov-sec-body">
+        <div id="yieldsContent">
+          <div class="yc-wrap">
+            <div class="yc-chart"><div class="skel" style="height:160px;width:100%"></div></div>
+            <div class="yc-spreads">
+              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="section-header" id="fedwatch-header">
-      <div class="section-title">FED RATE PATH</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="fedwatchTimestamp">--</div>
-    </div>
-    <div id="fedwatchContent">
-      <div class="fedwatch-wrap">
-        <div class="skel" style="height:22px;width:80px;margin-bottom:10px"></div>
-        <div class="skel" style="height:10px;width:260px;margin-bottom:12px"></div>
-        <div class="fedwatch-path">
-          <div class="skel" style="height:66px"></div>
-          <div class="skel" style="height:66px"></div>
-          <div class="skel" style="height:66px"></div>
+    <div id="ov-sec-fedwatch" class="ov-collapsible">
+      <div class="section-header collapsible" id="fedwatch-header" onclick="toggleOvSection('fedwatch')">
+        <div class="section-title">FED RATE PATH</div>
+        <div class="section-line"></div>
+        <div class="section-meta" id="fedwatchTimestamp">--</div>
+        <span class="ov-sec-chevron">&#9660;</span>
+      </div>
+      <div class="ov-sec-body">
+        <div id="fedwatchContent">
+          <div class="fedwatch-wrap">
+            <div class="skel" style="height:22px;width:80px;margin-bottom:10px"></div>
+            <div class="skel" style="height:10px;width:260px;margin-bottom:12px"></div>
+            <div class="fedwatch-path">
+              <div class="skel" style="height:66px"></div>
+              <div class="skel" style="height:66px"></div>
+              <div class="skel" style="height:66px"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="section-header" id="regime-history-header">
-      <div class="section-title">REGIME HISTORY</div>
-      <div class="section-line"></div>
-      <div class="section-meta">90-DAY</div>
-    </div>
-    <div id="regimeHistoryContent">
-      <div class="rh-period-list">
-        <div class="skel" style="height:54px;width:100%"></div>
+    <div id="ov-anchor-chart" class="ov-anchor"></div>
+    <div id="ov-sec-chart" class="ov-collapsible">
+      <div class="section-header collapsible" onclick="toggleOvSection('chart')">
+        <div class="section-title">MACRO TIME SERIES</div>
+        <div class="section-line"></div>
+        <div class="section-meta" id="macroChartTimestamp">--</div>
+        <span class="ov-sec-chevron">&#9660;</span>
+      </div>
+      <div class="ov-sec-body">
+        <div class="macro-chart-controls">
+          <div class="mc-range-group">
+            <button class="mc-btn mc-range active" data-range="3y">3Y</button>
+            <button class="mc-btn mc-range" data-range="1y">1Y</button>
+            <button class="mc-btn mc-range" data-range="2y">2Y</button>
+            <button class="mc-btn mc-range" data-range="5y">5Y</button>
+          </div>
+          <div class="mc-sep"></div>
+          <div class="mc-toggle-group" id="mcToggles"></div>
+        </div>
+        <div class="mc-chart-wrap">
+          <div id="mcChartOuter" style="position:relative">
+            <div id="macroChartSvgWrap"><div class="skel" style="height:280px;width:100%;margin-top:4px"></div></div>
+            <div class="mc-crosshair" id="mcCrosshair"></div>
+            <div class="mc-tooltip" id="mcTooltip"></div>
+          </div>
+        </div>
+        <div class="mc-legend" id="mcLegend"></div>
+        <div class="mc-est-note" id="mcEstNote" style="display:none">* shaded bands before live tracking are estimated from FRED indicator thresholds</div>
       </div>
     </div>
 
-    <div class="section-header">
-      <div class="section-title">MACRO TIME SERIES</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="macroChartTimestamp">--</div>
-    </div>
-    <div class="macro-chart-controls">
-      <div class="mc-range-group">
-        <button class="mc-btn mc-range active" data-range="3y">3Y</button>
-        <button class="mc-btn mc-range" data-range="1y">1Y</button>
-        <button class="mc-btn mc-range" data-range="2y">2Y</button>
-        <button class="mc-btn mc-range" data-range="5y">5Y</button>
+    <div id="ov-anchor-history" class="ov-anchor"></div>
+    <div id="ov-sec-history" class="ov-collapsible">
+      <div class="section-header collapsible" id="regime-history-header" onclick="toggleOvSection('history')">
+        <div class="section-title">REGIME HISTORY</div>
+        <div class="section-line"></div>
+        <div class="section-meta">90-DAY</div>
+        <span class="ov-sec-chevron">&#9660;</span>
       </div>
-      <div class="mc-sep"></div>
-      <div class="mc-toggle-group" id="mcToggles"></div>
-    </div>
-    <div class="mc-chart-wrap">
-      <div id="mcChartOuter" style="position:relative">
-        <div id="macroChartSvgWrap"><div class="skel" style="height:280px;width:100%;margin-top:4px"></div></div>
-        <div class="mc-crosshair" id="mcCrosshair"></div>
-        <div class="mc-tooltip" id="mcTooltip"></div>
+      <div class="ov-sec-body">
+        <div id="regimeHistoryContent">
+          <div class="rh-period-list">
+            <div class="skel" style="height:54px;width:100%"></div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="mc-legend" id="mcLegend"></div>
-    <div class="mc-est-note" id="mcEstNote" style="display:none">* shaded bands before live tracking are estimated from FRED indicator thresholds</div>
 
   </div><!-- /tab-overview -->
 
@@ -1894,10 +2013,18 @@ function renderError(id, msg) {
   setEl(id, `<div class="error-row">⚠ ${msg}</div>`);
 }
 
-async function apiFetch(endpoint) {
-  const res = await fetch(endpoint, { cache: 'no-store' });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+async function apiFetch(endpoint, timeoutMs=15000) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(endpoint, { cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3061,11 +3188,136 @@ async function fetchOverview() {
     apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
     apiFetch('/api/macro/chart').then(renderMacroChart).catch(() => {}),
     apiFetch('/api/credit').then(d => { _lastCredit = d; }).catch(() => {}),
+    apiFetch('/api/thesis').then(renderThesis).catch(() => {}),
     loadBriefing().catch(() => {}),
   ]);
   renderRegimeCenterCards();
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// THESIS INTEGRITY DASHBOARD
+// ════════════════════════════════════════════════════════════
+let _macroThesisData = null;
+
+function renderThesis(data) {
+  _macroThesisData = data;
+  setTimestamp('thesisTimestamp', data.timestamp);
+  renderThesisIntegrity(data.integrity, data.triggers || []);
+  const d = stLoad();
+  const grid = (data.triggers || []).map(t =>
+    renderThesisTrigger(t, d.bdcNonAccrual, d.bdcNonAccrualDate)
+  ).join('');
+  setEl('thesisTriggerGrid', grid);
+}
+
+function renderThesisIntegrity(integrity, triggers) {
+  const fired   = triggers.filter(t => t.status === 'TRIGGERED').length;
+  const partial = triggers.filter(t => (t.status||'').startsWith('MET (')).length;
+  const score   = `${fired} triggered · ${partial} partially met`;
+  setEl('thesisIntegrityCard', `<div class="thesis-integrity-card">
+    <div class="thesis-integrity-label ${integrity.level}">${integrity.label}</div>
+    <div class="thesis-integrity-desc">
+      <span style="color:var(--white);font-weight:700;letter-spacing:0.1em">STAGFLATION THESIS</span><br>${integrity.desc}
+    </div>
+    <div class="thesis-integrity-score">${score}</div>
+  </div>`);
+}
+
+function renderThesisTrigger(t, bdcVal, bdcDate) {
+  const isBDC = t.id === 'bdc_nonaccruals';
+  let val = t.current_value, status = t.status;
+  if (isBDC && bdcVal != null) {
+    val    = parseFloat(bdcVal);
+    status = val < t.threshold ? 'TRIGGERED' : 'NOT MET';
+  }
+  const sCls = status === 'TRIGGERED' ? 'triggered'
+    : (status||'').startsWith('MET (') ? 'approaching'
+    : status === 'APPROACHING' ? 'approaching'
+    : status === 'NOT MET'     ? 'not-met'
+    : status === 'ERROR'       ? 'error' : 'manual';
+  const fmtVal = val != null
+    ? `${(+val).toFixed(t.unit === 'bp' ? 0 : 2)}${t.unit === 'bp' ? 'bp' : '%'}`
+    : '--';
+  const fmtThr = `${t.threshold}${t.unit === 'bp' ? 'bp' : '%'}`;
+  const prog = isBDC && val != null
+    ? Math.min(100, Math.max(0, t.direction === 'below'
+        ? (1 - (val - t.threshold) / Math.abs(t.threshold)) * 100
+        : (val / t.threshold) * 100))
+    : (t.progress_pct || 0);
+  const spark = (t.sparkline && t.sparkline.length >= 2)
+    ? `<div class="thesis-spark-wrap">${_sparkline(t.sparkline)}</div>` : '';
+  const track = val != null ? `<div class="trigger-track" style="margin:5px 0 3px">
+    <div class="trigger-fill ${sCls}" style="width:${Math.min(prog,100).toFixed(0)}%"></div>
+  </div>` : '';
+  const sustained = (!isBDC && t.required > 1 && val != null)
+    ? `<div class="trigger-sustained">CONSECUTIVE PERIODS MET: ${t.sustained_count}/${t.required}</div>` : '';
+  const bdcBlock = isBDC ? `<div class="thesis-bdc-wrap">
+    <div class="thesis-bdc-row">
+      <input class="thesis-bdc-input" id="bdcInput" type="number" step="0.01" min="0" max="20"
+        placeholder="e.g. 1.8" value="${bdcVal != null ? bdcVal : ''}" />
+      <button class="thesis-bdc-save" onclick="saveBdcReading()">SAVE</button>
+    </div>
+    <div class="thesis-bdc-stamp">${bdcDate ? 'Updated ' + bdcDate : 'Enter from BDC earnings (ARCC, BXSL, FSK)'}</div>
+  </div>` : '';
+  return `<div class="thesis-trigger-card">
+    <div class="thesis-trigger-hdr">
+      <div class="thesis-trigger-lbl">${t.full_label || t.label || ''}</div>
+      <div class="trigger-status ${sCls}">${status || '--'}</div>
+    </div>
+    ${spark}
+    <div class="thesis-trigger-val">${fmtVal}</div>
+    <div class="thesis-trigger-sub">THRESHOLD ${fmtThr} ${(t.direction||'').toUpperCase()}</div>
+    ${track}${sustained}${bdcBlock}
+    <div class="thesis-interp">${_thesisInterp(t, val, status)}</div>
+  </div>`;
+}
+
+function _thesisInterp(t, val, status) {
+  if (val == null) return t.id === 'bdc_nonaccruals'
+    ? 'Enter the current non-accrual rate from BDC earnings reports (ARCC, BXSL, FSK).'
+    : 'Data pending — FRED series unavailable.';
+  const fv    = parseFloat(val);
+  const fmtV  = t.unit === 'bp' ? `${fv.toFixed(0)}bp` : `${fv.toFixed(2)}%`;
+  const fmtT  = t.unit === 'bp' ? `${t.threshold}bp`   : `${t.threshold}%`;
+  const intact = status === 'NOT MET', fired = status === 'TRIGGERED';
+  const map = {
+    core_pce: intact
+      ? `Core PCE at ${fmtV} — above ${fmtT}. Inflation remains elevated; thesis intact.`
+      : fired ? `Core PCE at ${fmtV} for 3 consecutive months below ${fmtT}. Inflation cooling — review thesis.`
+      : `Core PCE at ${fmtV} — approaching or partially meeting the ${fmtT} threshold. Watch next print.`,
+    gdp_growth: intact
+      ? `Real GDP at ${fmtV} annualized — below ${fmtT} sustained threshold. Demand destruction thesis holds.`
+      : fired ? `Real GDP at ${fmtV} for 2+ quarters above ${fmtT}. Above-trend growth challenges thesis.`
+      : `GDP at ${fmtV} — approaching or meeting the ${fmtT} threshold. Monitor next BEA release.`,
+    hy_spreads: intact
+      ? `HY OAS at ${fmtV} — above ${fmtT}. Elevated credit spreads consistent with stagflation thesis.`
+      : fired ? `HY OAS compressed to ${fmtV} — below ${fmtT}. Tight spreads challenge the credit stress thesis.`
+      : `HY OAS at ${fmtV} — approaching the ${fmtT} threshold. Credit easing warrants attention.`,
+    productivity: intact
+      ? `Nonfarm productivity at ${fmtV} YoY — below ${fmtT}. No supply-side surge observed; thesis intact.`
+      : fired ? `Productivity at ${fmtV} YoY — above ${fmtT}. Supply-side expansion weakens stagflation case.`
+      : `Productivity at ${fmtV} — near the ${fmtT} threshold. Watch next BLS productivity release.`,
+    bdc_nonaccruals: intact
+      ? `BDC non-accruals at ${fmtV} — above ${fmtT}. Private credit stress persists; bear case supported.`
+      : fired ? `Non-accruals at ${fmtV} — below ${fmtT}. Clean BDC books reduce bear-case probability.`
+      : `Non-accruals at ${fmtV} — near the ${fmtT} threshold. Monitor next earnings cycle.`,
+  };
+  return map[t.id] || t.description || '';
+}
+
+function saveBdcReading() {
+  const el = document.getElementById('bdcInput');
+  if (!el) return;
+  const val = parseFloat(el.value);
+  if (isNaN(val) || val < 0 || val > 20) { el.style.borderColor = 'var(--red)'; return; }
+  el.style.borderColor = '';
+  const d = stLoad();
+  d.bdcNonAccrual     = val;
+  d.bdcNonAccrualDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  stSave(d);
+  if (_macroThesisData) renderThesis(_macroThesisData);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -4255,6 +4507,7 @@ const ST_DEF = {
   defaultTab:'overview',
   clientMode:false, clientPin:'',
   alertVIX:25, alertHY:500, alertSP:2.0, alertRegimeChange:true,
+  bdcNonAccrual:null, bdcNonAccrualDate:null, bdcNonAccrualNote:'',
 };
 
 function stLoad(){try{return Object.assign({},ST_DEF,JSON.parse(localStorage.getItem(ST_KEY))||{});}catch{return Object.assign({},ST_DEF);}}
@@ -4437,8 +4690,8 @@ function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
   return _sh('01','DISPLAY &amp; APPEARANCE',true)+
-    _sf('Theme',_ss('stTheme',[['original','ORIGINAL'],['dark','TERMINAL'],['light','STIFEL LIGHT'],['midnight','MIDNIGHT'],['high-contrast','HIGH CONTRAST']],d.theme))+
-    _sf('Font Size',_ss('stFontSize',[['compact','COMPACT'],['normal','NORMAL'],['large','LARGE']],d.fontSize))+
+    _sf('Theme',_ss('stTheme',[['original','BLOOMBERG DARK'],['dark','TERMINAL'],['light','STIFEL LIGHT'],['midnight','MIDNIGHT'],['high-contrast','HIGH CONTRAST'],['terminal-green','TERMINAL GREEN']],d.theme))+
+    _sf('Font Size',_ss('stFontSize',[['compact','CONDENSED'],['normal','STANDARD'],['large','LARGE TEXT']],d.fontSize))+
     _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
     _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
     _sf('Number Format',_ss('stNumFormat',[['abbreviated','ABBREVIATED'],['full','FULL']],d.numFormat))+
@@ -5667,6 +5920,36 @@ function toggleBriefing() {
 
 // Auto-reload every 6 hours
 setInterval(loadBriefing, 6 * 60 * 60 * 1000);
+
+// ════════════════════════════════════════════════════════════
+// OVERVIEW SECTION COLLAPSE + SUB-NAV
+// ════════════════════════════════════════════════════════════
+function toggleOvSection(key) {
+  const el = document.getElementById('ov-sec-' + key);
+  if (!el) return;
+  const collapsed = el.classList.toggle('collapsed');
+  const d = stLoad();
+  if (!d.collapsedOvSections) d.collapsedOvSections = {};
+  d.collapsedOvSections[key] = collapsed;
+  stSave(d);
+}
+
+function ovNavClick(anchorId) {
+  const el = document.getElementById(anchorId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Restore collapsed Overview sections on load
+(function() {
+  const d = stLoad();
+  const c = d.collapsedOvSections || {};
+  ['thesis', 'yields', 'fedwatch', 'chart', 'history'].forEach(key => {
+    if (c[key]) {
+      const el = document.getElementById('ov-sec-' + key);
+      if (el) el.classList.add('collapsed');
+    }
+  });
+})();
 
 // ════════════════════════════════════════════════════════════
 // CHART MODAL

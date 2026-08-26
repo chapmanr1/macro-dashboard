@@ -21,6 +21,7 @@ _cache = {
     "credit":    {"data": None, "ts": 0},
     "surprises": {"data": None, "ts": 0},
     "indices":   {"data": None, "ts": 0},
+    "thesis":    {"data": None, "ts": 0},
 }
 
 _history_cache: dict = {}
@@ -825,6 +826,80 @@ def _eval_falsification_triggers():
         results.append(entry)
 
     return results
+
+
+# ── THESIS INTEGRITY DATA ─────────────────────────────────────
+def _compute_thesis_sparklines() -> dict:
+    """Fetch 7–8 recent transformed values per trigger for inline sparklines."""
+    cfg = {
+        "core_pce":     ("PCEPILFE",     "yoy",       20),
+        "gdp_growth":   ("GDPC1",        "qoq",        9),
+        "hy_spreads":   ("BAMLH0A0HYM2", "latest_bp",  8),
+        "productivity": ("OPHNFB",       "yoy",       20),
+    }
+    result: dict = {}
+    for tid, (sid, calc, limit) in cfg.items():
+        try:
+            obs = _fetch_series(sid, limit=limit)
+            vals: list = []
+            if calc == "yoy":
+                for i in range(7):
+                    if len(obs) >= i + 13:
+                        c  = float(obs[i]["value"])
+                        ya = float(obs[i + 12]["value"])
+                        if ya != 0:
+                            vals.append(round(((c - ya) / abs(ya)) * 100, 2))
+                vals.reverse()  # oldest-first for sparkline
+            elif calc == "qoq":
+                for i in range(6):
+                    if len(obs) >= i + 2:
+                        c = float(obs[i]["value"])
+                        p = float(obs[i + 1]["value"])
+                        if p != 0:
+                            vals.append(round(((c / p) ** 4 - 1) * 100, 2))
+                vals.reverse()
+            else:  # latest_bp — level × 100
+                valid = [o for o in obs if o.get("value") not in (".", "", None)]
+                vals = [round(float(o["value"]) * 100, 0) for o in reversed(valid[:8])]
+            result[tid] = vals
+        except Exception as e:
+            log.warning(f"Thesis sparkline [{tid}]: {e}")
+            result[tid] = []
+    return result
+
+
+def get_thesis_data() -> dict:
+    """Returns falsification trigger status with sparklines and thesis integrity score."""
+    if _cache_valid("thesis"):
+        return _cache["thesis"]["data"]
+
+    triggers   = _eval_falsification_triggers()
+    sparklines = _compute_thesis_sparklines()
+    for t in triggers:
+        t["sparkline"] = sparklines.get(t["id"], [])
+
+    fired   = sum(1 for t in triggers if t.get("status") == "TRIGGERED")
+    partial = sum(1 for t in triggers if t.get("status", "").startswith("MET ("))
+
+    if fired >= 2:
+        integrity = {
+            "label": "REVIEW", "level": "red",
+            "desc": "Two or more falsification triggers have fired. Reassess thesis.",
+        }
+    elif fired == 1 or partial >= 2:
+        integrity = {
+            "label": "WATCH", "level": "amber",
+            "desc": "One trigger active or multiple approaching threshold. Monitor closely.",
+        }
+    else:
+        integrity = {
+            "label": "INTACT", "level": "green",
+            "desc": "All five falsification conditions unmet. Stagflation thesis supported.",
+        }
+
+    result = {"triggers": triggers, "integrity": integrity}
+    _set_cache("thesis", result)
+    return result
 
 
 # ── MACRO SURPRISE ACTUALS ────────────────────────────────────
