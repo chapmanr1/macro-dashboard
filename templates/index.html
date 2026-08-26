@@ -3339,9 +3339,8 @@ function renderThesisIntegrity(integrity, triggers) {
   const fired   = triggers.filter(t => t.status === 'TRIGGERED').length;
   const partial = triggers.filter(t => (t.status||'').startsWith('MET (')).length;
   const score   = `${fired} triggered · ${partial} partially met`;
-  const tipBtn  = _tipBtn('thesis_integrity');
-  setEl('thesisIntegrityCard', `<div class="thesis-integrity-card" data-tipkey="thesis_integrity" onclick="_showTooltip(this,'thesis_integrity')" style="cursor:pointer">
-    <div class="thesis-integrity-label ${integrity.level}">${integrity.label}${tipBtn}</div>
+  setEl('thesisIntegrityCard', `<div class="thesis-integrity-card">
+    <div class="thesis-integrity-label ${integrity.level}">${integrity.label}</div>
     <div class="thesis-integrity-desc">
       <span style="color:var(--white);font-weight:700;letter-spacing:0.1em">STAGFLATION THESIS</span><br>${integrity.desc}
     </div>
@@ -5062,7 +5061,7 @@ function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
   return _sh('01','DISPLAY &amp; APPEARANCE',true)+
-    _sf('Theme',_ss('stTheme',[['original','BLOOMBERG DARK'],['dark','TERMINAL'],['light','STIFEL LIGHT'],['midnight','MIDNIGHT'],['high-contrast','HIGH CONTRAST'],['terminal-green','TERMINAL GREEN']],d.theme))+
+    _sf('Theme',_ss('stTheme',[['original','DARK (DEFAULT)'],['dark','TERMINAL'],['light','STIFEL LIGHT'],['midnight','MIDNIGHT'],['high-contrast','HIGH CONTRAST'],['terminal-green','TERMINAL GREEN']],d.theme))+
     _sf('Font Size',_ss('stFontSize',[['compact','CONDENSED'],['normal','STANDARD'],['large','LARGE TEXT']],d.fontSize))+
     _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
     _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
