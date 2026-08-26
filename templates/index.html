@@ -1309,8 +1309,9 @@
   <div class="tab-panel active" id="tab-overview">
 
     <!-- AI MORNING BRIEFING -->
-    <section id="ai-briefing-section" class="briefing-section">
+    <section id="ai-briefing-section" class="briefing-section section-wrap" data-widget-id="briefing" draggable="true">
       <div class="section-header" onclick="toggleBriefing()">
+        <span class="sdrag" onclick="event.stopPropagation()" title="Drag to reorder">&#8801;</span>
         <button class="briefing-collapse-btn" title="Collapse">&#9660;</button>
         <span class="section-title">&#11045; AI MORNING BRIEFING</span>
         <div class="section-line"></div>
@@ -1326,8 +1327,10 @@
       </div>
     </section>
 
+    <div class="section-wrap" data-widget-id="regime" draggable="true">
     <div id="ov-anchor-regime" class="ov-anchor"></div>
     <div class="section-header">
+      <span class="sdrag" title="Drag to reorder">&#8801;</span>
       <div class="section-title">REGIME STATUS</div>
       <div class="section-meta" id="regimeTimestamp">--</div>
     </div>
@@ -1375,10 +1378,12 @@
 
       </div>
     </div>
+    </div><!-- /regime wrap -->
 
-    <div id="ov-anchor-thesis" class="ov-anchor"></div>
-    <div id="ov-sec-thesis" class="ov-collapsible">
+    <div id="ov-sec-thesis" class="ov-collapsible section-wrap" data-widget-id="thesis" draggable="true">
+      <div id="ov-anchor-thesis" class="ov-anchor"></div>
       <div class="section-header">
+        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
         <div class="section-meta" id="thesisTimestamp">--</div>
         <button class="thesis-detach-btn" onclick="thesisDetach()" title="Float panel">&#10696;</button>
@@ -1397,13 +1402,14 @@
     </div>
 
     <!-- WATCHLIST STRIP (hidden until populated) -->
-    <div id="watchlistStrip" class="watchlist-strip" style="display:none">
+    <div id="watchlistStrip" class="watchlist-strip section-wrap" data-widget-id="watchlist" draggable="true" style="display:none">
       <span class="watchlist-strip-lbl">WATCHLIST</span>
     </div>
 
+    <div class="section-wrap" data-widget-id="macro" draggable="true">
     <div class="section-header">
+      <span class="sdrag" title="Drag to reorder">&#8801;</span>
       <div class="section-title">MACRO INDICATORS</div>
-      <div class="section-line"></div>
       <div class="section-meta" id="macroTimestamp">--</div>
     </div>
     <div id="macroContent" class="macro-grid">
@@ -1412,10 +1418,12 @@
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
     </div>
+    </div><!-- /macro wrap -->
 
-    <div id="ov-anchor-rates" class="ov-anchor"></div>
-    <div id="ov-sec-yields" class="ov-collapsible">
+    <div id="ov-sec-yields" class="ov-collapsible section-wrap" data-widget-id="yields" draggable="true">
+      <div id="ov-anchor-rates" class="ov-anchor"></div>
       <div class="section-header">
+        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title">YIELD CURVE</div>
         <div class="section-meta" id="yieldsTimestamp">--</div>
       </div>
@@ -1434,8 +1442,9 @@
       </div>
     </div>
 
-    <div id="ov-sec-fedwatch" class="ov-collapsible">
+    <div id="ov-sec-fedwatch" class="ov-collapsible section-wrap" data-widget-id="fedwatch" draggable="true">
       <div class="section-header" id="fedwatch-header">
+        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title">FED RATE PATH</div>
         <div class="section-meta" id="fedwatchTimestamp">--</div>
       </div>
@@ -1454,9 +1463,10 @@
       </div>
     </div>
 
-    <div id="ov-anchor-chart" class="ov-anchor"></div>
-    <div id="ov-sec-chart" class="ov-collapsible">
+    <div id="ov-sec-chart" class="ov-collapsible section-wrap" data-widget-id="chart" draggable="true">
+      <div id="ov-anchor-chart" class="ov-anchor"></div>
       <div class="section-header">
+        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title">MACRO TIME SERIES</div>
         <div class="section-meta" id="macroChartTimestamp">--</div>
       </div>
@@ -1483,9 +1493,10 @@
       </div>
     </div>
 
-    <div id="ov-anchor-history" class="ov-anchor"></div>
-    <div id="ov-sec-history" class="ov-collapsible">
+    <div id="ov-sec-history" class="ov-collapsible section-wrap" data-widget-id="history" draggable="true">
+      <div id="ov-anchor-history" class="ov-anchor"></div>
       <div class="section-header" id="regime-history-header">
+        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title">REGIME HISTORY</div>
         <div class="section-meta">90-DAY</div>
       </div>
@@ -1887,7 +1898,8 @@
   </div>
   <div class="settings-body" id="settingsBody"></div>
   <div class="settings-footer">
-    <button class="settings-reset" id="settingsReset">↺ RESET TO DEFAULT</button>
+    <button class="settings-reset" id="settingsReset">↺ RESET SETTINGS TO DEFAULT</button>
+    <button class="settings-reset" onclick="resetWidgetLayouts()" style="margin-top:6px;border-color:var(--border)">&#8617; RESET WIDGET LAYOUT</button>
   </div>
 </div>
 
@@ -3313,6 +3325,7 @@ function renderThesis(data) {
   const triggers = (data.triggers || []).filter(t => t.id !== 'bdc_nonaccruals');
   renderThesisIntegrity(data.integrity, triggers);
   setEl('thesisTriggerGrid', triggers.map(t => renderThesisTrigger(t)).join(''));
+  _makeSortable(document.getElementById('thesisTriggerGrid'), 'thesis-triggers');
 }
 
 function thesisDetach() {
@@ -3376,8 +3389,9 @@ function renderThesisTrigger(t) {
   const tipKey = _THESIS_TIP_MAP[t.id];
   const infoBtn = tipKey ? _tipBtn(tipKey) : '';
   const cardClick = tipKey ? `data-tipkey="${tipKey}" onclick="_showTooltip(this,'${tipKey}')"` : '';
-  return `<div class="thesis-trigger-card" ${cardClick}>
+  return `<div class="thesis-trigger-card" data-widget-id="${t.id}" draggable="true" ${cardClick}>
     <div class="thesis-trigger-hdr">
+      <span class="sdrag" onclick="event.stopPropagation()" title="Drag to reorder">&#8801;</span>
       <div class="thesis-trigger-lbl">${t.full_label || t.label || ''}${infoBtn}</div>
       <div class="trigger-status ${sCls}">${status || '--'}</div>
     </div>
@@ -5383,6 +5397,66 @@ document.getElementById('settingsGear').addEventListener('click',()=>
 document.getElementById('settingsClose').addEventListener('click',closeSettings);
 
 // ── Shared drag helper ─────────────────────────────────────────
+// ── Sortable drag-to-reorder ───────────────────────────────────
+function _makeSortable(container, storageKey) {
+  if (!container) return;
+  let dragging = null;
+
+  container.addEventListener('dragstart', e => {
+    if (!e.target.closest('.sdrag')) { e.preventDefault(); return; }
+    const el = e.target.closest('[data-widget-id]');
+    if (!el || el.parentElement !== container) return;
+    dragging = el;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', el.dataset.widgetId);
+    requestAnimationFrame(() => el.classList.add('sw-ghost'));
+  });
+
+  container.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    container.querySelectorAll('.sw-over').forEach(el => el.classList.remove('sw-over'));
+    const target = e.target.closest('[data-widget-id]');
+    if (!target || target === dragging || target.parentElement !== container) return;
+    target.classList.add('sw-over');
+    const before = e.clientY < target.getBoundingClientRect().top + target.offsetHeight / 2;
+    container.insertBefore(dragging, before ? target : target.nextSibling);
+  });
+
+  container.addEventListener('drop', e => {
+    e.preventDefault();
+    container.querySelectorAll('.sw-over').forEach(el => el.classList.remove('sw-over'));
+  });
+
+  container.addEventListener('dragend', () => {
+    if (dragging) dragging.classList.remove('sw-ghost');
+    container.querySelectorAll('.sw-over').forEach(el => el.classList.remove('sw-over'));
+    dragging = null;
+    const order = [...container.querySelectorAll(':scope > [data-widget-id]')]
+      .map(el => el.dataset.widgetId);
+    const d = stLoad();
+    if (!d.widgetLayouts) d.widgetLayouts = {};
+    d.widgetLayouts[storageKey] = order;
+    stSave(d);
+  });
+
+  // Restore saved order
+  const saved = (stLoad().widgetLayouts || {})[storageKey];
+  if (saved && saved.length) {
+    saved.forEach(id => {
+      const el = container.querySelector(`:scope > [data-widget-id="${id}"]`);
+      if (el) container.appendChild(el);
+    });
+  }
+}
+
+function resetWidgetLayouts() {
+  const d = stLoad();
+  delete d.widgetLayouts;
+  stSave(d);
+  location.reload();
+}
+
 function _makeDraggable(panel, handle) {
   if (!panel || !handle) return;
   let active = false, ox = 0, oy = 0;
@@ -5411,6 +5485,7 @@ function _makeDraggable(panel, handle) {
 }
 _makeDraggable(document.getElementById('settingsDrawer'), document.getElementById('settingsHdr'));
 // thesisFloatPanel is injected after this script block; wired below after the element exists
+_makeSortable(document.getElementById('tab-overview'), 'ov-layout');
 document.getElementById('settingsReset').addEventListener('click',()=>{
   if(!confirm('Reset ALL settings to defaults?'))return;
   localStorage.removeItem(ST_KEY);localStorage.removeItem(S_KEY);
