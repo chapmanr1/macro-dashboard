@@ -1121,6 +1121,30 @@
     .company-analysis-ticker:hover { filter:brightness(1.3); }
     .company-analysis-ticker::after { content:" ⤢";font-size:0.65em;opacity:0;transition:opacity 0.2s; }
     .company-analysis-ticker:hover::after { opacity:0.7; }
+
+    /* ── MACRO TIME SERIES CHART ── */
+    .macro-chart-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 7px 14px 6px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .mc-range-group { display: flex; gap: 2px; }
+    .mc-toggle-group { display: flex; flex-wrap: wrap; gap: 2px; }
+    .mc-sep { width: 1px; height: 14px; background: var(--border); margin: 0 5px; align-self: center; flex-shrink: 0; }
+    .mc-btn { font-family: var(--font-ui); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; padding: 3px 7px; border: 1px solid var(--border); background: transparent; color: var(--muted2); cursor: pointer; border-radius: 2px; transition: all 0.12s; text-transform: uppercase; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+    .mc-btn:hover { color: var(--white); border-color: var(--muted); }
+    .mc-btn.active { background: var(--bg3); }
+    .mc-range.active { color: var(--white); border-color: var(--muted); }
+    .mc-toggle.active { opacity: 1 !important; }
+    .mc-chart-wrap { padding: 0 14px 8px; background: var(--bg); }
+    .mc-crosshair { display: none; position: absolute; width: 1px; background: rgba(255,255,255,0.2); pointer-events: none; z-index: 4; }
+    .mc-tooltip { display: none; position: absolute; background: rgba(13,18,32,0.97); border: 1px solid var(--border2); border-radius: 4px; padding: 7px 10px; font-size: 9px; font-family: var(--font-mono); pointer-events: none; z-index: 5; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); white-space: nowrap; }
+    .mc-tooltip-date { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+    .mc-tooltip-regime { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 5px; padding: 2px 6px; border-radius: 2px; display: inline-block; font-family: var(--font-ui); }
+    .mc-tooltip-row { display: flex; justify-content: space-between; gap: 14px; padding: 1px 0; }
+    .mc-tooltip-label { color: var(--muted); }
+    .mc-tooltip-val { font-weight: 600; }
+    .mc-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 5px 14px 8px; border-top: 1px solid var(--border); background: var(--bg2); }
+    .mc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 8px; color: var(--muted); font-family: var(--font-ui); letter-spacing: 0.08em; }
+    .mc-legend-line { width: 12px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+    .mc-est-note { font-size: 8px; color: var(--muted2); font-family: var(--font-ui); letter-spacing: 0.06em; padding: 0 14px 5px; background: var(--bg2); }
+    @media (max-width: 640px) { .mc-toggle-group { display: none; } .mc-sep { display: none; } }
   </style>
 </head>
 <body>
@@ -1296,6 +1320,31 @@
         <div class="skel" style="height:54px;width:100%"></div>
       </div>
     </div>
+
+    <div class="section-header">
+      <div class="section-title">MACRO TIME SERIES</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="macroChartTimestamp">--</div>
+    </div>
+    <div class="macro-chart-controls">
+      <div class="mc-range-group">
+        <button class="mc-btn mc-range active" data-range="3y">3Y</button>
+        <button class="mc-btn mc-range" data-range="1y">1Y</button>
+        <button class="mc-btn mc-range" data-range="2y">2Y</button>
+        <button class="mc-btn mc-range" data-range="5y">5Y</button>
+      </div>
+      <div class="mc-sep"></div>
+      <div class="mc-toggle-group" id="mcToggles"></div>
+    </div>
+    <div class="mc-chart-wrap">
+      <div id="mcChartOuter" style="position:relative">
+        <div id="macroChartSvgWrap"><div class="skel" style="height:280px;width:100%;margin-top:4px"></div></div>
+        <div class="mc-crosshair" id="mcCrosshair"></div>
+        <div class="mc-tooltip" id="mcTooltip"></div>
+      </div>
+    </div>
+    <div class="mc-legend" id="mcLegend"></div>
+    <div class="mc-est-note" id="mcEstNote" style="display:none">* shaded bands before live tracking are estimated from FRED indicator thresholds</div>
 
   </div><!-- /tab-overview -->
 
@@ -3003,12 +3052,303 @@ async function fetchOverview() {
     apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
     apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
     apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
+    apiFetch('/api/macro/chart').then(renderMacroChart).catch(() => {}),
     apiFetch('/api/credit').then(d => { _lastCredit = d; }).catch(() => {}),
     loadBriefing().catch(() => {}),
   ]);
   renderRegimeCenterCards();
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// MACRO TIME SERIES CHART
+// ════════════════════════════════════════════════════════════
+let _macroChartData = null;
+let _mcActiveRange = '3y';
+const _mcActiveLines = new Set(['CPIAUCSL','PCEPILFE','A191RL1Q225SBEA','UNRATE','FEDFUNDS','T10Y2Y','BAMLH0A0HYM2EY']);
+let _mcHoverData = [];
+const _MC_SERIES_IDS = ['CPIAUCSL','PCEPILFE','A191RL1Q225SBEA','UNRATE','FEDFUNDS','T10Y2Y','BAMLH0A0HYM2EY'];
+const MC_SERIES_CFG = {
+  'CPIAUCSL':        { label:'CPI YoY %',    color:'#f97316', dash:'' },
+  'PCEPILFE':        { label:'Core PCE %',   color:'#fbbf24', dash:'5 3' },
+  'A191RL1Q225SBEA': { label:'Real GDP %',   color:'#22c55e', dash:'7 3' },
+  'UNRATE':          { label:'Unemploy %',   color:'#60a5fa', dash:'' },
+  'FEDFUNDS':        { label:'Fed Funds %',  color:'#a78bfa', dash:'' },
+  'T10Y2Y':          { label:'10Y-2Y %',     color:'#34d399', dash:'3 2' },
+  'BAMLH0A0HYM2EY':  { label:'HY Yield %',  color:'#f472b6', dash:'' },
+};
+const MC_REGIME_CLR = {
+  'STRONG_GROWTH':    '#22c55e',
+  'REFLATION':        '#60a5fa',
+  'STAGFLATION_RISK': '#fbbf24',
+  'STAGFLATION':      '#f97316',
+  'CONTRACTION':      '#ef4444',
+  'OVERHEATING':      '#a855f7',
+};
+const MC_META = { W:900, H:300, PL:50, PR:14, PT:14, PB:32 };
+
+function renderMacroChart(data) {
+  if (!data) return;
+  _macroChartData = data;
+  if (data.timestamp) setTimestamp('macroChartTimestamp', data.timestamp);
+
+  // Init toggle buttons once
+  const toggleDiv = document.getElementById('mcToggles');
+  if (toggleDiv && !toggleDiv._init) {
+    toggleDiv._init = true;
+    _MC_SERIES_IDS.forEach(id => {
+      const cfg = MC_SERIES_CFG[id];
+      const btn = document.createElement('button');
+      btn.className = 'mc-btn mc-toggle active';
+      btn.dataset.sid = id;
+      btn.textContent = cfg.label;
+      btn.style.borderColor = cfg.color;
+      btn.style.color = cfg.color;
+      btn.addEventListener('click', () => {
+        if (_mcActiveLines.has(id)) {
+          if (_mcActiveLines.size > 1) { _mcActiveLines.delete(id); btn.classList.remove('active'); btn.style.opacity = '0.32'; }
+        } else {
+          _mcActiveLines.add(id); btn.classList.add('active'); btn.style.opacity = '1';
+        }
+        _mcRebuild();
+      });
+      toggleDiv.appendChild(btn);
+    });
+  }
+
+  // Wire range buttons once
+  document.querySelectorAll('.mc-range').forEach(btn => {
+    if (btn._init) return;
+    btn._init = true;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mc-range').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _mcActiveRange = btn.dataset.range;
+      _mcRebuild();
+    });
+  });
+
+  // Wire hover events on outer container once
+  const outer = document.getElementById('mcChartOuter');
+  if (outer && !outer._init) {
+    outer._init = true;
+    outer.addEventListener('mousemove', _mcMouseMove);
+    outer.addEventListener('mouseleave', _mcMouseLeave);
+    outer.addEventListener('touchstart', _mcMouseLeave, { passive: true });
+  }
+
+  // Build legend once
+  const legend = document.getElementById('mcLegend');
+  if (legend && !legend._init) {
+    legend._init = true;
+    _MC_SERIES_IDS.forEach(id => {
+      const cfg = MC_SERIES_CFG[id];
+      const item = document.createElement('div');
+      item.className = 'mc-legend-item';
+      const dash = cfg.dash ? `border-top:1px dashed ${cfg.color};background:transparent` : `background:${cfg.color}`;
+      item.innerHTML = `<div class="mc-legend-line" style="${dash}"></div>${cfg.label}`;
+      legend.appendChild(item);
+    });
+  }
+
+  _mcRebuild();
+}
+
+function _mcRebuild() {
+  if (!_macroChartData) return;
+  const wrap = document.getElementById('macroChartSvgWrap');
+  if (!wrap) return;
+  const result = _buildMcSVG(_macroChartData, _mcActiveRange, _mcActiveLines);
+  wrap.innerHTML = result.svg;
+  _mcHoverData = result.hoverData;
+  const note = document.getElementById('mcEstNote');
+  if (note) note.style.display = result.hasEst ? '' : 'none';
+}
+
+function _buildMcSVG(data, range, activeLines) {
+  const { W, H, PL, PR, PT, PB } = MC_META;
+  const CW = W - PL - PR, CH = H - PT - PB;
+  const EMPTY = { svg: '<div style="color:#475569;font-size:10px;padding:80px 0;text-align:center;letter-spacing:0.1em">NO DATA</div>', hoverData: [], hasEst: false };
+
+  // Cutoff date
+  const monthsMap = { '1y':12, '2y':24, '3y':36, '5y':60 };
+  const months = monthsMap[range] || 36;
+  const cutoff = new Date(Date.now() - months * 30.44 * 86400000).toISOString().slice(0, 10);
+
+  const visSeries = (data.series || []).filter(s => activeLines.has(s.id));
+
+  // Collect all dates in range
+  const dateSet = new Set();
+  visSeries.forEach(s => (s.data || []).forEach(d => { if (d.date >= cutoff) dateSet.add(d.date); }));
+  const dates = Array.from(dateSet).sort();
+  if (!dates.length) return EMPTY;
+
+  const msMin = new Date(dates[0]).getTime();
+  const msMax = new Date(dates[dates.length - 1]).getTime();
+  const msSpan = msMax - msMin || 1;
+  const dateToX = d => PL + ((new Date(d).getTime() - msMin) / msSpan) * CW;
+
+  // Y scale
+  const allVals = [];
+  visSeries.forEach(s => (s.data || []).forEach(d => { if (d.date >= cutoff && d.value != null) allVals.push(d.value); }));
+  if (!allVals.length) return EMPTY;
+
+  const rawMin = Math.min(...allVals), rawMax = Math.max(...allVals);
+  const pad = Math.max((rawMax - rawMin) * 0.14, 0.4);
+  const yMin = rawMin - pad, yMax = rawMax + pad;
+  const ySpan = yMax - yMin;
+  const toY = v => PT + CH - ((v - yMin) / ySpan) * CH;
+
+  // Regime bands
+  const synPeriods = data.synthetic_periods || [];
+  const realPeriods = data.regime_periods || [];
+  const realStart = realPeriods.length ? realPeriods[0].start_date : null;
+  let hasEst = false, bandsSVG = '';
+
+  synPeriods.forEach(p => {
+    const pEnd = (realStart && p.end_date >= realStart) ? realStart : p.end_date;
+    if (pEnd < cutoff) return;
+    const x1 = Math.max(PL, dateToX(p.start_date > cutoff ? p.start_date : cutoff));
+    const x2 = Math.min(PL + CW, dateToX(pEnd));
+    if (x2 > x1 + 0.5) {
+      bandsSVG += `<rect x="${x1.toFixed(1)}" y="${PT}" width="${(x2-x1).toFixed(1)}" height="${CH}" fill="${MC_REGIME_CLR[p.label]||'#888'}" fill-opacity="0.09"/>`;
+      hasEst = true;
+    }
+  });
+  realPeriods.forEach(p => {
+    if (p.end_date < cutoff) return;
+    const x1 = Math.max(PL, dateToX(p.start_date > cutoff ? p.start_date : cutoff));
+    const x2 = Math.min(PL + CW, dateToX(p.end_date > dates[dates.length-1] ? dates[dates.length-1] : p.end_date));
+    if (x2 > x1 + 0.5) {
+      bandsSVG += `<rect x="${x1.toFixed(1)}" y="${PT}" width="${(x2-x1).toFixed(1)}" height="${CH}" fill="${MC_REGIME_CLR[p.label]||'#888'}" fill-opacity="0.16"/>`;
+    }
+  });
+
+  // Grid lines + Y labels
+  let gridSVG = '';
+  for (let i = 0; i <= 5; i++) {
+    const v = yMin + (ySpan / 5) * i;
+    const gy = toY(v);
+    gridSVG += `<line x1="${PL}" y1="${gy.toFixed(1)}" x2="${W-PR}" y2="${gy.toFixed(1)}" stroke="#182030" stroke-width="1"/>`;
+    gridSVG += `<text x="${PL-4}" y="${(gy+3.5).toFixed(1)}" text-anchor="end" font-size="8" fill="#3a5070" font-family="'Courier New',monospace">${v.toFixed(1)}</text>`;
+  }
+
+  // Zero line
+  let zeroSVG = '';
+  if (yMin < 0 && yMax > 0) {
+    const zy = toY(0);
+    zeroSVG = `<line x1="${PL}" y1="${zy.toFixed(1)}" x2="${W-PR}" y2="${zy.toFixed(1)}" stroke="#2a4060" stroke-width="1" stroke-dasharray="3 3"/>`;
+  }
+
+  // X-axis date labels
+  const step = months <= 12 ? 3 : months <= 24 ? 6 : 12;
+  let xSVG = '';
+  dates.forEach(d => {
+    if (parseInt(d.slice(5,7)) % step !== 1) return;
+    const x = dateToX(d);
+    if (x < PL + 22 || x > PL + CW - 22) return;
+    xSVG += `<text x="${x.toFixed(1)}" y="${H-7}" text-anchor="middle" font-size="8" fill="#3a5070" font-family="'Courier New',monospace">${d.slice(0,7)}</text>`;
+  });
+
+  // Series lines
+  let linesSVG = '';
+  visSeries.forEach(s => {
+    const cfg = MC_SERIES_CFG[s.id] || { color:'#888', dash:'' };
+    const pts = (s.data || []).filter(d => d.date >= cutoff && d.value != null)
+      .map(d => `${dateToX(d.date).toFixed(1)},${toY(d.value).toFixed(1)}`);
+    if (pts.length < 2) return;
+    const da = cfg.dash ? ` stroke-dasharray="${cfg.dash}"` : '';
+    linesSVG += `<polyline points="${pts.join(' ')}" fill="none" stroke="${cfg.color}" stroke-width="1.8"${da} stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  // Left axis border
+  const axisSVG = `<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#1e2d45" stroke-width="1"/>`;
+
+  // Build hover data
+  const seriesMaps = {};
+  visSeries.forEach(s => {
+    seriesMaps[s.id] = {};
+    (s.data || []).filter(d => d.date >= cutoff && d.value != null).forEach(d => { seriesMaps[s.id][d.date] = d.value; });
+  });
+  const regimeAt = d => {
+    for (const p of realPeriods) { if (d >= p.start_date && d <= p.end_date) return { label: p.label, est: false }; }
+    for (const p of synPeriods)  { if (d >= p.start_date && d <= p.end_date) return { label: p.label, est: true }; }
+    return null;
+  };
+  const hoverData = dates.map(d => {
+    const vals = {};
+    visSeries.forEach(s => { if (seriesMaps[s.id][d] != null) vals[s.id] = seriesMaps[s.id][d]; });
+    return Object.keys(vals).length ? { date: d, x: dateToX(d), vals, regime: regimeAt(d) } : null;
+  }).filter(Boolean);
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">
+  ${bandsSVG}${gridSVG}${zeroSVG}${linesSVG}${xSVG}${axisSVG}
+</svg>`;
+
+  return { svg, hoverData, hasEst };
+}
+
+function _mcMouseMove(evt) {
+  if (!_mcHoverData.length) return;
+  const outer  = document.getElementById('mcChartOuter');
+  const svgWrap = document.getElementById('macroChartSvgWrap');
+  const cross  = document.getElementById('mcCrosshair');
+  const tip    = document.getElementById('mcTooltip');
+  if (!outer || !svgWrap || !cross || !tip) return;
+
+  const outerRect = outer.getBoundingClientRect();
+  const svgRect   = svgWrap.getBoundingClientRect();
+  const { W, H, PL, PT, PB } = MC_META;
+  const CH = H - PT - PB;
+
+  // Map mouse x into SVG coordinate space
+  const svgX = (evt.clientX - svgRect.left) * (W / svgRect.width);
+
+  // Nearest hover point by x
+  let nearest = _mcHoverData[0], minDist = Math.abs(_mcHoverData[0].x - svgX);
+  for (const hd of _mcHoverData) {
+    const d = Math.abs(hd.x - svgX);
+    if (d < minDist) { minDist = d; nearest = hd; }
+  }
+  if (!nearest) return;
+
+  // Crosshair position relative to outerRect
+  const crossPx = (nearest.x / W) * svgRect.width + (svgRect.left - outerRect.left);
+  const crossTop = (PT / H) * svgRect.height + (svgRect.top - outerRect.top);
+  const crossH   = (CH / H) * svgRect.height;
+  cross.style.cssText = `display:block;position:absolute;left:${crossPx.toFixed(0)}px;top:${crossTop.toFixed(0)}px;height:${crossH.toFixed(0)}px;width:1px;background:rgba(255,255,255,0.22);pointer-events:none;z-index:4`;
+
+  // Tooltip
+  let rows = '';
+  _MC_SERIES_IDS.forEach(id => {
+    if (!_mcActiveLines.has(id)) return;
+    const val = nearest.vals[id];
+    if (val == null) return;
+    const cfg = MC_SERIES_CFG[id];
+    rows += `<div class="mc-tooltip-row"><span class="mc-tooltip-label" style="color:${cfg.color}">${cfg.label}</span><span class="mc-tooltip-val">${val.toFixed(2)}</span></div>`;
+  });
+  let regHtml = '';
+  if (nearest.regime) {
+    const clr = MC_REGIME_CLR[nearest.regime.label] || '#888';
+    const est = nearest.regime.est ? ' est.' : '';
+    regHtml = `<div class="mc-tooltip-regime" style="background:${clr}22;color:${clr};border:1px solid ${clr}44">${nearest.regime.label.replace(/_/g,' ')}${est}</div>`;
+  }
+  tip.innerHTML = `<div class="mc-tooltip-date">${nearest.date}</div>${regHtml}${rows}`;
+
+  // Position tooltip (flip left if near right edge)
+  const TIP_W = 185;
+  const relX = evt.clientX - outerRect.left;
+  const tipLeft = relX + TIP_W + 14 > outerRect.width ? relX - TIP_W - 6 : relX + 10;
+  const tipTop  = (PT / H) * svgRect.height + (svgRect.top - outerRect.top) + 4;
+  tip.style.cssText = `display:block;position:absolute;left:${tipLeft.toFixed(0)}px;top:${tipTop.toFixed(0)}px;background:rgba(13,18,32,0.97);border:1px solid #263548;border-radius:4px;padding:7px 10px;font-size:9px;font-family:'Courier New',monospace;pointer-events:none;z-index:5;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.6);white-space:nowrap`;
+}
+
+function _mcMouseLeave() {
+  const cross = document.getElementById('mcCrosshair');
+  const tip   = document.getElementById('mcTooltip');
+  if (cross) cross.style.display = 'none';
+  if (tip)   tip.style.display = 'none';
 }
 
 // ════════════════════════════════════════════════════════════

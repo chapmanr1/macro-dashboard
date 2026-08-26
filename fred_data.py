@@ -71,6 +71,10 @@ _HISTORY_META: dict = {
     "EUALOLITONOSTSAM": {"label": "Eurozone CLI",         "unit": "",   "calc": "level"},
     "OECDLOLITONOSTSAM":{"label": "OECD CLI",             "unit": "",   "calc": "level"},
     "JPNLOLITONOSTSAM": {"label": "Japan CLI",            "unit": "",   "calc": "level"},
+    # Time series chart series (not in other category groups above)
+    "T10Y2Y":           {"label": "10Y-2Y Spread",        "unit": "%",  "calc": "level"},
+    "A191RL1Q225SBEA":  {"label": "Real GDP Growth",      "unit": "%",  "calc": "level"},
+    "BAMLH0A0HYM2EY":  {"label": "HY Eff. Yield",        "unit": "%",  "calc": "level"},
 }
 
 def _cache_valid(key):
@@ -1540,6 +1544,133 @@ def get_macro_history(series_id: str, n_obs: int) -> dict:
     result: dict = {"label": meta["label"], "unit": meta["unit"], "data": data}
     _history_cache[key] = {"data": result, "ts": time.time()}
     return result
+
+
+# ── MACRO TIME SERIES CHART ───────────────────────────────────
+
+_CHART_SERIES = [
+    "CPIAUCSL", "PCEPILFE", "A191RL1Q225SBEA",
+    "UNRATE", "FEDFUNDS", "T10Y2Y", "BAMLH0A0HYM2EY",
+]
+_chart_cache: dict = {"data": None, "ts": 0.0}
+_CHART_CACHE_TTL = 3600
+
+
+def get_chart_series() -> dict:
+    """Fetch 5Y of all 7 macro indicator series for the time series chart.
+
+    Returns {"series": [{"id", "label", "unit", "data": [{"date", "value"}]}]}.
+    Cached 1 hour; reuses get_macro_history() per-series caches internally.
+    """
+    if _chart_cache["data"] is not None and (time.time() - _chart_cache["ts"]) < _CHART_CACHE_TTL:
+        return _chart_cache["data"]
+    result = []
+    for sid in _CHART_SERIES:
+        try:
+            # GDP is quarterly — 22 obs ≈ 5Y; others are monthly — 62 obs ≈ 5Y
+            n = 22 if sid == "A191RL1Q225SBEA" else 62
+            h = get_macro_history(sid, n_obs=n)
+            result.append({"id": sid, **h})
+        except Exception as e:
+            log.warning("get_chart_series: %s failed: %s", sid, e)
+    out: dict = {"series": result}
+    _chart_cache["data"] = out
+    _chart_cache["ts"] = time.time()
+    return out
+
+
+def get_synthetic_regime_history() -> list:
+    """Classify 5Y of monthly FRED data into approximate regime periods.
+
+    Uses simplified thresholds (no hysteresis, no temporal smoothing) to produce
+    estimated regime labels for historical dates before the live history log began.
+    Returns list of {"label", "start_date", "end_date", "is_estimated": True},
+    sorted oldest-first. Cached 1 hour.
+    """
+    _syn_key = "_synthetic_regime"
+    entry = _history_cache.get(_syn_key)
+    if entry and (time.time() - entry["ts"]) < CACHE_TTL:
+        return entry["data"]
+
+    try:
+        cpi_h    = get_macro_history("CPIAUCSL",        n_obs=62)["data"]
+        gdp_h    = get_macro_history("A191RL1Q225SBEA", n_obs=22)["data"]
+        unrate_h = get_macro_history("UNRATE",          n_obs=62)["data"]
+
+        cpi_map    = {d["date"][:7]: d["value"] for d in cpi_h}
+        unrate_map = {d["date"][:7]: d["value"] for d in unrate_h}
+
+        # Forward-fill quarterly GDP to monthly
+        gdp_by_ym: dict = {d["date"][:7]: d["value"] for d in gdp_h}
+        all_months = sorted(set(list(cpi_map) + list(unrate_map)))
+        gdp_filled: dict = {}
+        last_gdp = None
+        for ym in all_months:
+            if ym in gdp_by_ym:
+                last_gdp = gdp_by_ym[ym]
+            gdp_filled[ym] = last_gdp
+
+        # Classify each month using simple thresholds
+        monthly: list = []
+        prev_unrate = None
+        for ym in all_months:
+            cpi    = cpi_map.get(ym)
+            gdp    = gdp_filled.get(ym)
+            unrate = unrate_map.get(ym)
+            ur_rising = (unrate is not None and prev_unrate is not None
+                         and unrate > prev_unrate + 0.2)
+            if unrate is not None:
+                prev_unrate = unrate
+
+            if cpi is None or gdp is None or unrate is None:
+                label = None
+            elif gdp < 0 or (unrate > 5.5 and ur_rising):
+                label = "CONTRACTION"
+            elif cpi > 4.5 and gdp < 1.5:
+                label = "STAGFLATION"
+            elif cpi > 3.0 and gdp < 2.0:
+                label = "STAGFLATION_RISK"
+            elif gdp > 3.5 and cpi < 2.5:
+                label = "OVERHEATING"
+            elif gdp > 2.5 and cpi < 3.5 and unrate < 4.5:
+                label = "STRONG_GROWTH"
+            else:
+                label = "REFLATION"
+            monthly.append((ym, label))
+
+        # Group consecutive same-label months into periods
+        periods: list = []
+        if monthly:
+            cur_label = monthly[0][1]
+            cur_start = monthly[0][0]
+            cur_end   = monthly[0][0]
+            for ym, label in monthly[1:]:
+                if label == cur_label:
+                    cur_end = ym
+                else:
+                    if cur_label is not None:
+                        periods.append({
+                            "label":       cur_label,
+                            "start_date":  cur_start + "-01",
+                            "end_date":    cur_end   + "-01",
+                            "is_estimated": True,
+                        })
+                    cur_label = label
+                    cur_start = ym
+                    cur_end   = ym
+            if cur_label is not None:
+                periods.append({
+                    "label":       cur_label,
+                    "start_date":  cur_start + "-01",
+                    "end_date":    cur_end   + "-01",
+                    "is_estimated": True,
+                })
+
+        _history_cache[_syn_key] = {"data": periods, "ts": time.time()}
+        return periods
+    except Exception as e:
+        log.warning("get_synthetic_regime_history failed: %s", e)
+        return []
 
 
 # ── STANDALONE TEST ───────────────────────────────────────────

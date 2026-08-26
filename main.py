@@ -347,6 +347,23 @@ def api_macro_history():
         log.error(f"Macro history error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "series": []}), 500
 
+@app.route("/api/macro/chart")
+def api_macro_chart():
+    try:
+        from fred_data import get_chart_series, get_synthetic_regime_history
+        series_data = get_chart_series()
+        synthetic   = get_synthetic_regime_history()
+        periods     = get_enriched_regime_history()
+        return jsonify({
+            **series_data,
+            "regime_periods":    periods,
+            "synthetic_periods": synthetic,
+            "timestamp":         datetime.utcnow().isoformat(),
+        })
+    except Exception as e:
+        log.error(f"Macro chart error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "series": []}), 500
+
 @app.route("/api/global")
 def api_global():
     try:
