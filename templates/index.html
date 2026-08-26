@@ -5396,6 +5396,7 @@ document.getElementById('settingsClose').addEventListener('click',closeSettings)
 
 // ── Shared drag helper ─────────────────────────────────────────
 function _makeDraggable(panel, handle) {
+  if (!panel || !handle) return;
   let active = false, ox = 0, oy = 0;
   function start(cx, cy) {
     const r = panel.getBoundingClientRect();
@@ -5421,7 +5422,7 @@ function _makeDraggable(panel, handle) {
   document.addEventListener('touchend',  end);
 }
 _makeDraggable(document.getElementById('settingsDrawer'), document.getElementById('settingsHdr'));
-_makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementById('thesisFloatHdr'));
+// thesisFloatPanel is injected after this script block; wired below after the element exists
 document.getElementById('settingsReset').addEventListener('click',()=>{
   if(!confirm('Reset ALL settings to defaults?'))return;
   localStorage.removeItem(ST_KEY);localStorage.removeItem(S_KEY);
@@ -6715,5 +6716,8 @@ fetchBDC();
     <div class="skel" style="height:100px;width:100%"></div>
   </div>
 </div>
+<script>
+_makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementById('thesisFloatHdr'));
+</script>
 </body>
 </html>
