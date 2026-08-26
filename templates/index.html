@@ -82,9 +82,9 @@
     .tab-panel.active { display: block; }
 
     /* ── SECTION HEADERS ── */
-    .section-header { display: flex; align-items: center; gap: 10px; padding: 7px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
-    .section-title { font-family: var(--font-ui); font-size: 9px; font-weight: 600; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
-    .section-line { flex: 1; height: 1px; background: var(--border); }
+    .section-header { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+    .section-title { font-family: var(--font-ui); font-size: 10px; font-weight: 700; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+    .section-line { display: none; }
     .section-meta { font-size: 9px; color: var(--muted2); letter-spacing: 0.08em; font-family: var(--font-mono); }
     .sub-section-header { padding: 5px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); font-family: var(--font-ui); font-size: 8px; font-weight: 600; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
 
@@ -542,6 +542,18 @@
     .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; border-radius: 0 0 14px 14px; }
     .settings-reset { width: 100%; padding: 8px; background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 9px; letter-spacing: 0.14em; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
     .settings-reset:hover { border-color: var(--amber); color: var(--amber); }
+    /* Thesis float panel */
+    .thesis-float-panel { position: fixed; display: none; z-index: 1050; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 660px; max-width: calc(100vw - 24px); max-height: 72vh; overflow: hidden; background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.85); flex-direction: column; }
+    .thesis-float-panel.open { display: flex; }
+    .thesis-float-hdr { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg3); border-bottom: 1px solid var(--border); cursor: move; user-select: none; flex-shrink: 0; border-radius: 10px 10px 0 0; }
+    .thesis-float-body { overflow-y: auto; flex: 1; padding: 12px 14px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    .thesis-float-body::-webkit-scrollbar { width: 4px; }
+    .thesis-float-body::-webkit-scrollbar-thumb { background: var(--border2); }
+    .thesis-float-close { margin-left: auto; background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; -webkit-tap-highlight-color: transparent; }
+    .thesis-float-close:hover { color: var(--white); }
+    .thesis-float-conf { font-size: 9px; color: var(--muted2); letter-spacing: .06em; }
+    .thesis-detach-btn { background: none; border: none; color: var(--muted2); font-size: 13px; cursor: pointer; padding: 0 3px; line-height: 1; transition: color .15s; -webkit-tap-highlight-color: transparent; }
+    .thesis-detach-btn:hover { color: var(--orange); }
     /* Drawer row drag handle */
     .srow-drag { cursor: grab; color: var(--border2); font-size: 14px; user-select: none; flex-shrink: 0; transition: color 0.15s; line-height: 1; padding: 0 2px; }
     .settings-row:hover .srow-drag { color: var(--muted); }
@@ -705,18 +717,15 @@
     html[data-theme="terminal-green"] .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
 
     /* ── OVERVIEW: COLLAPSIBLE SECTIONS ── */
-    .ov-collapsible .ov-sec-body { overflow: hidden; }
-    .ov-collapsible.collapsed .ov-sec-body { display: none; }
-    .section-header.collapsible { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .ov-collapsible .ov-sec-body { overflow: hidden; max-height: 9999px; transition: max-height 0.28s ease; }
+    .ov-collapsible.collapsed .ov-sec-body { max-height: 0 !important; }
+    .section-header.collapsible { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
+    .section-header.collapsible:hover { background: var(--bg3); }
     .section-header.collapsible:hover .section-title { color: var(--white); }
-    .ov-sec-chevron { font-size: 9px; color: var(--muted2); transition: transform 0.2s; margin-left: 6px; flex-shrink: 0; }
+    .ov-sec-chevron { font-size: 9px; color: var(--muted2); transition: transform 0.25s; margin-left: 4px; flex-shrink: 0; }
     .ov-collapsible.collapsed .ov-sec-chevron { transform: rotate(-90deg); }
 
-    /* ── OVERVIEW: SUB-NAVIGATION ── */
-    .ov-subnav { position: sticky; top: calc(80px + env(safe-area-inset-top, 0px)); z-index: 100; display: flex; background: var(--bg3); border-bottom: 1px solid var(--border); padding: 0 6px; }
-    .ov-subnav-btn { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted2); padding: 6px 10px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; text-transform: uppercase; transition: color 0.12s; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
-    .ov-subnav-btn:hover { color: var(--white); }
-    .ov-anchor { scroll-margin-top: 118px; }
+    .ov-anchor { scroll-margin-top: 80px; }
 
     /* ── FONT SIZES ── */
     html[data-fontsize="compact"] body { font-size:11px; }
@@ -1196,21 +1205,15 @@
     .thesis-integrity-label.red   { color: var(--red); }
     .thesis-integrity-desc { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; line-height: 1.5; flex: 1; }
     .thesis-integrity-score { font-family: var(--font-mono); font-size: 9px; color: var(--muted2); letter-spacing: 0.08em; white-space: nowrap; }
-    .thesis-trigger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
-    .thesis-trigger-card { background: var(--bg2); padding: 12px 14px; }
-    .thesis-trigger-hdr { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-    .thesis-trigger-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--white); line-height: 1.35; max-width: 180px; }
-    .thesis-spark-wrap { margin: 4px 0 2px; }
-    .thesis-trigger-val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; line-height: 1; margin-bottom: 1px; }
-    .thesis-trigger-sub { font-size: 8px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 5px; }
-    .thesis-interp { font-size: 9px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 5px; }
-    .thesis-bdc-wrap { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
-    .thesis-bdc-row { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
-    .thesis-bdc-input { background: var(--bg3); border: 1px solid var(--border2); color: var(--white); font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; width: 80px; border-radius: 3px; -webkit-appearance: none; }
-    .thesis-bdc-input:focus { outline: none; border-color: var(--blue); }
-    .thesis-bdc-save { font-family: var(--font-ui); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; padding: 4px 10px; background: transparent; border: 1px solid var(--blue); color: var(--blue); cursor: pointer; border-radius: 3px; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
-    .thesis-bdc-save:hover { background: var(--blue); color: var(--bg); }
-    .thesis-bdc-stamp { font-size: 8px; color: var(--muted2); letter-spacing: 0.06em; }
+    .thesis-trigger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .thesis-trigger-card { background: var(--bg2); padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border); transition: border-color 0.15s; }
+    .thesis-trigger-card:hover { border-color: var(--border2); }
+    .thesis-trigger-hdr { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .thesis-trigger-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--white); line-height: 1.4; max-width: 180px; }
+    .thesis-spark-wrap { margin: 4px 0 4px; }
+    .thesis-trigger-val { font-family: var(--font-mono); font-size: 24px; font-weight: 600; line-height: 1; margin-bottom: 2px; }
+    .thesis-trigger-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 6px; }
+    .thesis-interp { font-size: 9px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 7px; margin-top: 6px; }
     /* ── JOURNAL TAB ── */
     .jnl-toolbar { display:flex; gap:8px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
     .jnl-new-btn { font-family:var(--font-ui); font-size:9px; font-weight:700; letter-spacing:.1em; padding:6px 14px; background:var(--orange); color:var(--bg); border:none; cursor:pointer; border-radius:3px; -webkit-tap-highlight-color:transparent; }
@@ -1310,14 +1313,6 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel active" id="tab-overview">
 
-    <div class="ov-subnav">
-      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-thesis')">THESIS</button>
-      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-regime')">NOW</button>
-      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-rates')">RATES</button>
-      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-chart')">CHART</button>
-      <button class="ov-subnav-btn" onclick="ovNavClick('ov-anchor-history')">HISTORY</button>
-    </div>
-
     <!-- AI MORNING BRIEFING -->
     <section id="ai-briefing-section" class="briefing-section">
       <div class="section-header" onclick="toggleBriefing()">
@@ -1336,31 +1331,9 @@
       </div>
     </section>
 
-    <div id="ov-anchor-thesis" class="ov-anchor"></div>
-    <div id="ov-sec-thesis" class="ov-collapsible">
-      <div class="section-header collapsible" onclick="toggleOvSection('thesis')">
-        <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
-        <div class="section-line"></div>
-        <div class="section-meta" id="thesisTimestamp">--</div>
-        <span class="ov-sec-chevron">&#9660;</span>
-      </div>
-      <div class="ov-sec-body">
-        <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
-        <div id="thesisTriggerGrid" class="thesis-trigger-grid">
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-        </div>
-        <div style="padding:5px 14px 7px;font-size:8px;color:var(--muted2);letter-spacing:0.06em;border-top:1px solid var(--border)">
-          Triggers also visible in Credit tab &#183; FRED data updated hourly &#183; BDC = manual from earnings reports
-        </div>
-      </div>
-    </div>
-
     <div id="ov-anchor-regime" class="ov-anchor"></div>
     <div class="section-header">
       <div class="section-title">REGIME STATUS</div>
-      <div class="section-line"></div>
       <div class="section-meta" id="regimeTimestamp">--</div>
     </div>
     <div id="regimeContent">
@@ -1405,6 +1378,27 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <div id="ov-anchor-thesis" class="ov-anchor"></div>
+    <div id="ov-sec-thesis" class="ov-collapsible">
+      <div class="section-header collapsible" onclick="toggleOvSection('thesis')">
+        <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
+        <div class="section-meta" id="thesisTimestamp">--</div>
+        <button class="thesis-detach-btn" onclick="event.stopPropagation();thesisDetach()" title="Float panel">&#10696;</button>
+        <span class="ov-sec-chevron">&#9660;</span>
+      </div>
+      <div class="ov-sec-body">
+        <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
+        <div id="thesisTriggerGrid" class="thesis-trigger-grid">
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
+        </div>
+        <div style="padding:5px 14px 7px;font-size:8px;color:var(--muted2);letter-spacing:0.06em;border-top:1px solid var(--border)">
+          Triggers also visible in Credit tab &middot; FRED data updated hourly
+        </div>
       </div>
     </div>
 
@@ -1481,9 +1475,9 @@
       <div class="ov-sec-body">
         <div class="macro-chart-controls">
           <div class="mc-range-group">
-            <button class="mc-btn mc-range active" data-range="3y">3Y</button>
             <button class="mc-btn mc-range" data-range="1y">1Y</button>
             <button class="mc-btn mc-range" data-range="2y">2Y</button>
+            <button class="mc-btn mc-range active" data-range="3y">3Y</button>
             <button class="mc-btn mc-range" data-range="5y">5Y</button>
           </div>
           <div class="mc-sep"></div>
@@ -2277,6 +2271,10 @@ const INDICATOR_TOOLTIPS = {
   nfci:           { title:'NFCI — CHICAGO FED FIN. CONDITIONS', what:'Chicago Fed National Financial Conditions Index. Weekly composite of 105 measures of financial activity across money, debt, equity markets, and banking. Normalized to zero (average) with positive = tighter than normal.', read:'Negative (below zero) = looser than historical average = supportive conditions. Positive = tighter. Above +1.0 = significant financial stress across the system.', thresholds:'Easy <-0.6 | Normal -0.6 to +0.2 | Tightening +0.2 to +1.0 | Stress >+1.0' },
   pce_goods:      { title:'CORE GOODS PCE YoY', what:'Core PCE Price Index for goods, excluding food and energy. Tracks inflation in physical goods: cars, electronics, furniture, apparel, and other durable/nondurable items.', read:'Goods inflation is typically more volatile than services and more directly tied to supply chains. When goods deflate (as post-2022), it helps bring down headline PCE toward target.', thresholds:'Deflationary <0% | Contained 0-2% | Elevated 2-4% | High >4%' },
   pce_svc:        { title:'CORE SERVICES PCE YoY', what:'Core PCE Price Index for services, excluding food and energy. Covers shelter, healthcare, financial services, recreation, and other labor-intensive services — the stickiest inflation component.', read:'Services inflation is driven by wages and rent, making it very slow to fall. Even if goods deflate, high services PCE keeps headline PCE above target. The Fed\'s most watched inflation sub-component.', thresholds:'Target <2.5% | Elevated 2.5-4% | High 4-5.5% | Crisis >5.5%' },
+  thesis_core_pce:   { title:'CORE PCE — FALSIFICATION TRIGGER', what:'Core Personal Consumption Expenditures Price Index, the Fed\'s preferred inflation gauge. Excludes food and energy prices, which are volatile and largely outside the Fed\'s control. Published monthly by the Bureau of Economic Analysis.', read:'This is Ryan\'s primary thesis monitor. Sustained cooling below 2.5% for 3 consecutive months would mean inflation is retreating toward target — the key condition that would challenge the stagflation thesis. Current elevated readings confirm the thesis remains intact.', thresholds:'Thesis intact >2.5% | Approaching 2.5-3.0% | TRIGGERED: <2.5% for 3 consecutive months' },
+  thesis_gdp:        { title:'REAL GDP GROWTH — FALSIFICATION TRIGGER', what:'Real Gross Domestic Product, annualized quarterly growth rate. Measures the inflation-adjusted total output of the US economy. Published quarterly by the Bureau of Economic Analysis, with advance, preliminary, and final revisions.', read:'The stagflation thesis requires weak or negative growth paired with elevated inflation. Above-trend GDP (>2.5%) sustained for 2 consecutive quarters would indicate demand remains robust — inconsistent with stagflation and more aligned with the 20% goldilocks bull case.', thresholds:'Contraction <0% | Weak 0-1.5% | Trend 1.5-2.5% | TRIGGERED: >2.5% for 2 consecutive quarters' },
+  thesis_hy:         { title:'HY OAS CREDIT SPREAD — FALSIFICATION TRIGGER', what:'ICE BofA High Yield Option-Adjusted Spread — the extra yield investors demand to hold junk-rated corporate bonds over risk-free US Treasuries. Measured in basis points (100bp = 1%). A direct measure of perceived credit risk in the economy.', read:'Wide spreads (>400bp) signal stress in the credit market and support the private credit cascade risk thesis. Tight spreads (<300bp) indicate investors are complacent about credit risk — historically a sign that the bear case is losing probability. The 30% bear case depends on sustained spread widening.', thresholds:'Tight (risk-on) <300bp | TRIGGERED: <300bp sustained | Elevated 300-500bp | Stress >500bp | Crisis >700bp' },
+  thesis_productivity: { title:'NONFARM PRODUCTIVITY — FALSIFICATION TRIGGER', what:'Bureau of Labor Statistics measure of output per hour worked in the nonfarm business sector. Year-over-year change. A structural driver of non-inflationary economic growth — productivity gains mean the economy can grow without generating inflation.', read:'Low productivity growth is a core pillar of the stagflation thesis: if workers aren\'t producing more per hour, wage gains feed directly into inflation rather than real output. A sustained surge above 2% YoY would suggest an AI or technology-driven productivity boom — the 20% bull case scenario that would break the stagflation thesis.', thresholds:'Weak <0.5% | Below trend 0.5-1.5% | At trend 1.5-2% | TRIGGERED: >2% sustained' },
 };
 
 const REGIME_IND_TIP_IDS = {
@@ -3325,12 +3323,29 @@ let _macroThesisData = null;
 function renderThesis(data) {
   _macroThesisData = data;
   setTimestamp('thesisTimestamp', data.timestamp);
-  renderThesisIntegrity(data.integrity, data.triggers || []);
-  const d = stLoad();
-  const grid = (data.triggers || []).map(t =>
-    renderThesisTrigger(t, d.bdcNonAccrual, d.bdcNonAccrualDate)
-  ).join('');
-  setEl('thesisTriggerGrid', grid);
+  const triggers = (data.triggers || []).filter(t => t.id !== 'bdc_nonaccruals');
+  renderThesisIntegrity(data.integrity, triggers);
+  setEl('thesisTriggerGrid', triggers.map(t => renderThesisTrigger(t)).join(''));
+}
+
+function thesisDetach() {
+  const panel = document.getElementById('thesisFloatPanel');
+  panel.classList.add('open');
+  if (!_macroThesisData) return;
+  const triggers = (_macroThesisData.triggers || []).filter(t => t.id !== 'bdc_nonaccruals');
+  const ic = _macroThesisData.integrity || {};
+  setEl('thesisFloatConf', ic.label || '');
+  const intCard = document.getElementById('thesisIntegrityCard');
+  setEl('thesisFloatBody',
+    (intCard ? intCard.outerHTML : '') +
+    '<div class="thesis-trigger-grid" style="margin-top:10px">' +
+      triggers.map(t => renderThesisTrigger(t)).join('') +
+    '</div>'
+  );
+}
+
+function thesisDock() {
+  document.getElementById('thesisFloatPanel').classList.remove('open');
 }
 
 function renderThesisIntegrity(integrity, triggers) {
@@ -3346,59 +3361,48 @@ function renderThesisIntegrity(integrity, triggers) {
   </div>`);
 }
 
-function renderThesisTrigger(t, bdcVal, bdcDate) {
-  const isBDC = t.id === 'bdc_nonaccruals';
-  let val = t.current_value, status = t.status;
-  if (isBDC && bdcVal != null) {
-    val    = parseFloat(bdcVal);
-    status = val < t.threshold ? 'TRIGGERED' : 'NOT MET';
-  }
-  const sCls = status === 'TRIGGERED' ? 'triggered'
-    : (status||'').startsWith('MET (') ? 'approaching'
-    : status === 'APPROACHING' ? 'approaching'
-    : status === 'NOT MET'     ? 'not-met'
-    : status === 'ERROR'       ? 'error' : 'manual';
+const _THESIS_TIP_MAP = {
+  core_pce:    'thesis_core_pce',
+  gdp_growth:  'thesis_gdp',
+  hy_spreads:  'thesis_hy',
+  productivity:'thesis_productivity',
+};
+
+function renderThesisTrigger(t) {
+  const val    = t.current_value;
+  const status = t.status;
+  const sCls   = status === 'TRIGGERED'            ? 'triggered'
+    : (status||'').startsWith('MET (')             ? 'approaching'
+    : status === 'APPROACHING'                     ? 'approaching'
+    : status === 'NOT MET'                         ? 'not-met'
+    : status === 'ERROR'                           ? 'error' : 'manual';
   const fmtVal = val != null
-    ? `${(+val).toFixed(t.unit === 'bp' ? 0 : 2)}${t.unit === 'bp' ? 'bp' : '%'}`
-    : '--';
+    ? `${(+val).toFixed(t.unit === 'bp' ? 0 : 2)}${t.unit === 'bp' ? 'bp' : '%'}` : '--';
   const fmtThr = `${t.threshold}${t.unit === 'bp' ? 'bp' : '%'}`;
-  const prog = isBDC && val != null
-    ? Math.min(100, Math.max(0, t.direction === 'below'
-        ? (1 - (val - t.threshold) / Math.abs(t.threshold)) * 100
-        : (val / t.threshold) * 100))
-    : (t.progress_pct || 0);
-  const spark = (t.sparkline && t.sparkline.length >= 2)
+  const prog   = t.progress_pct || 0;
+  const spark  = (t.sparkline && t.sparkline.length >= 2)
     ? `<div class="thesis-spark-wrap">${_sparkline(t.sparkline)}</div>` : '';
-  const track = val != null ? `<div class="trigger-track" style="margin:5px 0 3px">
-    <div class="trigger-fill ${sCls}" style="width:${Math.min(prog,100).toFixed(0)}%"></div>
-  </div>` : '';
-  const sustained = (!isBDC && t.required > 1 && val != null)
-    ? `<div class="trigger-sustained">CONSECUTIVE PERIODS MET: ${t.sustained_count}/${t.required}</div>` : '';
-  const bdcBlock = isBDC ? `<div class="thesis-bdc-wrap">
-    <div class="thesis-bdc-row">
-      <input class="thesis-bdc-input" id="bdcInput" type="number" step="0.01" min="0" max="20"
-        placeholder="e.g. 1.8" value="${bdcVal != null ? bdcVal : ''}" />
-      <button class="thesis-bdc-save" onclick="saveBdcReading()">SAVE</button>
-    </div>
-    <div class="thesis-bdc-stamp">${bdcDate ? 'Updated ' + bdcDate : 'Enter from BDC earnings (ARCC, BXSL, FSK)'}</div>
-  </div>` : '';
+  const track  = val != null
+    ? `<div class="trigger-track" style="margin:6px 0 4px"><div class="trigger-fill ${sCls}" style="width:${Math.min(prog,100).toFixed(0)}%"></div></div>` : '';
+  const sustained = (t.required > 1 && val != null)
+    ? `<div class="trigger-sustained">CONSECUTIVE PERIODS MET: ${t.sustained_count||0}/${t.required}</div>` : '';
+  const tipKey = _THESIS_TIP_MAP[t.id];
+  const infoBtn = tipKey ? _tipBtn(tipKey) : '';
   return `<div class="thesis-trigger-card">
     <div class="thesis-trigger-hdr">
-      <div class="thesis-trigger-lbl">${t.full_label || t.label || ''}</div>
+      <div class="thesis-trigger-lbl">${t.full_label || t.label || ''}${infoBtn}</div>
       <div class="trigger-status ${sCls}">${status || '--'}</div>
     </div>
     ${spark}
     <div class="thesis-trigger-val">${fmtVal}</div>
     <div class="thesis-trigger-sub">THRESHOLD ${fmtThr} ${(t.direction||'').toUpperCase()}</div>
-    ${track}${sustained}${bdcBlock}
+    ${track}${sustained}
     <div class="thesis-interp">${_thesisInterp(t, val, status)}</div>
   </div>`;
 }
 
 function _thesisInterp(t, val, status) {
-  if (val == null) return t.id === 'bdc_nonaccruals'
-    ? 'Enter the current non-accrual rate from BDC earnings reports (ARCC, BXSL, FSK).'
-    : 'Data pending — FRED series unavailable.';
+  if (val == null) return 'Data pending &mdash; FRED series unavailable.';
   const fv    = parseFloat(val);
   const fmtV  = t.unit === 'bp' ? `${fv.toFixed(0)}bp` : `${fv.toFixed(2)}%`;
   const fmtT  = t.unit === 'bp' ? `${t.threshold}bp`   : `${t.threshold}%`;
@@ -3407,38 +3411,21 @@ function _thesisInterp(t, val, status) {
     core_pce: intact
       ? `Core PCE at ${fmtV} — above ${fmtT}. Inflation remains elevated; thesis intact.`
       : fired ? `Core PCE at ${fmtV} for 3 consecutive months below ${fmtT}. Inflation cooling — review thesis.`
-      : `Core PCE at ${fmtV} — approaching or partially meeting the ${fmtT} threshold. Watch next print.`,
+      : `Core PCE at ${fmtV} — approaching the ${fmtT} threshold. Watch next print.`,
     gdp_growth: intact
-      ? `Real GDP at ${fmtV} annualized — below ${fmtT} sustained threshold. Demand destruction thesis holds.`
+      ? `Real GDP at ${fmtV} annualized — below ${fmtT} sustained. Demand destruction thesis holds.`
       : fired ? `Real GDP at ${fmtV} for 2+ quarters above ${fmtT}. Above-trend growth challenges thesis.`
-      : `GDP at ${fmtV} — approaching or meeting the ${fmtT} threshold. Monitor next BEA release.`,
+      : `GDP at ${fmtV} — approaching the ${fmtT} threshold. Monitor next BEA release.`,
     hy_spreads: intact
-      ? `HY OAS at ${fmtV} — above ${fmtT}. Elevated credit spreads consistent with stagflation thesis.`
-      : fired ? `HY OAS compressed to ${fmtV} — below ${fmtT}. Tight spreads challenge the credit stress thesis.`
+      ? `HY OAS at ${fmtV} — above ${fmtT}. Elevated spreads consistent with stagflation thesis.`
+      : fired ? `HY OAS compressed to ${fmtV} below ${fmtT}. Tight spreads challenge the credit stress thesis.`
       : `HY OAS at ${fmtV} — approaching the ${fmtT} threshold. Credit easing warrants attention.`,
     productivity: intact
-      ? `Nonfarm productivity at ${fmtV} YoY — below ${fmtT}. No supply-side surge observed; thesis intact.`
+      ? `Nonfarm productivity at ${fmtV} YoY — below ${fmtT}. No supply-side surge; thesis intact.`
       : fired ? `Productivity at ${fmtV} YoY — above ${fmtT}. Supply-side expansion weakens stagflation case.`
-      : `Productivity at ${fmtV} — near the ${fmtT} threshold. Watch next BLS productivity release.`,
-    bdc_nonaccruals: intact
-      ? `BDC non-accruals at ${fmtV} — above ${fmtT}. Private credit stress persists; bear case supported.`
-      : fired ? `Non-accruals at ${fmtV} — below ${fmtT}. Clean BDC books reduce bear-case probability.`
-      : `Non-accruals at ${fmtV} — near the ${fmtT} threshold. Monitor next earnings cycle.`,
+      : `Productivity at ${fmtV} — near the ${fmtT} threshold. Watch next BLS release.`,
   };
   return map[t.id] || t.description || '';
-}
-
-function saveBdcReading() {
-  const el = document.getElementById('bdcInput');
-  if (!el) return;
-  const val = parseFloat(el.value);
-  if (isNaN(val) || val < 0 || val > 20) { el.style.borderColor = 'var(--red)'; return; }
-  el.style.borderColor = '';
-  const d = stLoad();
-  d.bdcNonAccrual     = val;
-  d.bdcNonAccrualDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-  stSave(d);
-  if (_macroThesisData) renderThesis(_macroThesisData);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -5407,41 +5394,34 @@ document.getElementById('settingsGear').addEventListener('click',()=>
   document.getElementById('settingsDrawer').classList.contains('open')?closeSettings():openSettings());
 document.getElementById('settingsClose').addEventListener('click',closeSettings);
 
-// ── Drag logic ────────────────────────────────────────────────
-(function(){
-  const drawer = document.getElementById('settingsDrawer');
-  const handle = document.getElementById('settingsHdr');
-  let active = false, startX = 0, startY = 0, origL = 0, origT = 0;
-
-  function dragStart(cx, cy) {
-    const r = drawer.getBoundingClientRect();
+// ── Shared drag helper ─────────────────────────────────────────
+function _makeDraggable(panel, handle) {
+  let active = false, ox = 0, oy = 0;
+  function start(cx, cy) {
+    const r = panel.getBoundingClientRect();
+    panel.style.transform = 'none';
+    panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px';
+    ox = cx - r.left; oy = cy - r.top;
     active = true;
-    startX = cx; startY = cy;
-    origL = r.left; origT = r.top;
-    // Collapse the CSS transform-based centering to explicit px coords
-    drawer.style.transform = 'none';
-    drawer.style.right = 'auto';
-    drawer.style.bottom = 'auto';
-    drawer.style.left = origL + 'px';
-    drawer.style.top  = origT + 'px';
   }
-  function dragMove(cx, cy) {
+  function move(cx, cy) {
     if (!active) return;
-    const dx = cx - startX, dy = cy - startY;
-    const maxL = window.innerWidth  - drawer.offsetWidth;
-    const maxT = window.innerHeight - drawer.offsetHeight;
-    drawer.style.left = Math.max(0, Math.min(maxL, origL + dx)) + 'px';
-    drawer.style.top  = Math.max(0, Math.min(maxT, origT + dy)) + 'px';
+    const maxX = window.innerWidth  - panel.offsetWidth;
+    const maxY = window.innerHeight - panel.offsetHeight;
+    panel.style.left = Math.min(Math.max(0, cx - ox), maxX) + 'px';
+    panel.style.top  = Math.min(Math.max(0, cy - oy), maxY) + 'px';
   }
-  function dragEnd() { active = false; }
-
-  handle.addEventListener('mousedown',  e => { dragStart(e.clientX, e.clientY); e.preventDefault(); });
-  document.addEventListener('mousemove', e => dragMove(e.clientX, e.clientY));
-  document.addEventListener('mouseup',   dragEnd);
-  handle.addEventListener('touchstart',  e => { dragStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
-  document.addEventListener('touchmove',  e => { if(active) { dragMove(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, {passive:false});
-  document.addEventListener('touchend',  dragEnd);
-})();
+  function end() { active = false; }
+  handle.addEventListener('mousedown',   e => { start(e.clientX, e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  document.addEventListener('mouseup',   end);
+  handle.addEventListener('touchstart',  e => { start(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+  document.addEventListener('touchmove', e => { if(active){ e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
+  document.addEventListener('touchend',  end);
+}
+_makeDraggable(document.getElementById('settingsDrawer'), document.getElementById('settingsHdr'));
+_makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementById('thesisFloatHdr'));
 document.getElementById('settingsReset').addEventListener('click',()=>{
   if(!confirm('Reset ALL settings to defaults?'))return;
   localStorage.removeItem(ST_KEY);localStorage.removeItem(S_KEY);
@@ -6307,10 +6287,6 @@ function toggleOvSection(key) {
   stSave(d);
 }
 
-function ovNavClick(anchorId) {
-  const el = document.getElementById(anchorId);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 // Restore collapsed Overview sections on load
 (function() {
@@ -6724,6 +6700,19 @@ fetchBDC();
     <div class="re-risks" id="reModalRisks"></div>
     <div class="re-section-title">THESIS BREAKS IF</div>
     <div class="re-thesis-grid" id="reModalThesis"></div>
+  </div>
+</div>
+
+<!-- THESIS FLOAT PANEL -->
+<div id="thesisFloatPanel" class="thesis-float-panel">
+  <div class="thesis-float-hdr" id="thesisFloatHdr">
+    <span style="font-family:var(--font-ui);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--orange)">&#11045; THESIS INTEGRITY</span>
+    <span class="thesis-float-conf" id="thesisFloatConf"></span>
+    <button class="thesis-float-close" onclick="thesisDock()" title="Close">&#215;</button>
+  </div>
+  <div class="thesis-float-body" id="thesisFloatBody">
+    <div class="skel" style="height:54px;width:100%;margin-bottom:8px"></div>
+    <div class="skel" style="height:100px;width:100%"></div>
   </div>
 </div>
 </body>
