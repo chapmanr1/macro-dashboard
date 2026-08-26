@@ -2858,8 +2858,15 @@ function renderYields(data) {
         tip.style.opacity = '1';
       });
       dot.addEventListener('mousemove', e => {
-        tip.style.left = (e.clientX + 14) + 'px';
-        tip.style.top  = (e.clientY - 28) + 'px';
+        const TW = tip.offsetWidth  || 120;
+        const TH = tip.offsetHeight || 28;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const left = e.clientX + TW + 18 > vw ? e.clientX - TW - 10 : e.clientX + 14;
+        const top  = e.clientY - 28 < 0         ? e.clientY + 14
+                   : e.clientY - 28 + TH > vh    ? e.clientY - TH - 10
+                   : e.clientY - 28;
+        tip.style.left = left + 'px';
+        tip.style.top  = top  + 'px';
       });
       dot.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
       if (dot.dataset.url) dot.addEventListener('click', () => window.open(dot.dataset.url, '_blank', 'noopener,noreferrer'));
