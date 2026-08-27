@@ -252,7 +252,8 @@
     .sparkline-svg line { stroke-width:1.5; stroke-linecap:round; }
 
     /* ── CELL CLICKABILITY ── */
-    .macro-cell, .scorecard-cell, .spread-cell, .tips-cell { cursor: pointer; }
+    .macro-cell, .scorecard-cell, .spread-cell, .tips-cell { cursor: grab; }
+    .macro-cell:active, .thesis-trigger-card:active { cursor: grabbing; }
 
     /* ── SPARKLINE DETAIL POPUP ── */
     .sl-popup { position:absolute; z-index:10003; background:var(--bg2); border:1px solid rgba(59,130,246,0.3); border-radius:8px; width:360px; max-width:calc(100vw - 20px); box-shadow:0 10px 48px rgba(0,0,0,0.8); display:none; animation:modalFadeIn 0.15s ease; }
@@ -573,6 +574,8 @@
     .section-wrap { transition: opacity 0.15s; }
     .section-wrap.sw-ghost { opacity: 0.25; }
     .section-wrap.sw-over { outline: 2px solid var(--amber); outline-offset: -2px; }
+    [data-widget-id].sw-ghost { opacity: 0.25; }
+    [data-widget-id].sw-over { outline: 2px solid var(--amber); outline-offset: -2px; }
     /* Drag handle in section-header */
     .sdrag { cursor: grab; color: transparent; font-size: 14px; padding: 0 6px 0 0; user-select: none; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
     .section-header:hover .sdrag { color: var(--muted); }
@@ -1265,7 +1268,7 @@
     .thesis-integrity-desc { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; line-height: 1.5; flex: 1; }
     .thesis-integrity-score { font-family: var(--font-mono); font-size: 9px; color: var(--muted2); letter-spacing: 0.08em; white-space: nowrap; }
     .thesis-trigger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); }
-    .thesis-trigger-card { background: var(--bg2); padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border); transition: border-color 0.15s; }
+    .thesis-trigger-card { background: var(--bg2); padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border); transition: border-color 0.15s; cursor: grab; }
     .thesis-trigger-card:hover { border-color: var(--border2); }
     .thesis-trigger-hdr { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
     .thesis-trigger-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: var(--white); line-height: 1.4; max-width: 180px; }
@@ -3034,7 +3037,7 @@ function renderMacro(data) {
     const cls = colorClass(chg, pig);
     const fredUrl = FRED_URLS[s.id];
     const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
-    return `<div class="macro-cell" data-sl-id="${s.id}">
+    return `<div class="macro-cell" data-sl-id="${s.id}" data-widget-id="${s.id}" draggable="true">
       <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
       ${_sparkline(s.sparkline, s.positive_is_good)}
@@ -3045,6 +3048,7 @@ function renderMacro(data) {
 
   document.getElementById('macroContent').className = 'macro-grid';
   setEl('macroContent', cells);
+  _makeSortable(document.getElementById('macroContent'), 'macro-cells');
 }
 
 // ── YIELD CURVE SVG HELPERS ──────────────────────────────────
@@ -5087,6 +5091,26 @@ function _addHandle(hdr) {
 
 // ── Dashboard DnD ─────────────────────────────────────────────
 let _dSrc=null;
+let _dragScrollRaf=null;
+
+function _initDragAutoScroll() {
+  const EDGE=80;
+  document.addEventListener('dragover', e => {
+    if (_dragScrollRaf) { cancelAnimationFrame(_dragScrollRaf); _dragScrollRaf=null; }
+    const y=e.clientY, h=window.innerHeight;
+    if (y < EDGE) {
+      const spd=Math.ceil(12*(1-y/EDGE));
+      const go=()=>{ window.scrollBy(0,-spd); _dragScrollRaf=requestAnimationFrame(go); };
+      _dragScrollRaf=requestAnimationFrame(go);
+    } else if (y > h-EDGE) {
+      const spd=Math.ceil(12*(1-(h-y)/EDGE));
+      const go=()=>{ window.scrollBy(0,spd); _dragScrollRaf=requestAnimationFrame(go); };
+      _dragScrollRaf=requestAnimationFrame(go);
+    }
+  });
+  document.addEventListener('dragend', ()=>{ if(_dragScrollRaf){cancelAnimationFrame(_dragScrollRaf);_dragScrollRaf=null;} });
+  document.addEventListener('drop',    ()=>{ if(_dragScrollRaf){cancelAnimationFrame(_dragScrollRaf);_dragScrollRaf=null;} });
+}
 
 function initDashDnD() {
   document.querySelectorAll('.section-wrap').forEach(wrap=>{
@@ -5489,9 +5513,9 @@ function _makeSortable(container, storageKey) {
   let dragging = null;
 
   container.addEventListener('dragstart', e => {
-    if (!e.target.closest('.sdrag')) { e.preventDefault(); return; }
     const el = e.target.closest('[data-widget-id]');
-    if (!el || el.parentElement !== container) return;
+    if (!el || el.parentElement !== container) { e.preventDefault(); return; }
+    if (e.target.closest('button,a,select,input,.info-btn,[data-tipkey]')) { e.preventDefault(); return; }
     dragging = el;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', el.dataset.widgetId);
@@ -6807,6 +6831,7 @@ applyAppSettings();
 initWrappers();
 applySettings();
 initDashDnD();
+_initDragAutoScroll();
 _addMoveButtons();
 _restoreSectionCollapseStates();
 fetchWatchlist();
