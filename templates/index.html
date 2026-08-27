@@ -115,8 +115,9 @@
     .regime-confidence { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; padding: 0 16px 10px; }
     .regime-confidence span { color: var(--white); }
     .regime-indicators { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 6px; }
-    .regime-ind { background: var(--bg3); border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; transition: border-color 0.15s; }
-    .regime-ind:hover { border-color: var(--blue); }
+    .regime-ind { background: var(--bg3); border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; transition: border-color 0.15s; cursor: grab; }
+    .regime-ind:hover { border-color: var(--blue); background: var(--bg3); }
+    .regime-ind:active { cursor: grabbing; }
     .regime-ind-name { font-family: var(--font-ui); font-size: 8px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 3px; text-transform: uppercase; }
     .regime-ind-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
     .regime-ind-signal { font-family: var(--font-ui); font-size: 8px; margin-top: 2px; letter-spacing: 0.08em; }
@@ -2876,7 +2877,7 @@ function renderRegimeCenterCards() {
   const sRy  = ryV === null ? 'NEUTRAL' : ryV > 2.5 ? 'BEARISH' : ryV > 1.5 ? 'NEUTRAL-BEARISH' : ryV >= 0 ? 'NEUTRAL' : 'BULLISH';
   cards.push({ name: '10Y REAL YIELD',tipId:'dfii10',  value: ryV !== null ? fmt(ryV,2) + '%' : '--', signal: sRy });
 
-  const cardHtml = cards.map(c => `<div class="regime-ind">
+  const cardHtml = cards.map(c => `<div class="regime-ind" data-widget-id="${c.tipId}" draggable="true">
     <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${c.name}${_tipBtn(c.tipId)}</div>
     <div class="regime-ind-val ${sigCls(c.signal)}">${c.value}</div>
     <div class="regime-ind-signal ${sigCls(c.signal)}">${c.signal}</div>
@@ -2892,8 +2893,10 @@ function renderRegimeCenterCards() {
   const centerEl = document.getElementById('regimeCenter');
   if (!centerEl) return;
   setEl('regimeCenter', `
-    <div class="regime-indicators">${cardHtml}</div>
+    <div class="regime-indicators" id="regimeIndGrid">${cardHtml}</div>
     ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
+
+  _makeSortable(document.getElementById('regimeIndGrid'), 'regime-inds');
 
   const grid = document.getElementById('posGrid');
   if (grid) {
@@ -5095,30 +5098,39 @@ function _addHandle(hdr) {
 
 // ── Dashboard DnD ─────────────────────────────────────────────
 let _dSrc=null;
+let _dragScrollAmt=0;
 let _dragScrollRaf=null;
 
 function _initDragAutoScroll() {
   const EDGE=80;
+  // Update scroll amount on every dragover — RAF loop runs independently
   document.addEventListener('dragover', e => {
-    if (_dragScrollRaf) { cancelAnimationFrame(_dragScrollRaf); _dragScrollRaf=null; }
     const y=e.clientY, h=window.innerHeight;
-    if (y < EDGE) {
-      const spd=Math.ceil(12*(1-y/EDGE));
-      const go=()=>{ window.scrollBy(0,-spd); _dragScrollRaf=requestAnimationFrame(go); };
-      _dragScrollRaf=requestAnimationFrame(go);
-    } else if (y > h-EDGE) {
-      const spd=Math.ceil(12*(1-(h-y)/EDGE));
-      const go=()=>{ window.scrollBy(0,spd); _dragScrollRaf=requestAnimationFrame(go); };
-      _dragScrollRaf=requestAnimationFrame(go);
+    if (y < EDGE)       _dragScrollAmt = -Math.ceil(14*(1-y/EDGE));
+    else if (y > h-EDGE) _dragScrollAmt =  Math.ceil(14*(1-(h-y)/EDGE));
+    else                 _dragScrollAmt = 0;
+    // Start the loop only if not already running
+    if (_dragScrollAmt !== 0 && !_dragScrollRaf) {
+      const go = () => {
+        if (_dragScrollAmt === 0) { _dragScrollRaf = null; return; }
+        window.scrollBy(0, _dragScrollAmt);
+        _dragScrollRaf = requestAnimationFrame(go);
+      };
+      _dragScrollRaf = requestAnimationFrame(go);
     }
   });
-  document.addEventListener('dragend', ()=>{ if(_dragScrollRaf){cancelAnimationFrame(_dragScrollRaf);_dragScrollRaf=null;} });
-  document.addEventListener('drop',    ()=>{ if(_dragScrollRaf){cancelAnimationFrame(_dragScrollRaf);_dragScrollRaf=null;} });
+  const _stopScroll = () => {
+    _dragScrollAmt = 0;
+    if (_dragScrollRaf) { cancelAnimationFrame(_dragScrollRaf); _dragScrollRaf = null; }
+  };
+  document.addEventListener('dragend', _stopScroll);
+  document.addEventListener('drop',    _stopScroll);
 }
 
 function initDashDnD() {
   document.querySelectorAll('.section-wrap').forEach(wrap=>{
-    // Allow drag from the entire section header (not just the ≡ icon)
+    // Start non-draggable; only mousedown on the header enables it
+    wrap.setAttribute('draggable','false');
     const header = wrap.querySelector('.section-header');
     const dragTrigger = header || wrap.querySelector('.sdrag');
     if (dragTrigger) {
@@ -5132,7 +5144,10 @@ function initDashDnD() {
       },{passive:true});
     }
     wrap.addEventListener('dragstart',e=>{
-      if (!e.target.closest('.section-header, .sdrag')) { wrap.setAttribute('draggable','false'); return; }
+      // e.target is the wrap itself — can't use it to check where user grabbed.
+      // We rely on the mousedown guard above: draggable is only 'true' if they
+      // clicked the header. If something else somehow fired dragstart, bail out.
+      if (wrap.getAttribute('draggable') !== 'true') { e.preventDefault(); return; }
       _dSrc=wrap; e.dataTransfer.effectAllowed='move';
       e.dataTransfer.setData('text/plain',wrap.dataset.sectionId||'');
       requestAnimationFrame(()=>{ if(_dSrc)wrap.classList.add('sw-ghost'); });
@@ -5140,13 +5155,13 @@ function initDashDnD() {
     wrap.addEventListener('dragend',()=>{
       wrap.setAttribute('draggable','false');
       wrap.classList.remove('sw-ghost','sw-over');
-      document.querySelectorAll('.sw-over').forEach(el=>el.classList.remove('sw-over'));
+      document.querySelectorAll('.section-wrap.sw-over').forEach(el=>el.classList.remove('sw-over'));
       _dSrc=null;
     });
     wrap.addEventListener('dragover',e=>{
       if(!_dSrc||_dSrc===wrap||_dSrc.dataset.tab!==wrap.dataset.tab)return;
       e.preventDefault(); e.dataTransfer.dropEffect='move';
-      document.querySelectorAll('.sw-over').forEach(el=>el.classList.remove('sw-over'));
+      document.querySelectorAll('.section-wrap.sw-over').forEach(el=>el.classList.remove('sw-over'));
       wrap.classList.add('sw-over');
     });
     wrap.addEventListener('dragleave',e=>{if(!wrap.contains(e.relatedTarget))wrap.classList.remove('sw-over');});
@@ -5519,7 +5534,8 @@ function _makeSortable(container, storageKey) {
   container.addEventListener('dragstart', e => {
     const el = e.target.closest('[data-widget-id]');
     if (!el || el.parentElement !== container) { e.preventDefault(); return; }
-    if (e.target.closest('button,a,select,input,.info-btn,[data-tipkey]')) { e.preventDefault(); return; }
+    // Block drag only when a button/link INSIDE the widget is the target, not the widget card itself
+    if (e.target !== el && e.target.closest('button,a,select,input,.info-btn,[data-tipkey]')) { e.preventDefault(); return; }
     dragging = el;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', el.dataset.widgetId);
