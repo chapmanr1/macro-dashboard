@@ -577,6 +577,18 @@
     .sdrag { cursor: grab; color: transparent; font-size: 14px; padding: 0 6px 0 0; user-select: none; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
     .section-header:hover .sdrag { color: var(--muted); }
     .sdrag:hover { color: var(--amber) !important; }
+    /* ── SECTION DRAG CURSOR ── */
+    .section-wrap .section-header { cursor: grab; }
+    .section-wrap .section-header:active { cursor: grabbing; }
+    .section-wrap .section-header button,
+    .section-wrap .section-header a,
+    .section-wrap .section-header select,
+    .section-wrap .section-header input { cursor: pointer; }
+    /* ── SECTION COLLAPSE BUTTON ── */
+    .sec-collapse-btn { background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:0 4px;line-height:1;transition:transform 0.2s,color 0.15s;-webkit-tap-highlight-color:transparent;flex-shrink:0; }
+    .sec-collapse-btn:hover { color:var(--white); }
+    .section-wrap.sec-collapsed .sec-collapse-btn { transform:rotate(-90deg); }
+    .section-wrap.sec-collapsed .ov-sec-body { display:none; }
     /* ── WIDGET MOVE BUTTONS (▲▼) ── */
     .widget-move-btns { display:flex; gap:2px; margin-left:auto; opacity:0; transition:opacity 0.15s; flex-shrink:0; }
     .section-wrap:hover .widget-move-btns { opacity:1; }
@@ -1363,7 +1375,6 @@
     <!-- AI MORNING BRIEFING -->
     <section id="ai-briefing-section" class="briefing-section section-wrap" data-widget-id="briefing" draggable="true">
       <div class="section-header" onclick="toggleBriefing()">
-        <span class="sdrag" onclick="event.stopPropagation()" title="Drag to reorder">&#8801;</span>
         <button class="briefing-collapse-btn" title="Collapse">&#9660;</button>
         <span class="section-title">&#11045; AI MORNING BRIEFING</span>
         <div class="section-line"></div>
@@ -1379,10 +1390,9 @@
       </div>
     </section>
 
-    <div class="section-wrap" data-widget-id="regime" draggable="true">
+    <div id="ov-regime-wrap" class="section-wrap" data-widget-id="regime" draggable="true">
     <div id="ov-anchor-regime" class="ov-anchor"></div>
     <div class="section-header">
-      <span class="sdrag" title="Drag to reorder">&#8801;</span>
       <div class="section-title">REGIME STATUS</div>
       <div class="section-meta" id="regimeTimestamp">--</div>
     </div>
@@ -1435,10 +1445,10 @@
     <div id="ov-sec-thesis" class="ov-collapsible section-wrap" data-widget-id="thesis" draggable="true">
       <div id="ov-anchor-thesis" class="ov-anchor"></div>
       <div class="section-header">
-        <span class="sdrag" title="Drag to reorder">&#8801;</span>
         <div class="section-title" style="color:var(--orange)">&#11045; THESIS INTEGRITY</div>
         <div class="section-meta" id="thesisTimestamp">--</div>
-        <button class="thesis-detach-btn" onclick="thesisDetach()" title="Float panel">&#10696;</button>
+        <button class="thesis-detach-btn" onclick="event.stopPropagation();thesisDetach()" title="Float panel">&#10696;</button>
+        <button class="sec-collapse-btn" onclick="event.stopPropagation();toggleSectionCollapse('ov-sec-thesis')" title="Minimize">&#9660;</button>
       </div>
       <div class="ov-sec-body">
         <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
@@ -1458,9 +1468,8 @@
       <span class="watchlist-strip-lbl">WATCHLIST</span>
     </div>
 
-    <div class="section-wrap" data-widget-id="macro" draggable="true">
+    <div id="ov-macro-wrap" class="section-wrap" data-widget-id="macro" draggable="true">
     <div class="section-header">
-      <span class="sdrag" title="Drag to reorder">&#8801;</span>
       <div class="section-title">MACRO INDICATORS</div>
       <div class="section-meta" id="macroTimestamp">--</div>
     </div>
@@ -1475,7 +1484,7 @@
     <div id="ov-sec-yields" class="ov-collapsible section-wrap" data-widget-id="yields" draggable="true">
       <div id="ov-anchor-rates" class="ov-anchor"></div>
       <div class="section-header">
-        <span class="sdrag" title="Drag to reorder">&#8801;</span>
+
         <div class="section-title">YIELD CURVE</div>
         <div class="section-meta" id="yieldsTimestamp">--</div>
       </div>
@@ -1496,7 +1505,7 @@
 
     <div id="ov-sec-fedwatch" class="ov-collapsible section-wrap" data-widget-id="fedwatch" draggable="true">
       <div class="section-header" id="fedwatch-header">
-        <span class="sdrag" title="Drag to reorder">&#8801;</span>
+
         <div class="section-title">FED RATE PATH</div>
         <div class="section-meta" id="fedwatchTimestamp">--</div>
       </div>
@@ -1518,7 +1527,7 @@
     <div id="ov-sec-chart" class="ov-collapsible section-wrap" data-widget-id="chart" draggable="true">
       <div id="ov-anchor-chart" class="ov-anchor"></div>
       <div class="section-header">
-        <span class="sdrag" title="Drag to reorder">&#8801;</span>
+
         <div class="section-title">MACRO TIME SERIES</div>
         <div class="section-meta" id="macroChartTimestamp">--</div>
       </div>
@@ -1548,7 +1557,7 @@
     <div id="ov-sec-history" class="ov-collapsible section-wrap" data-widget-id="history" draggable="true">
       <div id="ov-anchor-history" class="ov-anchor"></div>
       <div class="section-header" id="regime-history-header">
-        <span class="sdrag" title="Drag to reorder">&#8801;</span>
+
         <div class="section-title">REGIME HISTORY</div>
         <div class="section-meta">90-DAY</div>
       </div>
@@ -4974,11 +4983,15 @@ function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
 // ── Section definitions ───────────────────────────────────────
 const SEC_DEFS = [
-  {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['regimeContent'],            pw:false},
-  {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['macroContent'],             pw:false},
-  {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['yieldsContent'],            pw:false},
-  {id:'ov-fedwatch',  tab:'overview',title:'Fed Rate Path',      els:['fedwatchContent'],          pw:false},
-  {id:'ov-reg-hist',  tab:'overview',title:'Regime History',     els:['regimeHistoryContent'],     pw:false},
+  {id:'ov-briefing',  tab:'overview',title:'AI Briefing',        els:['ai-briefing-section'], pw:true},
+  {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['ov-regime-wrap'],       pw:true},
+  {id:'ov-thesis',    tab:'overview',title:'Thesis Monitor',     els:['ov-sec-thesis'],        pw:true},
+  {id:'ov-watchlist', tab:'overview',title:'Watchlist',          els:['watchlistStrip'],       pw:true},
+  {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['ov-macro-wrap'],        pw:true},
+  {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['ov-sec-yields'],        pw:true},
+  {id:'ov-fedwatch',  tab:'overview',title:'Fed Rate Path',      els:['ov-sec-fedwatch'],      pw:true},
+  {id:'ov-chart',     tab:'overview',title:'Macro Chart',        els:['ov-sec-chart'],         pw:true},
+  {id:'ov-reg-hist',  tab:'overview',title:'Regime History',     els:['ov-sec-history'],       pw:true},
   {id:'mkt-futures',  tab:'markets', title:'Futures',            els:['futuresContent'],           pw:false},
   {id:'mkt-indices',  tab:'markets', title:'Equity Indices',     els:['indicesContent'],           pw:false},
   {id:'mkt-sector',   tab:'markets', title:'Sector Rotation',    els:['sectorSignalBar','sectorContent'], pw:false},
@@ -5077,14 +5090,23 @@ let _dSrc=null;
 
 function initDashDnD() {
   document.querySelectorAll('.section-wrap').forEach(wrap=>{
-    const handle=wrap.querySelector('.sdrag');
-    if(handle){
-      handle.addEventListener('mousedown',()=>wrap.setAttribute('draggable','true'));
-      handle.addEventListener('touchstart',()=>wrap.setAttribute('draggable','true'),{passive:true});
+    // Allow drag from the entire section header (not just the ≡ icon)
+    const header = wrap.querySelector('.section-header');
+    const dragTrigger = header || wrap.querySelector('.sdrag');
+    if (dragTrigger) {
+      dragTrigger.addEventListener('mousedown', e => {
+        if (e.target.closest('button,a,select,input,.info-btn,[data-tipkey]')) return;
+        wrap.setAttribute('draggable','true');
+      });
+      dragTrigger.addEventListener('touchstart', e => {
+        if (e.target.closest('button,a,select,input,.info-btn,[data-tipkey]')) return;
+        wrap.setAttribute('draggable','true');
+      },{passive:true});
     }
     wrap.addEventListener('dragstart',e=>{
+      if (!e.target.closest('.section-header, .sdrag')) { wrap.setAttribute('draggable','false'); return; }
       _dSrc=wrap; e.dataTransfer.effectAllowed='move';
-      e.dataTransfer.setData('text/plain',wrap.dataset.sectionId);
+      e.dataTransfer.setData('text/plain',wrap.dataset.sectionId||'');
       requestAnimationFrame(()=>{ if(_dSrc)wrap.classList.add('sw-ghost'); });
     });
     wrap.addEventListener('dragend',()=>{
@@ -5521,6 +5543,22 @@ function resetWidgetLayouts() {
   location.reload();
 }
 
+// ── Section collapse toggle ───────────────────────────────────
+function toggleSectionCollapse(id) {
+  const sec = document.getElementById(id);
+  if (!sec) return;
+  const collapsed = sec.classList.toggle('sec-collapsed');
+  localStorage.setItem('sec_collapsed_' + id, collapsed ? '1' : '0');
+}
+
+function _restoreSectionCollapseStates() {
+  document.querySelectorAll('.section-wrap[id]').forEach(sec => {
+    if (localStorage.getItem('sec_collapsed_' + sec.id) === '1') {
+      sec.classList.add('sec-collapsed');
+    }
+  });
+}
+
 // ── Section move buttons (▲▼) ─────────────────────────────────
 function _moveSectionUp(btn) {
   const section = btn.closest('.section-wrap');
@@ -5585,7 +5623,7 @@ function _makeDraggable(panel, handle) {
 }
 _makeDraggable(document.getElementById('settingsDrawer'), document.getElementById('settingsHdr'));
 // thesisFloatPanel is injected after this script block; wired below after the element exists
-_makeSortable(document.getElementById('tab-overview'), 'ov-layout');
+// Overview sections are handled by initDashDnD via SEC_DEFS (pw:true)
 document.getElementById('settingsReset').addEventListener('click',()=>{
   if(!confirm('Reset ALL settings to defaults?'))return;
   localStorage.removeItem(ST_KEY);localStorage.removeItem(S_KEY);
@@ -6770,6 +6808,7 @@ initWrappers();
 applySettings();
 initDashDnD();
 _addMoveButtons();
+_restoreSectionCollapseStates();
 fetchWatchlist();
 fetchBDC();
 // Load watchlist from server if localStorage is empty
