@@ -476,6 +476,17 @@ HARD REQUIREMENTS:
 - Use ═══ SECTION NAME ═══ headers exactly as shown
 - Be direct and specific — Ryan is a financial advisor preparing for client meetings, not a casual reader"""
 
+        # Strip sparkline arrays from credit data — they're for frontend charts only
+        # and waste ~800-1200 tokens that Claude can't use in a text briefing.
+        _SPARKLINE_KEYS = {"sparkline", "sparkline_dated"}
+        def _strip_sparklines(items: list) -> list:
+            return [{k: v for k, v in item.items() if k not in _SPARKLINE_KEYS} for item in items]
+
+        clean_credit = {
+            k: (_strip_sparklines(v) if isinstance(v, list) else v)
+            for k, v in credit_data.items()
+        }
+
         # Build comprehensive user message
         spy_block = ""
         if "spx_current" in tech_data:
@@ -725,7 +736,7 @@ Tomorrow: {json.dumps(context['calendar']['tomorrow'])}
 {fw_block}
 
 ═══ CREDIT MARKETS ═══
-{json.dumps(context['credit_spreads'], indent=2)}
+{json.dumps(clean_credit, indent=2)}
 HY stress levels: 400bp = stress, 500bp = crisis
 
 ═══ MACRO INDICATORS ═══
