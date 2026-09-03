@@ -3392,6 +3392,9 @@ function togglePeriod(idx) {
 async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
+  // Briefing runs independently — it has a 90s timeout and must not
+  // block renderRegimeCenterCards() or startRefreshCountdown() on mobile.
+  loadBriefing().catch(() => {});
   await Promise.allSettled([
     apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
@@ -3403,7 +3406,6 @@ async function fetchOverview() {
     apiFetch('/api/macro/chart').then(renderMacroChart).catch(() => {}),
     apiFetch('/api/credit').then(d => { _lastCredit = d; }).catch(() => {}),
     apiFetch('/api/thesis').then(renderThesis).catch(() => {}),
-    loadBriefing().catch(() => {}),
   ]);
   renderRegimeCenterCards();
   setStatus(anyError ? 'error' : 'ok');
@@ -6622,7 +6624,23 @@ async function loadBriefing() {
     timestamp.textContent = 'ERROR';
 
   } catch (err) {
-    content.innerHTML = `<div class="briefing-error">&#9888; Failed to load briefing: ${err.message}</div>`;
+    // On mobile, iOS Safari kills fetch requests when the app is backgrounded.
+    // Retry once after 4 seconds before showing the error state.
+    if (err.name === 'AbortError' || err.message?.includes('abort') || err.message?.includes('network')) {
+      timestamp.textContent = 'RETRYING...';
+      await new Promise(r => setTimeout(r, 4000));
+      try {
+        const retry = await apiFetch('/api/briefing', 90000);
+        if (retry.status === 'success') {
+          content.innerHTML = `<div class="briefing-content">${_formatBriefingText(retry.briefing)}</div>`;
+          const t = new Date(retry.generated_at);
+          const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+          timestamp.textContent = `GENERATED ${timeStr}${retry.from_cache ? ' (CACHED)' : ''}`;
+          return;
+        }
+      } catch (_) { /* fall through to error */ }
+    }
+    content.innerHTML = `<div class="briefing-error">&#9888; Failed to load briefing. Tap &#8635; to retry.</div>`;
     timestamp.textContent = 'ERROR';
   }
 }
