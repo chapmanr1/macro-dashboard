@@ -443,12 +443,15 @@ Falsification check: Which of Ryan's triggers is currently closest to being hit?
 Regime implication: One sentence on what this regime means for positioning right now.
 
 ═══ MARKET SNAPSHOT & KEY LEVELS ═══
-Start with the current state in 2-3 sentences (specific numbers only — no vague commentary):
-- Where SPX sits relative to its 50DMA and 200DMA (state exact levels)
-- 10Y yield current level and recent trend
-- VIX current vs its 30-day average and what the expected daily move (VIX÷16) implies about today's price action
+State the current condition across six indicators — specific numbers only, no vague commentary:
+1. S&P 500 — where it sits vs its 50DMA and 200DMA (state exact level of each moving average)
+2. VIX — current level vs its 30-day average; state what VIX÷16 implies about today's expected daily move and whether the actual market move is normal or unusual
+3. 10Y Treasury yield — current level and whether it's rising or falling recently
+4. Crude Oil — current price and whether it is above/below the key $80 and $100 thresholds; what that means for the inflation picture
+5. US Dollar (DXY) — current level and direction; one sentence on what that implies for global risk appetite and commodities
+6. Market Breadth (RSP vs SPY) — the RSP−SPY differential and signal; whether the average stock is keeping up with the index or falling behind
 
-Then state 3-4 specific levels that would change the picture if broken. For each: the exact level, what a breach means, and if a scheduled event could trigger it today, name the time. Format each as: "Level — consequence — catalyst (if any)"
+Then list 3-5 specific levels that would change the picture if broken today. Include levels across equities, yields, commodities, or spreads — not just SPX. For each: the exact level, what a breach means, and the catalyst or time if known. Format each as: "Instrument at Level — consequence — catalyst (if any)"
 
 ═══ COUNTER-THESIS RISK ═══
 One data point or market signal most inconsistent with the stagflation thesis right now. State the exact number. Then one sentence: noise or genuine threat?
@@ -515,6 +518,68 @@ HARD REQUIREMENTS:
         kl_spy = json.dumps(key_levels.get("spy", {}), indent=2)
         kl_ty  = json.dumps(key_levels.get("ten_year", {}), indent=2)
         kl_vix = json.dumps(key_levels.get("vix", {}), indent=2)
+
+        # ── BUILD COMMODITY BLOCK ─────────────────────────────
+        commod_block = ""
+        commodities = market_data.get("commodities", [])
+        if commodities:
+            lines = []
+            for c in commodities:
+                lbl  = c.get("label", "")
+                px   = c.get("price")
+                pct  = c.get("pct_change")
+                sfx  = c.get("suffix", "")
+                px_str  = f"${px:.2f}" if px is not None else "N/A"
+                pct_str = f"{pct:+.2f}%" if pct is not None else ""
+                lines.append(f"  {lbl}: {px_str} {pct_str} {sfx}".rstrip())
+            commod_block = "Commodities:\n" + "\n".join(lines) + (
+                "\nReference: Crude >$80 = elevated inflation pressure | >$100 = significant stagflation driver"
+                " | Gold rising + real yields falling = inflation hedge demand | Copper falling = growth concern"
+            )
+        else:
+            commod_block = "Commodity data unavailable."
+
+        # ── BUILD FX BLOCK ────────────────────────────────────
+        fx_block = ""
+        currencies = market_data.get("currencies", [])
+        if currencies:
+            lines = []
+            for c in currencies:
+                lbl  = c.get("label", "")
+                px   = c.get("price")
+                pct  = c.get("pct_change")
+                px_str  = f"{px:.4f}" if px is not None else "N/A"
+                pct_str = f"{pct:+.2f}%" if pct is not None else ""
+                lines.append(f"  {lbl}: {px_str} {pct_str}")
+            fx_block = "Currencies:\n" + "\n".join(lines) + (
+                "\nReference: DXY rising = global risk-off, commodity headwind, EM stress"
+                " | DXY falling = risk-on, commodity tailwind | EUR/USD below 1.05 = extreme USD strength"
+            )
+        else:
+            fx_block = "FX data unavailable."
+
+        # ── BUILD BREADTH SNAPSHOT BLOCK ──────────────────────
+        breadth_snapshot_block = ""
+        b = market_data.get("breadth", {})
+        if b:
+            spy_b  = b.get("spy_pct")
+            rsp_b  = b.get("rsp_pct")
+            diff_b = b.get("differential")
+            sig_b  = b.get("signal", "")
+            det_b  = b.get("detail", "")
+            spy_str  = f"{spy_b:+.2f}%" if spy_b is not None else "N/A"
+            rsp_str  = f"{rsp_b:+.2f}%" if rsp_b is not None else "N/A"
+            diff_str = f"{diff_b:+.2f}%" if diff_b is not None else "N/A"
+            breadth_snapshot_block = (
+                f"Market Breadth (RSP vs SPY):\n"
+                f"  SPY (cap-weight S&P 500): {spy_str}\n"
+                f"  RSP (equal-weight S&P 500): {rsp_str}\n"
+                f"  RSP − SPY differential: {diff_str} — Signal: {sig_b}\n"
+                f"  {det_b}\n"
+                f"Reference: RSP > SPY = broad participation (healthy) | SPY > RSP = mega-cap concentration (fragility risk)"
+            )
+        else:
+            breadth_snapshot_block = "Breadth data unavailable."
 
         wl_block = ""
         if watchlist_context:
@@ -634,6 +699,15 @@ HY stress levels: 400bp = stress, 500bp = crisis
 {ten_yr_block}
 
 {sector_block}
+
+═══ COMMODITIES ═══
+{commod_block}
+
+═══ CURRENCIES & DOLLAR ═══
+{fx_block}
+
+═══ MARKET BREADTH ═══
+{breadth_snapshot_block}
 
 ═══ KEY LEVELS ═══
 S&P 500:
