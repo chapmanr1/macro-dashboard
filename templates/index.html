@@ -1588,6 +1588,7 @@
     <div class="section-header">
       <div class="section-title">PRE-MARKET FUTURES</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'equity_futures')" ontouchstart="event.stopPropagation();_showTooltip(this,'equity_futures')">ⓘ</button>
       <div class="section-meta" id="marketsTimestamp">--</div>
     </div>
     <div id="futuresContent">
@@ -1613,6 +1614,7 @@
     <div class="section-header">
       <div class="section-title">SECTOR ROTATION</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'sector_rotation')" ontouchstart="event.stopPropagation();_showTooltip(this,'sector_rotation')">ⓘ</button>
     </div>
     <div id="sectorSignalBar" class="signal-bar"><div class="skel" style="height:22px;width:160px"></div><div class="skel" style="height:12px;width:300px;margin-left:8px"></div></div>
     <div id="sectorContent" class="sector-grid">
@@ -1625,6 +1627,7 @@
     <div class="section-header" id="breadth-header">
       <div class="section-title">MARKET BREADTH</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'market_breadth')" ontouchstart="event.stopPropagation();_showTooltip(this,'market_breadth')">ⓘ</button>
     </div>
     <div id="breadthContent">
       <div class="breadth-wrap">
@@ -1639,6 +1642,7 @@
     <div class="section-header">
       <div class="section-title">VIX FEAR GAUGE</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'vix')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix')">ⓘ</button>
     </div>
     <div id="vixContent">
       <div class="vix-wrap">
@@ -1650,7 +1654,8 @@
 
     <div class="section-header" id="breadth-ratio-header">
       <div class="section-title">RSP/SPX RATIO — BREADTH TREND</div>
-      <span style="margin-left:auto;padding-right:14px"></span>
+      <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')" ontouchstart="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')">ⓘ</button>
     </div>
     <div id="breadthRatioContent">
       <div style="padding:14px 14px 8px">
@@ -1661,6 +1666,7 @@
     <div class="section-header" id="vix-term-header">
       <div class="section-title">VIX TERM STRUCTURE</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'vix_term')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix_term')">ⓘ</button>
     </div>
     <div id="vixTermContent">
       <div class="vix-term-wrap">
@@ -1675,6 +1681,7 @@
     <div class="section-header">
       <div class="section-title">COMMODITIES</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'crude_oil')" ontouchstart="event.stopPropagation();_showTooltip(this,'crude_oil')" title="Tap individual commodities for specific definitions">ⓘ</button>
     </div>
     <div id="commodContent" class="commod-grid">
       <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
@@ -1687,6 +1694,7 @@
     <div class="section-header">
       <div class="section-title">CURRENCIES</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'dxy')" ontouchstart="event.stopPropagation();_showTooltip(this,'dxy')" title="Tap individual currencies for specific definitions">ⓘ</button>
     </div>
     <div id="currencyContent" class="currency-grid">
       <div class="currency-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:30px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:10px;width:70px;margin-bottom:8px"></div><div class="skel" style="height:9px;width:200px"></div></div>
@@ -1696,6 +1704,7 @@
     <div class="section-header">
       <div class="section-title">COT POSITIONING</div>
       <div class="section-line"></div>
+      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'cot')" ontouchstart="event.stopPropagation();_showTooltip(this,'cot')">ⓘ</button>
       <div class="section-meta" id="cotTimestamp">--</div>
     </div>
     <div id="cotContent" class="cot-wrap">
@@ -2355,6 +2364,26 @@ const INDICATOR_TOOLTIPS = {
   thesis_productivity: { title:'NONFARM PRODUCTIVITY — FALSIFICATION TRIGGER', what:'Bureau of Labor Statistics measure of output per hour worked in the nonfarm business sector. Year-over-year change. A structural driver of non-inflationary economic growth — productivity gains mean the economy can grow without generating inflation.', read:'Low productivity growth is a core pillar of the stagflation thesis: if workers aren\'t producing more per hour, wage gains feed directly into inflation rather than real output. A sustained surge above 2% YoY would suggest an AI or technology-driven productivity boom — the 20% bull case scenario that would break the stagflation thesis.', thresholds:'Weak <0.5% | Below trend 0.5-1.5% | At trend 1.5-2% | TRIGGERED: >2% sustained', thesis:'This is the AI scenario monitor. A sustained productivity surge above 2% means the economy can grow AND inflation can fall simultaneously — the exact goldilocks outcome. If this fires alongside GDP above 2.5%, the 20% bull case probability should increase materially. Low productivity (<1.5%) keeps the stagflation thesis intact by confirming there\'s no supply-side escape valve.' },
   rsp_spx_ratio:     { title:'RSP/SPX RATIO', what:'Equal-weight S&P 500 (RSP ETF) divided by the cap-weight S&P 500 index level. Measures whether the average stock is keeping pace with the index giants or falling behind.', read:'Rising ratio = breadth expanding — the average stock is outperforming mega-caps, a sign of broad market participation. Falling ratio = narrowing — the index is being carried by a small number of large-cap names, which is a sign of concentration risk. The ratio trends in long waves because the institutional flows driving it (factor rotation, passive vs active, mega-cap positioning) are structural, not day-to-day.', thresholds:'Top 20% of 1Y range: broadening extended — watch for reversal | Bottom 20%: narrowing exhausted — broadening trade may be setting up | Rising trend: broad participation improving | Falling trend: concentration risk building' },
   vix_daily_move:    { title:'VIX DAILY MOVE', what:'VIX divided by 16 (the approximate square root of 252 trading days in a year) converts the annualized VIX volatility number into an expected 1-standard-deviation daily move for the S&P 500.', read:'This is how options traders and risk desks think about whether today\'s market move is normal or unusual. If VIX is 16, a ±1% daily move is expected. A 2% drop is 2 standard deviations — statistically unusual and worth attention. A 0.3% move either direction is noise. The status compares today\'s actual SPY move against this expected daily range.', thresholds:'NORMAL: actual move is less than 1× expected | ELEVATED: 1–1.5× expected — worth watching | UNUSUAL: 1.5–2× expected — above normal volatility | EXTREME: >2× expected — statistically significant, pay attention' },
+
+  // ── MARKETS TAB ───────────────────────────────────────────
+  spx:            { title:'S&P 500 INDEX', what:'Standard & Poor\'s 500 — market-cap weighted index of the 500 largest US publicly traded companies. The primary benchmark for US equities. Data from FRED (1-day lag on close).', read:'Dominated by mega-cap tech (top 10 names ≈ 35% of index). Day-over-day change reflects prior session. YTD and 52-week levels give trend context. Divergence between S&P 500 and equal-weight RSP reveals concentration risk.', thresholds:'Above 200DMA: uptrend intact | Below 200DMA: caution | 10% off 52W high: correction | 20% off 52W high: bear market | 200DMA break with volume: regime shift signal' },
+  djia:           { title:'DOW JONES IND. AVG', what:'Price-weighted index of 30 large-cap US stocks across diverse industries. Oldest and most recognized US equity index. Because it\'s price-weighted (not market-cap weighted), higher-priced stocks have outsized influence — a structural difference from the S&P 500.', read:'DJIA is more heavily weighted toward industrials, financials, and healthcare than the S&P 500, which makes it more sensitive to old-economy earnings. Divergence between DJIA and Nasdaq signals growth vs. value rotation.', thresholds:'DJIA outperforming Nasdaq: value/industrial trade | Underperforming: tech/growth leading | Tracks S&P 500 directionally but with lower volatility due to narrower composition' },
+  nasdaq:         { title:'NASDAQ COMPOSITE', what:'Market-cap weighted index of all ~3,300 stocks listed on the Nasdaq exchange, heavily concentrated in technology, biotech, and growth companies. The benchmark for growth and innovation investing.', read:'Nasdaq is the most rate-sensitive major index — long-duration growth cash flows are discounted more when rates rise. Nasdaq/S&P 500 ratio is the cleanest growth vs. value signal. Nasdaq outperforming = low-rate or rate-cut expectation. Underperforming = rate pressure or value rotation.', thresholds:'Nasdaq > S&P 500: growth/tech leadership | Nasdaq < S&P 500: value rotation or rate pressure | >20% from high: tech bear market | VIX spike + Nasdaq selloff: risk-off, watch for capitulation' },
+  rut:            { title:'RUSSELL 2000 (RUT)', what:'Index of the 2,000 smallest stocks in the Russell 3000 universe. The primary benchmark for US small-cap equities — companies with market caps roughly $300M–$2B. More domestically focused and credit-sensitive than large-cap indices.', read:'Small caps carry more debt relative to earnings, making them highly sensitive to credit conditions and lending standards. RUT outperforming SPX signals domestic growth confidence and easing credit. RUT lagging signals credit tightening — a leading indicator for HY spread widening. Currently shows unavailable (data source pending).', thresholds:'RUT > SPX: small-cap leadership, broad economic confidence | RUT < SPX: mega-cap flight to safety, credit concerns | RUT down >20%: small-cap bear — watch HY spreads for confirmation | RUT divergence from SPX by >5%: credit or liquidity event likely' },
+  vix:            { title:'VIX — CBOE VOLATILITY INDEX', what:'The CBOE Volatility Index measures the market\'s 30-day implied volatility for the S&P 500, derived from the prices of S&P 500 put and call options. Often called the "fear gauge" — it rises when investors buy options protection and falls when complacency sets in.', read:'VIX is the options market pricing the expected magnitude of near-term S&P 500 moves. VIX rising while equities hold is a warning that institutional hedging is increasing beneath the surface — smart money buying protection. VIX spike = fear or event risk. VIX collapse = complacency (contrarian warning).', thresholds:'<12: Extreme complacency — historically precedes corrections | 12-17: Calm/normal market conditions | 17-25: Elevated awareness, some hedging | 25-35: Fear, significant uncertainty | >35: Panic, crisis-level volatility | >45: Extreme crisis (2008, COVID 2020 levels)' },
+  equity_futures: { title:'EQUITY FUTURES (PRE-MARKET)', what:'E-mini futures contracts on major US equity indices — ES (S&P 500), NQ (Nasdaq 100), YM (Dow Jones). Traded on CME nearly 24 hours/day, they are the real-time gauge of equity market sentiment before NYSE opens at 9:30 AM ET.', read:'Pre-market futures show where the cash market is expected to open. Futures ±0.3% = minor gap. ±0.5–1% = notable move. ±1.5%+ = significant overnight event. Note: futures can reverse sharply at the open when US cash liquidity arrives. Currently unavailable — pending a free-tier API that supports index futures.', thresholds:'Flat (±0.2%): neutral open expected | Green >0.5%: risk-on overnight | Red <-0.5%: risk-off overnight | >1.5% move either way: major event driven | Futures direction + VIX direction = read on conviction' },
+  sector_rotation: { title:'SECTOR ROTATION (SPDR ETFs)', what:'11 Select Sector SPDR ETFs tracking the 11 GICS sectors of the S&P 500: Technology (XLK), Financials (XLF), Energy (XLE), Healthcare (XLV), Industrials (XLI), Consumer Discretionary (XLY), Consumer Staples (XLP), Utilities (XLU), Real Estate (XLRE), Materials (XLB), Communications (XLC). Data from Twelve Data.', read:'Sector leadership reveals what institutional money is rotating into and out of. Defensive sectors (XLU, XLP, XLRE) leading = risk-off or rate-cut bet. Cyclical sectors (XLE, XLF, XLI) leading = growth optimism. Tech (XLK) leading = low-rate or AI narrative. Sector rotation is one of the earliest signals of a changing macro regime.', thresholds:'Defensives leading (XLU/XLP/XLRE): risk-off rotation — caution | Energy (XLE) leading alone: inflation trade | Financials (XLF) leading: steepening yield curve, growth | Tech (XLK) leading: rate cut expectations or AI momentum | Broad sector participation: healthy market breadth' },
+  market_breadth: { title:'MARKET BREADTH (SPY VS RSP)', what:'Compares the S&P 500 cap-weight ETF (SPY) versus the equal-weight ETF (RSP) on a daily percentage basis, plus advance/decline count across the 11 SPDR sectors. When RSP outperforms SPY, the average stock is doing better than the mega-cap giants.', read:'RSP > SPY = healthy breadth — 500 stocks participating, not just the top 10. SPY > RSP = concentration risk — a handful of mega-cap names are carrying the index while the average stock struggles. High concentration makes the index fragile: if the top names correct, the index has limited support from other stocks.', thresholds:'RSP − SPY > +0.5%: strong broad breadth | 0 to +0.5%: modest broadening | −0.5% to 0: modest narrowing | < −0.5%: significant concentration concern | Persistent SPY > RSP for weeks: structural fragility risk' },
+  crude_oil:      { title:'WTI CRUDE OIL', what:'West Texas Intermediate crude oil price in USD per barrel. The primary US oil benchmark, traded on NYMEX. Driven by global demand (IEA forecasts), OPEC+ supply decisions, geopolitical risk, USD strength, and inventory data (EIA weekly report every Wednesday).', read:'Rising crude = inflationary pressure and strong global demand. Falling crude = demand weakness or supply glut — deflationary for energy but may signal recession. For stagflation: sustained crude above $80 keeps headline CPI elevated even when core cools, directly supporting the thesis. Watch the EIA Weekly Petroleum Report every Wednesday.', thresholds:'<$60: demand concern, supply glut, or recession signal | $60-80: moderate, manageable inflation impact | $80-100: elevated, notable inflation pressure | >$100: significant stagflation driver — directly raises CPI and cuts into consumer spending' },
+  gold_commod:    { title:'GOLD (XAU/USD)', what:'Gold spot price in USD per troy ounce. The classic inflation hedge, safe-haven asset, and real yield barometer. Gold has no yield, so its price is inversely correlated with real (inflation-adjusted) interest rates — when real yields rise, gold opportunity cost increases.', read:'Gold rises when: real yields fall, USD weakens, geopolitical risk spikes, or systemic financial stress builds. For stagflation: gold is a natural core holding — inflation erodes paper money, stagnation limits the Fed\'s ability to raise rates aggressively, and a private credit cascade would drive safe-haven demand. Gold at all-time highs is itself a macro signal.', thresholds:'Gold rising + real yields falling: inflation hedge demand active | Gold falling + real yields rising: Fed tightening working | Gold above $2,500: elevated safe-haven demand | Gold and equities falling together: liquidity crisis — watch for forced selling' },
+  silver:         { title:'SILVER (XAG/USD)', what:'Silver spot price in USD per troy ounce. Silver is both a precious metal (inflation/safe-haven) and a critical industrial metal — used in solar panels, EVs, electronics, and medical devices. Roughly 50-60% of silver demand is industrial, making it more economically sensitive than gold.', read:'The gold/silver ratio measures relative performance: high ratio (>80) = gold leading = risk-off, stagflation or recession. Low ratio (<60) = silver leading = industrial/growth demand strong. Silver outperforms gold in growth recoveries and underperforms in pure safe-haven trades. More volatile than gold due to smaller market size.', thresholds:'Gold/Silver ratio >80: risk-off or stagflation lean | 65-80: neutral | <65: industrial growth leading | Silver outperforming gold meaningfully: watch copper as confirmation of growth narrative' },
+  copper:         { title:'COPPER (HG1)', what:'Copper futures price in USD per pound. Copper is used in construction, wiring, plumbing, EVs, and industrial machinery — it appears in nearly every manufactured product. Because demand is so broad-based, copper price is a leading indicator of global economic activity. Economists call it "Dr. Copper."', read:'Rising copper = global growth expectations and industrial demand improving. Falling copper = manufacturing slowdown, construction weakness, or demand destruction. For stagflation: copper weakness is consistent with the stagnation half of the thesis. The copper/gold ratio (see Cu/Au below) is a clean cross-asset growth signal — it tracks closely with US 10-year Treasury yields.', thresholds:'>$4.50/lb: strong global growth | $3.50-4.50: moderate industrial activity | $3.00-3.50: slowing | <$3.00: significant demand concern, watch for credit stress | Copper/Gold ratio falling: growth-negative, supports stagflation base case' },
+  nat_gas:        { title:'NATURAL GAS (NG/USD)', what:'Henry Hub natural gas spot price in USD per MMBtu (Million British Thermal Units). Primary fuel for US heating, electricity generation, and industrial processes. More regionally priced than crude oil due to pipeline and LNG infrastructure constraints. European LNG demand since 2022 has increased global price linkage.', read:'Nat gas is highly seasonal and weather-sensitive: winter spikes (heating demand) and summer peaks (air conditioning/power) are normal. Energy prices feed directly into CPI via the utility bills component. Sustained high natural gas is an inflationary input, especially for manufacturing and petrochemicals. Not as correlated to global growth as crude oil.', thresholds:'<$2: oversupply, warm weather | $2-3.50: normal trading range | $3.50-5: elevated, watch CPI utilities | >$5: significant inflation pressure on heating/power bills | Winter spikes often normalize by spring — look at spring strip pricing for trend signal' },
+  dxy:            { title:'US DOLLAR INDEX (DXY)', what:'FRED Trade-Weighted US Dollar Index (DTWEXBGS) — measures the USD against a broad basket of 26 major trading partner currencies, weighted by trade share. Base period Jan 2006 = 100. More comprehensive than the ICE DXY (which only covers 6 currencies). A rising index means the dollar is strengthening.', read:'Dollar strength tightens global financial conditions: commodities priced in USD become more expensive for foreign buyers (deflationary for US imports, inflationary for others), US multinationals face earnings headwinds, and EM countries with dollar-denominated debt face higher repayment costs. Dollar is the global reserve — it moves on Fed policy expectations, risk sentiment, and capital flows.', thresholds:'Rising dollar: global risk-off, commodity headwind, EM stress, US multinational earnings pressure | Falling dollar: risk-on, commodity tailwind, EM relief | Dollar at multi-decade highs: global dollar-debt squeeze risk | Dollar + VIX both rising: liquidity crisis signal' },
+  eurusd:         { title:'EUR/USD EXCHANGE RATE', what:'The Euro versus US Dollar exchange rate — the world\'s most traded currency pair, representing roughly 24% of global daily FX volume. Driven primarily by ECB vs Fed interest rate differentials, European vs US economic growth divergence, and global risk sentiment.', read:'EUR/USD rising = dollar weakening relative to Euro. Signals risk-on, or the market pricing a Fed pivot before ECB, or European economic outperformance. EUR/USD falling = dollar strengthening — Fed hawkish relative to ECB, or European economic stress (energy, growth). Below 1.05 historically signals significant European weakness or acute dollar demand.', thresholds:'Above 1.15: USD significantly weak, risk-on globally | 1.05-1.15: normal neutral range | 1.00 (parity): historically significant — extreme USD strength or European crisis | Below 1.00: major divergence, European energy/growth crisis level' },
+  vix_term:       { title:'VIX TERM STRUCTURE', what:'Compares near-term implied volatility (VIX spot, 30-day) against medium and longer-term implied volatility. Under normal conditions, longer-dated vol is higher than near-term (contango) — markets price in more uncertainty over time. When near-term vol exceeds long-term (backwardation), the market fears an imminent specific event.', read:'Contango (near-term < long-term): normal, markets calm, no immediate crisis priced. Backwardation (near-term > long-term): near-term fear elevated — options buyers are paying a premium for short-dated protection, signaling a specific near-term risk event. Deep backwardation historically marks market bottoms or acute crisis peaks. Note: VIX mid/long term data currently unavailable pending data source.', thresholds:'Steep contango: calm, no stress | Flat: elevated vol but no acute fear | Backwardation: near-term event risk priced | Deep backwardation (spot 5+ above long): acute crisis or capitulation signal — historically marks bottoms' },
+  cu_au_ratio:    { title:'COPPER / GOLD RATIO', what:'The price of copper (industrial growth signal) divided by the price of gold (safe-haven/inflation hedge). By dividing them, dollar effects cancel out and you get a pure reading on growth vs. safety demand. The ratio historically tracks US 10-year Treasury yields closely because both reflect the same underlying: growth vs. inflation expectations.', read:'Rising ratio = copper outperforming gold = industrial growth demand rising, risk-on. Falling ratio = gold outperforming copper = growth concerns, risk-off, or inflation without real economic demand (stagflation). When the ratio falls while yields also fall, the bond market and commodity market are both pricing in a slowdown — a high-conviction signal.', thresholds:'Rising ratio: growth-positive, watch for yield curve steepening | Falling ratio: growth concern, risk-off, inflation hedge demand | Ratio at multi-year lows: consistent with stagflation or recession — both markets pricing weakness | Cu/Au and 10Y yield diverging: one market is wrong — watch for resolution' },
+  cot:            { title:'CFTC COT — INSTITUTIONAL POSITIONING', what:'CFTC Commitment of Traders report — weekly data showing net positioning of non-commercial traders (hedge funds, CTAs, large speculators) in major futures markets. Published every Tuesday for the prior week\'s data (~3-day lag). Reflects the largest regulated futures participants in the world.', read:'Score is normalized -100 to +100 vs. each instrument\'s 52-week net long/short range. Extreme readings signal crowded trades that historically mean-revert when sentiment shifts. Use as structural positioning context: EXTREME LONG = consensus bullish trade, vulnerable to unwind; EXTREME SHORT = consensus bearish, potential short squeeze. Not a timing tool — more a risk radar.', thresholds:'EXTREME LONG (>75): crowded bullish — reversal risk if catalyst appears | NET LONG (25-75): bullish lean | NEUTRAL (-25 to 25): balanced positioning | NET SHORT (-75 to -25): bearish lean | EXTREME SHORT (<-75): crowded bearish — short squeeze risk if positive catalyst | Readings flip faster than price — watch for divergence between score and price direction' },
 };
 
 const REGIME_IND_TIP_IDS = {
@@ -4096,6 +4125,18 @@ function _mcMouseLeave() {
 // ════════════════════════════════════════════════════════════
 // RENDER: MARKETS
 // ════════════════════════════════════════════════════════════
+const COMMOD_TIP_IDS = {
+  'CRUDE OIL': 'crude_oil',
+  'GOLD':      'gold_commod',
+  'SILVER':    'silver',
+  'COPPER':    'copper',
+  'NAT GAS':   'nat_gas',
+};
+const CURRENCY_TIP_IDS = {
+  'DXY':     'dxy',
+  'EUR/USD':  'eurusd',
+};
+
 function signalBadgeClass(signal) {
   const s = (signal||'').toUpperCase();
   if (s.includes('RISK ON') || s.includes('POSITIVE') || s.includes('BULLISH')) return 'green';
@@ -4248,7 +4289,7 @@ function renderMarkets(data) {
     const url = YAHOO_URLS[c.symbol] || '';
     const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
     return `<${tag} class="commod-cell"${attrs}>
-      <div class="commod-label">${c.label||''}</div>
+      <div class="commod-label" style="display:flex;align-items:center;justify-content:space-between">${c.label||''}${_tipBtn(COMMOD_TIP_IDS[c.label]||'')}</div>
       <div class="commod-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
       <div class="commod-change ${cls}">${arrow} ${c.pct_change != null ? fmt(c.pct_change,2)+'%' : '--'}</div>
       <div class="commod-suffix">${c.suffix||''}</div>
@@ -4272,7 +4313,7 @@ function renderMarkets(data) {
     const curl = YAHOO_URLS[c.symbol] || '';
     const ctag = curl ? `a` : `div`; const cattrs = curl ? ` href="${curl}" target="_blank" rel="noopener noreferrer"` : '';
     return `<${ctag} class="currency-cell"${cattrs}>
-      <div class="currency-label">${c.label||''}</div>
+      <div class="currency-label" style="display:flex;align-items:center;justify-content:space-between">${c.label||''}${_tipBtn(CURRENCY_TIP_IDS[c.label]||'')}</div>
       <div class="currency-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
       <div class="currency-change ${cls}">${arrow} ${c.change != null ? fmt(Math.abs(c.change),dec) : '--'} (${c.pct_change != null ? fmt(c.pct_change,2) : '--'}%)</div>
       ${extraHTML}
@@ -4369,7 +4410,7 @@ function renderCuAu(data) {
   const ratioStr = ratio != null ? ratio.toFixed(4) : '--';
   setEl('cuAuContent', `
     <div class="cu-au-wrap">
-      <div class="cu-au-label">CU/AU RATIO</div>
+      <div class="cu-au-label" style="display:flex;align-items:center;gap:6px">CU/AU RATIO ${_tipBtn('cu_au_ratio')}</div>
       <div class="cu-au-ratio ${sigCls}">${ratioStr}</div>
       <div class="cu-au-signal-badge" style="border-color:currentColor" class="${sigCls}">${signal}</div>
       <div class="cu-au-detail">${detail}</div>
