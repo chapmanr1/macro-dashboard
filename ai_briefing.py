@@ -303,15 +303,36 @@ def _generate_briefing(api_key: str) -> dict:
         from fred_data import get_macro, get_yields, get_credit
         from market_data import get_market
         from news_feed import get_news
+        from global_data import get_cot_positioning
+        from fed_watch import get_fed_watch
         regime_data = get_regime()
         macro_data  = get_macro()
         yields_data = get_yields()
         credit_data = get_credit()
         market_data = get_market()
         news_data   = get_news()
-        top_news    = (news_data.get("articles") or [])[:10]
+        cot_data    = get_cot_positioning()
+        fedwatch_data = get_fed_watch()
+        top_news    = (news_data.get("articles") or [])[:20]
     except Exception as e:
         return {"status": "data_error", "message": f"Could not fetch dashboard data: {e}"}
+
+    # ── NEWS RECENCY SPLIT ────────────────────────────────────
+    # Separate news into "this morning / last 12h" vs "prior session"
+    # so Claude can distinguish fresh signals from already-priced news.
+    cutoff_12h = _now_et() - timedelta(hours=12)
+    fresh_news, stale_news = [], []
+    for a in top_news:
+        ts_str = a.get("publishedAt") or a.get("timestamp", "")
+        try:
+            from datetime import timezone as _tz
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            if ts.astimezone(EASTERN) >= cutoff_12h:
+                fresh_news.append(a)
+            else:
+                stale_news.append(a)
+        except (ValueError, AttributeError):
+            stale_news.append(a)
 
     # ── SUPPLEMENTAL CALCULATIONS ─────────────────────────────
     tech_data    = _calculate_technicals()
@@ -356,15 +377,25 @@ def _generate_briefing(api_key: str) -> dict:
             "sector_leaders":  tech_data.get("sector_leaders", []),
             "sector_laggards": tech_data.get("sector_laggards", []),
         },
-        "top_headlines": [
+        "cot_positioning":  cot_data,
+        "fed_watch":        fedwatch_data,
+        "fresh_news": [
             {
                 "title":     a.get("title", ""),
                 "source":    a.get("source", ""),
                 "summary":   (a.get("description") or "")[:300],
                 "published": a.get("publishedAt") or a.get("timestamp", ""),
-                "impact":    a.get("score", ""),
             }
-            for a in top_news
+            for a in fresh_news
+        ],
+        "prior_news": [
+            {
+                "title":     a.get("title", ""),
+                "source":    a.get("source", ""),
+                "summary":   (a.get("description") or "")[:200],
+                "published": a.get("publishedAt") or a.get("timestamp", ""),
+            }
+            for a in stale_news
         ],
     }
 
@@ -373,71 +404,72 @@ def _generate_briefing(api_key: str) -> dict:
         from anthropic import Anthropic
         client = Anthropic(api_key=api_key)
 
-        system_prompt = """You are a senior macro and technical analyst briefing financial advisor Ryan Chapman.
+        system_prompt = """You are a senior macro strategist writing the morning briefing for Ryan Chapman, a financial advisor at Stifel Financial.
 
-ALL TIMES IN THIS BRIEFING ARE EASTERN TIME (ET) — the financial industry standard. NYSE hours: 9:30 AM–4:00 PM ET. Reference all market times in ET.
+ALL TIMES ARE EASTERN TIME (ET). NYSE hours: 9:30 AM–4:00 PM ET.
 
-CRITICAL CONTEXT:
-- Ryan has held a stagflation thesis since 2021
-- His bear case is private credit cascade leading to wealth effect reversal and GDP contraction
-- His bull case fear is Fed cuts aggressively and goldilocks resumes
-- He cares about: macro regime changes, credit market stress, technical levels, institutional positioning, news flow
-- Time horizon: 2-3 years primarily, with awareness of near-term positioning
+RYAN'S STANDING CONTEXT:
+- Stagflation thesis held since 2021 (50% base case): inflation stays sticky, growth stays weak
+- Bear case (30%): private credit cascade → wealth effect reversal → GDP contraction
+- Bull case fear (20%): Fed cuts aggressively, goldilocks resumes
+- Falsification triggers: Core PCE below 2.5% for 3 months, GDP above 2.5% for 2 quarters, HY spreads sustained below 300bp, productivity above 2% sustained
+- Cares about: regime changes, credit stress, cross-asset divergences, institutional positioning, what markets are pricing vs what the Fed is saying
 
-THE CURRENT REGIME from his terminal is the SOURCE OF TRUTH for the macro environment. Address both: what the data is showing now AND how it relates to his thesis.
+THE CURRENT REGIME from his terminal is the SOURCE OF TRUTH. Always address it by name with specific numbers.
 
-YOUR BRIEFING MUST INCLUDE THESE SECTIONS:
+WHAT MAKES A GREAT BRIEFING:
+The goal is not to summarize the news — Ryan can read headlines. The goal is to tell him what the data implies that the news hasn't said yet, and whether this morning's action confirms or threatens his thesis. Every section must earn its place with specific numbers. No filler, no hedging, no generic statements.
 
-═══ MARKET PULSE ═══
-2-3 sentences on what's happening in markets RIGHT NOW. Reference specific levels, percentages, moves. Note any technical breakouts or breakdowns. Mention sector rotation if notable.
+YOUR BRIEFING MUST USE THESE SECTIONS IN THIS ORDER:
 
-═══ NEWS THAT MATTERS ═══
-Synthesize the 3 most important news stories from the headlines provided. Don't just list them — explain why each matters and what it implies. Connect them to broader themes when relevant.
+═══ MORNING CONTEXT ═══
+What happened in the last 12 hours that actually matters. Lead with any economic data releases or earnings that printed this morning — state the number, the expectation if known, and critically: how the market is reacting vs what you'd expect. A "good" number the market sells is more important than the number itself. If there's a Fed speaker or policy statement in the fresh news, flag it immediately. 2-4 sentences max.
 
-═══ TECHNICAL LANDSCAPE ═══
-Specific technical observations:
-- S&P 500 position vs key moving averages (use exact levels)
-- Yield curve action — what specific levels mean
-- VIX level interpretation
-- Sector leadership/rotation
-- Any unusual cross-asset moves
-Be specific with numbers, not vague.
+═══ WHAT THE DATA SAYS ═══
+This is the section the financial media won't write. Identify cross-asset signals that the headlines are missing:
+- Is credit (HY spreads) moving in a different direction than equities? If so, which market is right?
+- Is VIX rising while the S&P holds? That's hedging activity — say so.
+- Are defensive sectors (Utilities, Staples, Real Estate) rotating in without a headline reason? That's risk-off.
+- Are equal-weight stocks underperforming cap-weight? Index concentration risk is building.
+- What is the CFTC COT data showing? If large speculators are EXTREME LONG equities, that's a crowded trade. If they're EXTREME SHORT bonds, a short squeeze is possible. Frame COT as structural positioning context (it lags by ~1 week), not real-time.
+- What is the rate market pricing (FedWatch) vs what the Fed is saying publicly? Any divergence is a trade.
+Be specific with every signal — state the actual number and what it means.
 
 ═══ REGIME STATUS ═══
-The terminal currently shows: [USE ACTUAL REGIME LABEL FROM DATA]
-- Address this current regime directly with specific indicator values from the data
-- What this regime status means for positioning
-- How this relates to Ryan's stagflation thesis: strengthening, stable, or weakening?
-- Which falsification triggers are approaching?
+Current regime: [USE EXACT LABEL FROM DATA]
+- State the confidence score and the top 3 driver indicators with their actual values
+- Is this regime strengthening, stable, or at risk of shifting?
+- Which of Ryan's falsification triggers is closest to being hit right now? Quantify the gap.
+- One sentence on what this regime means for positioning.
 
-═══ SPECIFIC LEVELS TO WATCH TODAY ═══
-Provide ACTIONABLE, SPECIFIC items — never generic:
-- Exact price/yield/spread levels with what a break above or below would signal
-- Specific events with times if known from the calendar data
-- At least 3-4 concrete watch points with numbers
+═══ TECHNICAL LEVELS ═══
+Specific numbers only — no vague commentary:
+- S&P 500 vs its 50DMA and 200DMA (use exact levels from data)
+- 10Y yield: current level and what a break above or below key levels would signal
+- VIX: current level, how it compares to its 30-day average, and what the expected daily move implies
+- Any technical level that is within 1% of being tested right now
+
+═══ LEVELS TO WATCH TODAY ═══
+3-4 specific, actionable price/yield/spread levels. For each: state the level, state what a break means, and if there's a scheduled event that could trigger it, name the time.
 
 ═══ COUNTER-THESIS RISK ═══
-Name the SINGLE data point or market signal most inconsistent with Ryan's stagflation thesis. Quantify it (e.g., "Core PCE at X% is Y bps below the 3.5% level that would confirm stagflation"). Then in one sentence explain why it might be noise rather than signal.
+One data point or market signal that is most inconsistent with the stagflation thesis right now. Quantify it precisely. Then one sentence on whether it looks like noise or a genuine threat.
 
 ═══ POSITIONING IMPLICATIONS ═══
-Based on the current regime AND today's action: 1-2 specific actionable considerations.
+1-2 specific considerations based on the current regime and this morning's action. Not generic asset allocation — specific to what's happening today.
 
-═══ WATCHLIST STOCKS ═══
-For each stock listed in the WATCHLIST DATA below, write 1-2 sentences: the day's price move in context, any relevant macro/sector tailwind or headwind, and if there's breaking news, what it means. Skip any ticker with "no data". If the watchlist is empty, omit this section entirely.
+═══ WATCHLIST ═══
+For each ticker in the watchlist data: price move, macro context for that move, any news. Skip tickers with no data. Omit section entirely if watchlist is empty.
 
-═══ CFP EXAM CONNECTION ═══
-One sentence connecting today's most notable market condition to a CFP curriculum topic (choose from: time value of money, retirement income planning, portfolio management, risk management/insurance, estate planning, tax planning, or economic analysis).
+═══ CFP CONNECTION ═══
+One sentence connecting today's most notable condition to a CFP curriculum topic (retirement income, portfolio management, risk management, economic analysis, tax planning, or estate planning).
 
-REQUIREMENTS:
-- Maximum 750 words total
-- Use specific numbers and levels throughout
-- Reference actual data points from the context provided
-- Address the ACTUAL CURRENT REGIME shown in the data
-- No filler, no hedging language, no generic advice
-- If data is missing for a section just skip it
-- Bold key levels using **number** markdown
-
-FORMAT: Use the ═══ SECTION NAME ═══ headers exactly as shown above."""
+HARD REQUIREMENTS:
+- 900 words maximum total
+- Every number you cite must come from the data provided — no fabrication
+- Bold key levels: **5,400** not "around 5400"
+- If a data section is missing or empty, skip that reference entirely
+- Use ═══ SECTION NAME ═══ headers exactly as shown"""
 
         # Build comprehensive user message
         spy_block = ""
@@ -492,19 +524,102 @@ FORMAT: Use the ═══ SECTION NAME ═══ headers exactly as shown above.
 {watchlist_context}
 """
 
-        user_message = f"""Generate today's macro briefing.
+        # ── BUILD COT BLOCK ───────────────────────────────────
+        cot_block = ""
+        cot_positions = context.get("cot_positioning", {}).get("positions", [])
+        cot_as_of     = context.get("cot_positioning", {}).get("as_of", "N/A")
+        if cot_positions:
+            cot_lines = []
+            for p in cot_positions:
+                signal = p.get("signal", "N/A")
+                score  = p.get("score")
+                score_str = f"{score:+.0f}" if score is not None else "N/A"
+                net    = p.get("net_long")
+                net_str = f"{net:,}" if net is not None else "N/A"
+                cot_lines.append(
+                    f"  {p.get('label','?'):12s} | Score: {score_str:>6} | Net Long: {net_str:>12} | Signal: {signal}"
+                )
+            cot_block = (
+                f"CFTC COT (Large Speculator Positioning — as of {cot_as_of}, ~1 week lag):\n"
+                + "\n".join(cot_lines)
+                + "\nInterpretation: Score -100 to +100 normalized vs 52-week range. "
+                "EXTREME readings = crowded trade = reversal risk."
+            )
+        else:
+            cot_block = "COT data unavailable."
 
-═══ CONTEXT ═══
+        # ── BUILD FEDWATCH BLOCK ──────────────────────────────
+        fw = context.get("fed_watch", {})
+        fw_block = ""
+        if fw and not fw.get("error"):
+            fw_signal = fw.get("signal", "N/A")
+            fw_detail = fw.get("signal_detail", "")
+            fw_ff     = fw.get("current_ff", "N/A")
+            path_lines = []
+            for h in fw.get("implied_path", []):
+                lbl    = h.get("label", "?")
+                cuts   = h.get("cuts_priced")
+                dirn   = h.get("direction", "")
+                cuts_str = f"{cuts:+.1f} cuts" if cuts is not None else "N/A"
+                path_lines.append(f"  {lbl}: {cuts_str} ({dirn})")
+            fw_block = (
+                f"Rate Market Expectations (CME-implied via FRED yields):\n"
+                f"  Current Fed Funds: {fw_ff}%\n"
+                f"  Market Signal: {fw_signal} — {fw_detail}\n"
+                + "\n".join(path_lines)
+            )
+        else:
+            fw_block = "FedWatch data unavailable."
+
+        # ── BUILD NEWS BLOCKS ─────────────────────────────────
+        def _fmt_news(articles: list, max_summary: int = 300) -> str:
+            if not articles:
+                return "  (none)"
+            lines = []
+            for i, a in enumerate(articles, 1):
+                pub = (a.get("published") or "")[:16]
+                lines.append(
+                    f"  {i}. [{a.get('source','')}] {a.get('title','')}\n"
+                    f"     Published: {pub}\n"
+                    f"     {(a.get('summary') or '')[:max_summary]}"
+                )
+            return "\n".join(lines)
+
+        fresh_block = _fmt_news(context.get("fresh_news", []))
+        prior_block = _fmt_news(context.get("prior_news", []), max_summary=150)
+
+        user_message = f"""Generate today's morning briefing.
+
+═══ DATE & TIME ═══
 Date: {context['current_date']}
-Time: {context['current_time']}
-Day: {context['day_of_week']}
+Time: {context['current_time']} ({context['day_of_week']})
 
 ═══ CURRENT REGIME (SOURCE OF TRUTH) ═══
-Regime Label: {context['current_regime']}
-Internal Classification: {context['internal_regime']}
+Label: {context['current_regime']}
+Internal: {context['internal_regime']}
 Confidence: {context['regime_confidence']}%
-Key Drivers: {json.dumps(context['regime_drivers'], indent=2)}
-Key Risks from Engine: {json.dumps(context['regime_risks'], indent=2)}
+Top Drivers: {json.dumps(context['regime_drivers'], indent=2)}
+Key Risks: {json.dumps(context['regime_risks'], indent=2)}
+
+═══ NEWS — LAST 12 HOURS (this morning / overnight) ═══
+{fresh_block}
+
+═══ NEWS — PRIOR SESSION (already priced, context only) ═══
+{prior_block}
+
+═══ ECONOMIC CALENDAR ═══
+Today ({context['day_of_week']}): {json.dumps(context['calendar']['today'])}
+Tomorrow: {json.dumps(context['calendar']['tomorrow'])}
+
+═══ INSTITUTIONAL POSITIONING (CFTC COT) ═══
+{cot_block}
+
+═══ RATE MARKET EXPECTATIONS ═══
+{fw_block}
+
+═══ CREDIT MARKETS ═══
+{json.dumps(context['credit_spreads'], indent=2)}
+HY stress levels: 400bp = stress, 500bp = crisis
 
 ═══ MACRO INDICATORS ═══
 {json.dumps(context['macro_indicators'], indent=2)}
@@ -512,13 +627,7 @@ Key Risks from Engine: {json.dumps(context['regime_risks'], indent=2)}
 ═══ YIELD CURVE ═══
 {json.dumps(context['yield_curve'], indent=2)}
 
-═══ CREDIT MARKETS ═══
-{json.dumps(context['credit_spreads'], indent=2)}
-
-═══ MARKET DATA ═══
-{json.dumps(context['market_data'], indent=2)}
-
-═══ TECHNICAL INDICATORS ═══
+═══ TECHNICALS ═══
 {spy_block}
 
 {vix_block}
@@ -536,27 +645,12 @@ S&P 500:
 
 VIX:
 {kl_vix}
-
-HY Spread stress levels: 400bp = stress, 500bp = crisis
-
-═══ INSTITUTIONAL FLOWS ═══
-Sector rotation (ETF price action): {json.dumps(context['institutional']['sector_rotation'], indent=2)}
-Leaders today: {context['institutional']['sector_leaders']}
-Laggards today: {context['institutional']['sector_laggards']}
-
-═══ TOP 10 HEADLINES ═══
-{json.dumps(context['top_headlines'], indent=2)}
-
-═══ ECONOMIC CALENDAR ═══
-Today ({context['day_of_week']}): {json.dumps(context['calendar']['today'])}
-Tomorrow: {json.dumps(context['calendar']['tomorrow'])}
-This week: {context['calendar']['this_week']}
 {wl_block}
-Generate the briefing now. Be specific, reference actual numbers, address the actual current regime."""
+Generate the briefing now. Use specific numbers from the data above. Do not fabricate any figures."""
 
         message = client.messages.create(
-            model="claude-sonnet-5",
-            max_tokens=2500,
+            model="claude-sonnet-4-6",
+            max_tokens=3500,
             system=[
                 {
                     "type": "text",
@@ -607,6 +701,22 @@ def force_regenerate() -> dict:
     except FileNotFoundError:
         pass
     return get_briefing()
+
+
+def _prewarm_briefing() -> None:
+    """Background startup task: generate briefing cache so it's ready on first page load."""
+    import time as _time
+    _time.sleep(20)  # Let other startup tasks (FRED, market data) initialize first
+    try:
+        cached = _load_cache()
+        if cached and _cache_valid(cached):
+            log.info("Briefing pre-warm skipped — valid cache already exists.")
+            return
+        log.info("Briefing pre-warm: generating fresh briefing in background...")
+        get_briefing()
+        log.info("Briefing pre-warm complete.")
+    except Exception as e:
+        log.warning(f"Briefing pre-warm failed (non-fatal): {e}")
 
 
 def _load_cache():

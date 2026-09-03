@@ -346,6 +346,10 @@
     .vix-marker { position: absolute; top: -4px; width: 3px; height: 20px; background: white; border-radius: 1px; transform: translateX(-50%); box-shadow: 0 0 6px rgba(255,255,255,0.8); }
     .vix-scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 7px; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 8px; }
     .vix-description { font-size: 10px; color: var(--muted); line-height: 1.5; }
+    .vix-daily-move { border-top: 1px solid var(--border); margin: 0 14px 0; padding: 10px 0 12px; }
+    .vix-dm-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+    .vix-dm-value { font-size: 20px; font-weight: 700; color: var(--white); font-family: var(--font-mono); letter-spacing: -0.01em; }
+    .vix-dm-actual { font-size: 10px; margin-top: 4px; letter-spacing: 0.04em; font-family: var(--font-mono); }
 
     /* ── MARKETS: COMMODITIES & CURRENCIES ── */
     .commod-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
@@ -1644,6 +1648,16 @@
       </div>
     </div>
 
+    <div class="section-header" id="breadth-ratio-header">
+      <div class="section-title">RSP/SPX RATIO — BREADTH TREND</div>
+      <span style="margin-left:auto;padding-right:14px"></span>
+    </div>
+    <div id="breadthRatioContent">
+      <div style="padding:14px 14px 8px">
+        <div class="skel" style="height:160px;border-radius:4px"></div>
+      </div>
+    </div>
+
     <div class="section-header" id="vix-term-header">
       <div class="section-title">VIX TERM STRUCTURE</div>
       <div class="section-line"></div>
@@ -2339,6 +2353,8 @@ const INDICATOR_TOOLTIPS = {
   thesis_gdp:        { title:'REAL GDP GROWTH — FALSIFICATION TRIGGER', what:'Real Gross Domestic Product, annualized quarterly growth rate. Measures the inflation-adjusted total output of the US economy. Published quarterly by the Bureau of Economic Analysis, with advance, preliminary, and final revisions.', read:'The stagflation thesis requires weak or negative growth paired with elevated inflation. Above-trend GDP (>2.5%) sustained for 2 consecutive quarters would indicate demand remains robust — inconsistent with stagflation and more aligned with the 20% goldilocks bull case.', thresholds:'Contraction <0% | Weak 0-1.5% | Trend 1.5-2.5% | TRIGGERED: >2.5% for 2 consecutive quarters', thesis:'If this trigger fires, the economy is growing too strongly to be in stagflation — you have inflation without the stagnation. This would push probability toward the 20% goldilocks scenario (strong growth + inflation fading). The base case requires growth to stay below trend. If productivity (the 4th trigger) also fires alongside this, the bull case probability rises sharply.' },
   thesis_hy:         { title:'HY OAS CREDIT SPREAD — FALSIFICATION TRIGGER', what:'ICE BofA High Yield Option-Adjusted Spread — the extra yield investors demand to hold junk-rated corporate bonds over risk-free US Treasuries. Measured in basis points (100bp = 1%). A direct measure of perceived credit risk in the economy.', read:'Wide spreads (>400bp) signal stress in the credit market and support the private credit cascade risk thesis. Tight spreads (<300bp) indicate investors are complacent about credit risk — historically a sign that the bear case is losing probability. The 30% bear case depends on sustained spread widening.', thresholds:'Tight (risk-on) <300bp | TRIGGERED: <300bp sustained | Elevated 300-500bp | Stress >500bp | Crisis >700bp', thesis:'This trigger is unique: it fires when credit TIGHTENS (below 300bp), not when it widens. Sustained tight spreads mean the credit market is not pricing in cascade risk — challenging the 30% bear case. If this fires, reduce the bear case probability from 30% and reallocate to the base case or bull case.' },
   thesis_productivity: { title:'NONFARM PRODUCTIVITY — FALSIFICATION TRIGGER', what:'Bureau of Labor Statistics measure of output per hour worked in the nonfarm business sector. Year-over-year change. A structural driver of non-inflationary economic growth — productivity gains mean the economy can grow without generating inflation.', read:'Low productivity growth is a core pillar of the stagflation thesis: if workers aren\'t producing more per hour, wage gains feed directly into inflation rather than real output. A sustained surge above 2% YoY would suggest an AI or technology-driven productivity boom — the 20% bull case scenario that would break the stagflation thesis.', thresholds:'Weak <0.5% | Below trend 0.5-1.5% | At trend 1.5-2% | TRIGGERED: >2% sustained', thesis:'This is the AI scenario monitor. A sustained productivity surge above 2% means the economy can grow AND inflation can fall simultaneously — the exact goldilocks outcome. If this fires alongside GDP above 2.5%, the 20% bull case probability should increase materially. Low productivity (<1.5%) keeps the stagflation thesis intact by confirming there\'s no supply-side escape valve.' },
+  rsp_spx_ratio:     { title:'RSP/SPX RATIO', what:'Equal-weight S&P 500 (RSP ETF) divided by the cap-weight S&P 500 index level. Measures whether the average stock is keeping pace with the index giants or falling behind.', read:'Rising ratio = breadth expanding — the average stock is outperforming mega-caps, a sign of broad market participation. Falling ratio = narrowing — the index is being carried by a small number of large-cap names, which is a sign of concentration risk. The ratio trends in long waves because the institutional flows driving it (factor rotation, passive vs active, mega-cap positioning) are structural, not day-to-day.', thresholds:'Top 20% of 1Y range: broadening extended — watch for reversal | Bottom 20%: narrowing exhausted — broadening trade may be setting up | Rising trend: broad participation improving | Falling trend: concentration risk building' },
+  vix_daily_move:    { title:'VIX DAILY MOVE', what:'VIX divided by 16 (the approximate square root of 252 trading days in a year) converts the annualized VIX volatility number into an expected 1-standard-deviation daily move for the S&P 500.', read:'This is how options traders and risk desks think about whether today\'s market move is normal or unusual. If VIX is 16, a ±1% daily move is expected. A 2% drop is 2 standard deviations — statistically unusual and worth attention. A 0.3% move either direction is noise. The status compares today\'s actual SPY move against this expected daily range.', thresholds:'NORMAL: actual move is less than 1× expected | ELEVATED: 1–1.5× expected — worth watching | UNUSUAL: 1.5–2× expected — above normal volatility | EXTREME: >2× expected — statistically significant, pay attention' },
 };
 
 const REGIME_IND_TIP_IDS = {
@@ -4196,7 +4212,30 @@ function renderMarkets(data) {
         <span style="color:var(--red)">35 PANIC</span><span style="color:var(--red-dim)">50 EXTREME</span>
       </div>
       <div class="vix-description">${vix.description||''}</div>
-    </a>`);
+    </a>
+    ${(()=>{
+      if (vixVal == null) return '';
+      const expected = (vixVal / 16);
+      const actualPct = data.breadth?.spy_pct;
+      const expectedStr = expected.toFixed(2);
+      let actualBlock = '';
+      if (actualPct != null) {
+        const absActual = Math.abs(actualPct);
+        const ratio = absActual / expected;
+        let status, statusColor;
+        if (ratio < 1)         { status = 'NORMAL';   statusColor = 'var(--green)'; }
+        else if (ratio < 1.5)  { status = 'ELEVATED'; statusColor = 'var(--amber)'; }
+        else if (ratio < 2)    { status = 'UNUSUAL';  statusColor = 'var(--amber)'; }
+        else                   { status = 'EXTREME';  statusColor = 'var(--red)'; }
+        const sign = actualPct >= 0 ? '+' : '';
+        actualBlock = `<div class="vix-dm-actual" style="color:${statusColor}">TODAY: ${sign}${fmt(actualPct,2)}% — <strong>${status}</strong></div>`;
+      }
+      return `<div class="vix-daily-move">
+        <div class="vix-dm-label">EXPECTED DAILY MOVE ${_tipBtn('vix_daily_move')}</div>
+        <div class="vix-dm-value">± ${expectedStr}%</div>
+        ${actualBlock}
+      </div>`;
+    })()}`);
 
   // Commodities
   const commodities = data.commodities || [];
@@ -4392,16 +4431,131 @@ function renderCOT(data) {
   el.innerHTML = rows + `<div class="cot-meta">${asOf}${asOf ? ' &nbsp;·&nbsp; ' : ''}${note}</div>`;
 }
 
+// ── RSP/SPX BREADTH RATIO CHART ───────────────────────────────
+let _ratioAllPoints = [];
+let _ratioPeriod = '1Y';
+
+function renderBreadthRatio(data) {
+  const el = document.getElementById('breadthRatioContent');
+  if (!el) return;
+  const pts = data.points || [];
+  if (!pts.length || data.error) {
+    el.innerHTML = `<div style="padding:14px;font-size:10px;color:var(--muted)">${data.error || 'No data'}</div>`;
+    return;
+  }
+  _ratioAllPoints = pts;
+  window._lastRatioData = data;
+  _drawRatioChart(_ratioPeriod);
+}
+
+function _drawRatioChart(period) {
+  const el = document.getElementById('breadthRatioContent');
+  if (!el || !_ratioAllPoints.length) return;
+  _ratioPeriod = period;
+
+  // Filter by period
+  const now = new Date();
+  const cutoffs = { '3M': 90, '6M': 180, '1Y': 365 };
+  const days = cutoffs[period] || 365;
+  const cutoff = new Date(now - days * 86400000);
+  const pts = _ratioAllPoints.filter(p => new Date(p.date) >= cutoff);
+  if (!pts.length) return;
+
+  const ratios = pts.map(p => p.ratio);
+  const lo = Math.min(...ratios);
+  const hi = Math.max(...ratios);
+  const allRatios = _ratioAllPoints.map(p => p.ratio);
+  const lo52 = Math.min(...allRatios);
+  const hi52 = Math.max(...allRatios);
+  const current = ratios[ratios.length - 1];
+  const pad = (hi - lo) * 0.12;
+  const yMin = lo - pad;
+  const yMax = hi + pad;
+
+  const W = 560, H = 140, ML = 52, MR = 12, MT = 28, MB = 24;
+  const cW = W - ML - MR, cH = H - MT - MB;
+
+  const xScale = i => ML + (i / (pts.length - 1)) * cW;
+  const yScale = v => MT + cH - ((v - yMin) / (yMax - yMin)) * cH;
+
+  // Build polyline points
+  const linePts = pts.map((p, i) => `${xScale(i).toFixed(1)},${yScale(p.ratio).toFixed(1)}`).join(' ');
+
+  // X-axis labels: show month/year at roughly 4-6 points
+  const xLabels = [];
+  const step = Math.max(1, Math.floor(pts.length / 5));
+  for (let i = 0; i < pts.length; i += step) {
+    const d = new Date(pts[i].date);
+    const lbl = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    xLabels.push(`<text x="${xScale(i).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="8" fill="var(--muted)">${lbl}</text>`);
+  }
+
+  // Y-axis labels (3 gridlines)
+  const yGridLines = [];
+  for (let t = 0; t <= 2; t++) {
+    const v = yMin + (yMax - yMin) * (t / 2);
+    const y = yScale(v).toFixed(1);
+    yGridLines.push(`<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="var(--border)" stroke-dasharray="2,3"/>`);
+    yGridLines.push(`<text x="${ML - 3}" y="${parseFloat(y) + 3}" text-anchor="end" font-size="7.5" fill="var(--muted)">${(v * 1000).toFixed(2)}</text>`);
+  }
+
+  // 52-week hi/lo bands (only if within chart y range)
+  const bandLines = [];
+  if (hi52 >= yMin && hi52 <= yMax) {
+    const y = yScale(hi52).toFixed(1);
+    bandLines.push(`<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="var(--green)" stroke-dasharray="4,3" opacity="0.6"/>`);
+    bandLines.push(`<text x="${W - MR - 2}" y="${parseFloat(y) - 3}" text-anchor="end" font-size="7" fill="var(--green)" opacity="0.8">52W HIGH</text>`);
+  }
+  if (lo52 >= yMin && lo52 <= yMax) {
+    const y = yScale(lo52).toFixed(1);
+    bandLines.push(`<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="var(--red)" stroke-dasharray="4,3" opacity="0.6"/>`);
+    bandLines.push(`<text x="${W - MR - 2}" y="${parseFloat(y) + 9}" text-anchor="end" font-size="7" fill="var(--red)" opacity="0.8">52W LOW</text>`);
+  }
+
+  const ratioData = window._lastRatioData || {};
+  const sig = ratioData.signal || '';
+  const sigDetail = ratioData.detail || '';
+  const pctOfRange = ratioData.pct_of_range;
+  const sigColor = sig.includes('EXTENDED') ? (sig.includes('BROADENING') ? 'var(--amber)' : 'var(--amber)')
+                 : sig.includes('BROADENING') ? 'var(--green)' : sig.includes('NARROWING') ? 'var(--red)' : 'var(--muted)';
+
+  el.innerHTML = `
+    <div style="padding:8px 14px 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:9px;font-weight:700;color:${sigColor};letter-spacing:0.1em;font-family:var(--font-ui)">${sig}</span>
+      ${pctOfRange != null ? `<span style="font-size:8px;color:var(--muted)">@ ${pctOfRange}% of 1Y range</span>` : ''}
+      <span style="font-size:9px;color:var(--muted);font-family:var(--font-mono)">| ${(current * 1000).toFixed(3)}</span>
+      <div style="margin-left:auto;display:flex;gap:4px">
+        ${['3M','6M','1Y'].map(p => `<button onclick="_drawRatioChart('${p}')" style="font-size:9px;padding:2px 7px;border:1px solid ${p===period?'var(--blue)':'var(--border)'};color:${p===period?'var(--blue)':'var(--muted)'};background:transparent;cursor:pointer;font-family:var(--font-mono);border-radius:2px">${p}</button>`).join('')}
+        ${_tipBtn('rsp_spx_ratio')}
+      </div>
+    </div>
+    ${sigDetail ? `<div style="padding:0 14px 6px;font-size:9px;color:var(--muted)">${sigDetail}</div>` : ''}
+    <div style="padding:4px 14px 10px;overflow-x:auto">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px">
+        ${yGridLines.join('')}
+        ${bandLines.join('')}
+        <polyline points="${linePts}" fill="none" stroke="var(--blue)" stroke-width="1.5"/>
+        <circle cx="${xScale(pts.length-1).toFixed(1)}" cy="${yScale(current).toFixed(1)}" r="3" fill="var(--blue)"/>
+        ${xLabels.join('')}
+      </svg>
+    </div>`;
+
+  // Stash signal for period switches
+  window._lastRatioSignal = sig;
+}
+
 async function fetchMarkets() {
   setStatus('loading');
   try {
-    const [data, cotData] = await Promise.all([
+    const [data, cotData, ratioData] = await Promise.all([
       apiFetch('/api/market'),
       apiFetch('/api/cot').catch(() => null),
+      apiFetch('/api/breadth/ratio').catch(() => null),
     ]);
     _lastMarket = data;
     renderMarkets(data);
     if (cotData) renderCOT(cotData);
+    if (ratioData) renderBreadthRatio(ratioData);
     setStatus('ok');
   } catch(e) {
     renderError('futuresContent', 'MARKET DATA UNAVAILABLE — ' + e.message);
@@ -6434,7 +6588,7 @@ async function loadBriefing() {
   if (!content || !timestamp) return;
 
   try {
-    const data = await apiFetch('/api/briefing');
+    const data = await apiFetch('/api/briefing', 90000);
 
     if (data.status === 'no_api_key') {
       content.innerHTML = `<div class="briefing-setup">

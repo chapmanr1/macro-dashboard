@@ -18,12 +18,14 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 try:
-    from ai_briefing import get_briefing, force_regenerate
+    from ai_briefing import get_briefing, force_regenerate, _prewarm_briefing
 except ImportError:
     def get_briefing():
         return {"status": "no_api_key", "message": "AI briefing module not loaded"}
     def force_regenerate():
         return {"status": "no_api_key", "message": "AI briefing module not loaded"}
+    def _prewarm_briefing():
+        pass
 
 try:
     from regime_engine import get_regime, get_regime_history, get_enriched_regime_history
@@ -76,11 +78,13 @@ except ImportError:
         return {"articles": [], "timestamp": datetime.utcnow().isoformat(), "error": "News module not loaded"}
 
 try:
-    from market_data import get_market
+    from market_data import get_market, get_breadth_ratio_history
 except ImportError:
     def get_market():
         return {"indices": [], "futures": [], "sectors": [], "commodities": [], "currencies": [],
                 "timestamp": datetime.utcnow().isoformat(), "error": "Market module not loaded"}
+    def get_breadth_ratio_history():
+        return {"points": [], "error": "Market module not loaded"}
 
 try:
     from research import (search_tickers, search_fred, search_edgar,
@@ -415,6 +419,14 @@ def api_global():
         log.error(f"Global indicators error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "economies": []}), 500
 
+@app.route("/api/breadth/ratio")
+def api_breadth_ratio():
+    try:
+        return jsonify(get_breadth_ratio_history())
+    except Exception as e:
+        log.error(f"Breadth ratio error: {e}\n{traceback.format_exc()}")
+        return jsonify({"points": [], "error": str(e)}), 500
+
 @app.route("/api/cot")
 def api_cot():
     try:
@@ -475,6 +487,7 @@ def _prewarm_caches() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 _prewarm_caches()
+threading.Thread(target=_prewarm_briefing, daemon=True).start()
 
 # ── INTERNAL KEEP-ALIVE ───────────────────────────────────────
 def internal_keepalive():

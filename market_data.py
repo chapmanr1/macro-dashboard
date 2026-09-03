@@ -499,6 +499,97 @@ def _fetch_market_data() -> dict:
     return result
 
 
+# ── RSP/SPX RATIO HISTORY ─────────────────────────────────────
+_ratio_cache: dict = {"data": None, "ts": 0}
+_RATIO_CACHE_TTL = 3600  # 1 hour
+
+
+def get_breadth_ratio_history() -> dict:
+    """Return RSP/SPX ratio history for the breadth trend chart. Cached 1 hour."""
+    if _ratio_cache["data"] is not None and (time.time() - _ratio_cache["ts"]) < _RATIO_CACHE_TTL:
+        return _ratio_cache["data"]
+
+    try:
+        from twelve_data import get_time_series
+        from fred_data import get_series_history
+
+        rsp_bars = get_time_series("RSP", "1day", 252)
+        spx_bars = get_series_history("SP500", 365)
+
+        if not rsp_bars or not spx_bars:
+            return {"points": [], "error": "Insufficient data for ratio calculation"}
+
+        # Build SPX lookup by date string
+        spx_by_date: dict[str, float] = {}
+        for b in spx_bars:
+            d = b.get("date") or b.get("datetime", "")[:10]
+            v = b.get("value")
+            if d and v is not None:
+                try:
+                    spx_by_date[d] = float(v)
+                except (ValueError, TypeError):
+                    pass
+
+        # Align RSP closes to SPX closes by date
+        points = []
+        for bar in rsp_bars:
+            d = (bar.get("datetime") or "")[:10]
+            try:
+                rsp_close = float(bar["close"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            spx_close = spx_by_date.get(d)
+            if spx_close and spx_close > 0:
+                ratio = round(rsp_close / spx_close, 6)
+                points.append({"date": d, "ratio": ratio})
+
+        if len(points) < 20:
+            return {"points": [], "error": "Not enough aligned data points"}
+
+        ratios = [p["ratio"] for p in points]
+        hi52 = max(ratios)
+        lo52 = min(ratios)
+        current = ratios[-1]
+        rng = hi52 - lo52
+
+        pct_of_range = round((current - lo52) / rng * 100, 1) if rng > 0 else 50
+
+        # Signal: based on position in range + 20-day trend
+        recent_20 = ratios[-20:] if len(ratios) >= 20 else ratios
+        trending_up = recent_20[-1] > recent_20[0]
+
+        if pct_of_range >= 80:
+            signal = "BROADENING EXTENDED"
+            detail = "Equal-weight at top of range — broadening trend may be tiring, watch for reversal"
+        elif pct_of_range <= 20:
+            signal = "NARROWING EXTENDED"
+            detail = "Equal-weight at bottom of range — narrowing exhausted, broadening trade may be setting up"
+        elif trending_up:
+            signal = "BROADENING"
+            detail = "Average stocks outperforming mega-caps — broad market participation improving"
+        else:
+            signal = "NARROWING"
+            detail = "Mega-caps outperforming — index concentration risk elevated"
+
+        result = {
+            "points":        points,
+            "ratio_52w_high": round(hi52, 6),
+            "ratio_52w_low":  round(lo52, 6),
+            "current":        round(current, 6),
+            "signal":         signal,
+            "detail":         detail,
+            "pct_of_range":   pct_of_range,
+        }
+        _ratio_cache["data"] = result
+        _ratio_cache["ts"]   = time.time()
+        log.info(f"Breadth ratio: {len(points)} points, current={current:.5f}, signal={signal}")
+        return result
+
+    except Exception as e:
+        log.error(f"Breadth ratio history error: {e}")
+        return {"points": [], "error": str(e)[:200]}
+
+
 # ── STANDALONE TEST ───────────────────────────────────────────
 if __name__ == "__main__":
     import json
