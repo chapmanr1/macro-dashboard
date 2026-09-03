@@ -426,14 +426,17 @@ YOUR BRIEFING MUST USE THESE SECTIONS IN THIS ORDER:
 What happened in the last 12 hours that actually matters. Lead with any economic data releases or earnings that printed this morning — state the number, the expectation if known, and critically: how the market is reacting vs what you'd expect. A "good" number the market sells is more important than the number itself. If there's a Fed speaker or policy statement in the fresh news, flag it immediately. If nothing significant happened overnight, say so in one sentence and move on — don't pad this section. 2-4 sentences max.
 
 ═══ WHAT THE DATA SAYS ═══
-This is the section the financial media won't write. Identify 2-3 cross-asset signals that headlines are missing. For each signal: state the observation with a specific number, then say what it implies. Examples of what to look for:
+This is the section the financial media won't write. Identify 2-3 cross-asset signals that headlines are missing. For each signal: state the observation with a specific number, then say what it implies. Draw from the full data set — all of the following are valid sources:
 - Credit (HY spreads) moving against equities — which market is right?
 - VIX rising while the S&P holds — hedging beneath the surface
+- VIX term structure in backwardation — near-term fear elevated even if headline VIX looks moderate
 - Defensive sectors (XLU, XLP, XLRE) rotating in without a headline reason — quiet risk-off
-- Equal-weight underperforming cap-weight by a meaningful margin — index concentration building
-- COT shows large speculators EXTREME LONG equities or EXTREME SHORT bonds — crowded trade, reversal risk (note: ~1 week lag, this is structural context not real-time)
+- Equal-weight (RSP) underperforming cap-weight (SPY) by a meaningful margin — index concentration building
+- Copper/Gold ratio direction vs 10Y yield direction — if they're diverging, one market is mispriced
+- COT shows large speculators EXTREME LONG equities or EXTREME SHORT bonds — crowded trade, reversal risk (note: ~1 week lag, structural context not real-time)
 - Rate market (FedWatch) pricing cuts while the Fed is talking hikes (or vice versa) — someone is wrong, that's a trade
-Every signal must cite the actual number from the data.
+- DXY rising while equities also rise — unusual, signals dollar demand from risk-off flows underneath
+Every signal must cite the actual number from the data. Do not include a signal if you don't have a specific number to support it.
 
 ═══ REGIME STATUS ═══
 Current regime: [USE EXACT LABEL FROM DATA]
@@ -557,6 +560,46 @@ HARD REQUIREMENTS:
             )
         else:
             fx_block = "FX data unavailable."
+
+        # ── BUILD CU/AU RATIO BLOCK ───────────────────────────
+        cu_au_block = ""
+        cu_au_ratio = market_data.get("cu_au_ratio")
+        cu_au_signal = market_data.get("cu_au_signal", "")
+        cu_au_detail = market_data.get("cu_au_detail", "")
+        if cu_au_ratio is not None:
+            cu_au_block = (
+                f"Copper/Gold Ratio: {cu_au_ratio:.4f}\n"
+                f"  Signal: {cu_au_signal}\n"
+                f"  {cu_au_detail}\n"
+                f"Reference: Rising ratio = growth/risk-on (copper outperforming gold)."
+                f" Falling ratio = growth concern/stagflation (gold outperforming copper)."
+                f" Ratio tracks 10Y Treasury yields historically."
+            )
+        else:
+            cu_au_block = "Cu/Au ratio data unavailable."
+
+        # ── BUILD VIX TERM STRUCTURE BLOCK ────────────────────
+        vix_term_block = ""
+        vix_terms = market_data.get("vix_term", [])
+        vix_term_signal = market_data.get("vix_term_signal", "")
+        vix_term_detail = market_data.get("vix_term_detail", "")
+        if vix_terms:
+            term_lines = []
+            for t in vix_terms:
+                lbl = t.get("label", "")
+                px  = t.get("price")
+                px_str = f"{px:.2f}" if px is not None else "N/A"
+                term_lines.append(f"  {lbl}: {px_str}")
+            vix_term_block = (
+                "VIX Term Structure:\n"
+                + "\n".join(term_lines) + "\n"
+                + f"  Signal: {vix_term_signal} — {vix_term_detail}\n"
+                + "Reference: Contango (near < long) = calm, normal structure."
+                " Backwardation (near > long) = near-term fear elevated, event risk priced."
+                " Deep backwardation historically marks market bottoms or crisis peaks."
+            )
+        else:
+            vix_term_block = "VIX term structure data unavailable."
 
         # ── BUILD BREADTH SNAPSHOT BLOCK ──────────────────────
         breadth_snapshot_block = ""
@@ -708,6 +751,12 @@ HY stress levels: 400bp = stress, 500bp = crisis
 
 ═══ MARKET BREADTH ═══
 {breadth_snapshot_block}
+
+═══ COPPER/GOLD RATIO (CROSS-ASSET GROWTH SIGNAL) ═══
+{cu_au_block}
+
+═══ VIX TERM STRUCTURE ═══
+{vix_term_block}
 
 ═══ KEY LEVELS ═══
 S&P 500:
