@@ -1083,6 +1083,15 @@
       .topbar { padding: 6px 10px; padding-top: calc(6px + env(safe-area-inset-top, 0px)); }
       .topbar-brand { font-size: 11px; letter-spacing: 0.08em; }
       #clock { font-size: 9px; }
+      /* Topbar right: drop non-essential labels so PREP/RESEARCH/settings gear
+         never overflow off the right edge (body has overflow-x:hidden, so
+         anything past the viewport is invisible, not just scrolled-away) */
+      .topbar-right { gap: 6px; }
+      #statusText, #refreshLabel { display: none; }
+      .research-btn .btn-label { display: none; }
+      .research-btn { padding: 4px 6px; }
+      .prep-export-btn { padding: 3px 5px; }
+      .settings-gear { flex-shrink: 0; }
       /* Scrollable section area */
       .tab-panel { -webkit-overflow-scrolling: touch; }
       /* Regime explain */
@@ -1360,7 +1369,7 @@
     <span id="clock">--:--:--</span>
     <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
     <button class="prep-export-btn" id="prepExportBtn" title="Export daily prep summary">PREP</button>
-    <button class="research-btn" id="researchBtn" title="Research"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>RESEARCH</button>
+    <button class="research-btn" id="researchBtn" title="Research"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="btn-label">RESEARCH</span></button>
     <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
   </div>
 </div>
