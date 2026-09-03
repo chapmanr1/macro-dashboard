@@ -423,53 +423,52 @@ The goal is not to summarize the news — Ryan can read headlines. The goal is t
 YOUR BRIEFING MUST USE THESE SECTIONS IN THIS ORDER:
 
 ═══ MORNING CONTEXT ═══
-What happened in the last 12 hours that actually matters. Lead with any economic data releases or earnings that printed this morning — state the number, the expectation if known, and critically: how the market is reacting vs what you'd expect. A "good" number the market sells is more important than the number itself. If there's a Fed speaker or policy statement in the fresh news, flag it immediately. 2-4 sentences max.
+What happened in the last 12 hours that actually matters. Lead with any economic data releases or earnings that printed this morning — state the number, the expectation if known, and critically: how the market is reacting vs what you'd expect. A "good" number the market sells is more important than the number itself. If there's a Fed speaker or policy statement in the fresh news, flag it immediately. If nothing significant happened overnight, say so in one sentence and move on — don't pad this section. 2-4 sentences max.
 
 ═══ WHAT THE DATA SAYS ═══
-This is the section the financial media won't write. Identify cross-asset signals that the headlines are missing:
-- Is credit (HY spreads) moving in a different direction than equities? If so, which market is right?
-- Is VIX rising while the S&P holds? That's hedging activity — say so.
-- Are defensive sectors (Utilities, Staples, Real Estate) rotating in without a headline reason? That's risk-off.
-- Are equal-weight stocks underperforming cap-weight? Index concentration risk is building.
-- What is the CFTC COT data showing? If large speculators are EXTREME LONG equities, that's a crowded trade. If they're EXTREME SHORT bonds, a short squeeze is possible. Frame COT as structural positioning context (it lags by ~1 week), not real-time.
-- What is the rate market pricing (FedWatch) vs what the Fed is saying publicly? Any divergence is a trade.
-Be specific with every signal — state the actual number and what it means.
+This is the section the financial media won't write. Identify 2-3 cross-asset signals that headlines are missing. For each signal: state the observation with a specific number, then say what it implies. Examples of what to look for:
+- Credit (HY spreads) moving against equities — which market is right?
+- VIX rising while the S&P holds — hedging beneath the surface
+- Defensive sectors (XLU, XLP, XLRE) rotating in without a headline reason — quiet risk-off
+- Equal-weight underperforming cap-weight by a meaningful margin — index concentration building
+- COT shows large speculators EXTREME LONG equities or EXTREME SHORT bonds — crowded trade, reversal risk (note: ~1 week lag, this is structural context not real-time)
+- Rate market (FedWatch) pricing cuts while the Fed is talking hikes (or vice versa) — someone is wrong, that's a trade
+Every signal must cite the actual number from the data.
 
 ═══ REGIME STATUS ═══
 Current regime: [USE EXACT LABEL FROM DATA]
-- State the confidence score and the top 3 driver indicators with their actual values
-- Is this regime strengthening, stable, or at risk of shifting?
-- Which of Ryan's falsification triggers is closest to being hit right now? Quantify the gap.
-- One sentence on what this regime means for positioning.
+Confidence: [score]% — [strengthening / stable / at risk of shifting — pick one and explain why in one sentence]
+Top drivers: list the top 3 indicators with their actual values.
+Falsification check: Which of Ryan's triggers is currently closest to being hit? State the current reading, the threshold, and the gap. (Triggers: Core PCE below 2.5%, GDP above 2.5%, HY spreads below 300bp, productivity above 2%)
+Regime implication: One sentence on what this regime means for positioning right now.
 
-═══ TECHNICAL LEVELS ═══
-Specific numbers only — no vague commentary:
-- S&P 500 vs its 50DMA and 200DMA (use exact levels from data)
-- 10Y yield: current level and what a break above or below key levels would signal
-- VIX: current level, how it compares to its 30-day average, and what the expected daily move implies
-- Any technical level that is within 1% of being tested right now
+═══ MARKET SNAPSHOT & KEY LEVELS ═══
+Start with the current state in 2-3 sentences (specific numbers only — no vague commentary):
+- Where SPX sits relative to its 50DMA and 200DMA (state exact levels)
+- 10Y yield current level and recent trend
+- VIX current vs its 30-day average and what the expected daily move (VIX÷16) implies about today's price action
 
-═══ LEVELS TO WATCH TODAY ═══
-3-4 specific, actionable price/yield/spread levels. For each: state the level, state what a break means, and if there's a scheduled event that could trigger it, name the time.
+Then state 3-4 specific levels that would change the picture if broken. For each: the exact level, what a breach means, and if a scheduled event could trigger it today, name the time. Format each as: "Level — consequence — catalyst (if any)"
 
 ═══ COUNTER-THESIS RISK ═══
-One data point or market signal that is most inconsistent with the stagflation thesis right now. Quantify it precisely. Then one sentence on whether it looks like noise or a genuine threat.
+One data point or market signal most inconsistent with the stagflation thesis right now. State the exact number. Then one sentence: noise or genuine threat?
 
 ═══ POSITIONING IMPLICATIONS ═══
-1-2 specific considerations based on the current regime and this morning's action. Not generic asset allocation — specific to what's happening today.
+1-2 specific, actionable considerations based on the current regime and this morning's action. Not generic asset allocation — specific to what is actually happening today. If COT or FedWatch signals something actionable, include it here.
 
 ═══ WATCHLIST ═══
-For each ticker in the watchlist data: price move, macro context for that move, any news. Skip tickers with no data. Omit section entirely if watchlist is empty.
+For each ticker in the watchlist data: current price, day's move, one sentence of macro context for that move. Skip tickers with no data. Omit section entirely if watchlist is empty.
 
 ═══ CFP CONNECTION ═══
-One sentence connecting today's most notable condition to a CFP curriculum topic (retirement income, portfolio management, risk management, economic analysis, tax planning, or estate planning).
+One sentence connecting today's most notable macro condition to a CFP curriculum topic (retirement income, portfolio management, risk management, economic analysis, tax planning, or estate planning).
 
 HARD REQUIREMENTS:
 - 900 words maximum total
 - Every number you cite must come from the data provided — no fabrication
 - Bold key levels: **5,400** not "around 5400"
-- If a data section is missing or empty, skip that reference entirely
-- Use ═══ SECTION NAME ═══ headers exactly as shown"""
+- If a data section is missing or empty, skip that reference entirely — do not write "data unavailable"
+- Use ═══ SECTION NAME ═══ headers exactly as shown
+- Be direct and specific — Ryan is a financial advisor preparing for client meetings, not a casual reader"""
 
         # Build comprehensive user message
         spy_block = ""
