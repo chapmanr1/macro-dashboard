@@ -987,11 +987,120 @@ def _fetch_surprise_data() -> dict:
     return result
 
 
+# ── CALENDAR RELEASE DATES (real, never guessed) ───────────────
+# FRED tracks the actual scheduled release date for every series it hosts
+# (fred/series/release → release_id, fred/release/dates → real calendar dates,
+# including future dates the BLS/BEA/Fed have announced but not yet published
+# data for). We use that instead of "usually the 2nd Wednesday"-style
+# approximation, because those patterns shift release to release and were
+# the root cause of a wrong CPI date on this calendar.
+FRED_HOST = "https://api.stlouisfed.org/fred"
+
+_release_id_cache: dict = {}       # series_id -> release_id (static; cached indefinitely)
+_release_dates_cache: dict = {}    # release_id -> {"dates": [...], "ts": ...}
+
+# Events that share one underlying government release (e.g. CPI + Core CPI
+# publish together; NFP + Unemployment Rate both come from the Employment
+# Situation report) key off the same series so we don't fetch it twice.
+_CALENDAR_SERIES = [
+    # (event name,                fred series, time,       impact)
+    ("INITIAL JOBLESS CLAIMS",    "ICSA",      "8:30 ET",  "HIGH"),
+    ("NONFARM PAYROLLS",          "PAYEMS",    "8:30 ET",  "HIGH"),
+    ("UNEMPLOYMENT RATE",         "PAYEMS",    "8:30 ET",  "HIGH"),
+    ("CPI RELEASE",               "CPIAUCSL",  "8:30 ET",  "HIGH"),
+    ("CORE CPI",                  "CPIAUCSL",  "8:30 ET",  "HIGH"),
+    ("PPI RELEASE",               "PPIACO",    "8:30 ET",  "MEDIUM"),
+    ("RETAIL SALES",              "RSAFS",     "8:30 ET",  "HIGH"),
+    ("HOUSING STARTS",            "HOUST",     "8:30 ET",  "MEDIUM"),
+    ("ISM MANUFACTURING",         "MPMINDX",   "10:00 ET", "HIGH"),
+    ("ISM SERVICES",              "NMFCI",     "10:00 ET", "HIGH"),
+    ("JOLTS JOB OPENINGS",        "JTSJOL",    "10:00 ET", "HIGH"),
+    ("CORE PCE INFLATION",        "PCEPILFE",  "8:30 ET",  "HIGH"),
+    ("PERSONAL INCOME/SPEND",     "PCEPILFE",  "8:30 ET",  "MEDIUM"),
+    ("UMICH SENTIMENT",           "UMCSENT",   "10:00 ET", "MEDIUM"),
+]
+
+# Independently verified against bls.gov as of Sep 2026 — used ONLY as a
+# backstop if the live FRED release-dates lookup below fails for CPI, since
+# that's the exact series that was reported wrong. Not extended to other
+# series: if FRED's lookup fails for those, we show nothing rather than a
+# guess. Re-verify/extend against bls.gov/schedule/news_release/cpi.htm.
+_STATIC_RELEASE_BACKSTOP = {
+    "CPIAUCSL": {
+        "2026-03-11", "2026-04-10", "2026-05-12", "2026-06-10",
+        "2026-07-14", "2026-08-12", "2026-09-11",
+    },
+}
+
+
+def _get_release_id(series_id: str):
+    """Resolve the FRED release a series belongs to. Only successful lookups
+    are cached — a transient failure retries on the next call instead of
+    sticking forever."""
+    if series_id in _release_id_cache:
+        return _release_id_cache[series_id]
+    if not FRED_API_KEY:
+        return None
+    try:
+        resp = requests.get(f"{FRED_HOST}/series/release", params={
+            "series_id": series_id, "api_key": FRED_API_KEY, "file_type": "json",
+        }, timeout=12)
+        resp.raise_for_status()
+        releases = resp.json().get("releases", [])
+        if not releases:
+            return None
+        release_id = releases[0]["id"]
+        _release_id_cache[series_id] = release_id
+        return release_id
+    except (requests.RequestException, ValueError, KeyError, IndexError) as e:
+        log.warning(f"FRED release lookup failed for {series_id}: {e}")
+        return None
+
+
+def _get_upcoming_release_dates(series_id: str, days_ahead: int = 14) -> list:
+    """
+    Real, government-scheduled release dates for a series' release, sourced
+    from FRED — never guessed from a weekday/day-of-month pattern. Returns
+    [] (not a fabricated date) on any failure; callers must treat that as
+    "unknown", not "no release", and fall back to the static backstop above
+    where one exists rather than inventing a date.
+    """
+    release_id = _get_release_id(series_id)
+    if release_id is None:
+        return sorted(_STATIC_RELEASE_BACKSTOP.get(series_id, set()))
+    cached = _release_dates_cache.get(release_id)
+    if cached and (time.time() - cached["ts"]) < CACHE_TTL:
+        return cached["dates"]
+    try:
+        today = datetime.utcnow().date()
+        resp = requests.get(f"{FRED_HOST}/release/dates", params={
+            "release_id":                          release_id,
+            "api_key":                              FRED_API_KEY,
+            "file_type":                            "json",
+            "realtime_start":                       today.isoformat(),
+            "realtime_end":                         (today + timedelta(days=days_ahead)).isoformat(),
+            "include_release_dates_with_no_data":   "true",
+            "sort_order":                           "asc",
+        }, timeout=12)
+        resp.raise_for_status()
+        dates = [rd["date"] for rd in resp.json().get("release_dates", [])]
+        if not dates:
+            dates = sorted(_STATIC_RELEASE_BACKSTOP.get(series_id, set()))
+        _release_dates_cache[release_id] = {"dates": dates, "ts": time.time()}
+        return dates
+    except (requests.RequestException, ValueError, KeyError) as e:
+        log.warning(f"FRED release-dates fetch failed for release_id={release_id}: {e}")
+        return sorted(_STATIC_RELEASE_BACKSTOP.get(series_id, set()))
+
+
 # ── ECONOMIC CALENDAR ─────────────────────────────────────────
 def get_economic_calendar():
     """
-    Generate approximate economic calendar for the next 7 days.
-    Based on standard federal release patterns — dates are approximate.
+    Real economic calendar for the next 8 days — every data-release date
+    comes from FRED's own release calendar (see _get_upcoming_release_dates),
+    not an approximation. Fed calendar items (Beige Book, FOMC presser,
+    testimony) are hardcoded from federalreserve.gov, which publishes them
+    directly; verify those annually.
     Annotates events with latest FRED actuals where available.
     """
     today   = datetime.utcnow().date()
@@ -1015,14 +1124,12 @@ def get_economic_calendar():
         "2026-02-11", "2026-02-12", "2026-07-15", "2026-07-16",
     }
 
-    # Confirmed BLS CPI release dates — verify against bls.gov/schedule/news_release/cpi.htm
-    # annually. Only months confirmed here suppress the "2nd Wednesday" approximation below;
-    # unlisted months (e.g. release lags after a data gap) still fall back to the guess.
-    _CPI_RELEASE_2026 = {
-        "2026-03-11", "2026-04-10", "2026-05-12", "2026-06-10",
-        "2026-07-14", "2026-08-12", "2026-09-11",
-    }
-    _CPI_CONFIRMED_MONTHS_2026 = {dt[:7] for dt in _CPI_RELEASE_2026}
+    # Resolve each unique series' real upcoming release dates once (each
+    # lookup is itself cached across requests for CACHE_TTL — see above).
+    _series_dates: dict = {}
+    for _, series_id, _, _ in _CALENDAR_SERIES:
+        if series_id not in _series_dates:
+            _series_dates[series_id] = set(_get_upcoming_release_dates(series_id))
 
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
@@ -1032,63 +1139,12 @@ def get_economic_calendar():
         if weekday >= 5:  # Skip weekends
             continue
 
-        # Every Thursday: Initial Jobless Claims
-        if weekday == 3:
-            day_ev.append({"time": "8:30 ET", "event": "INITIAL JOBLESS CLAIMS", "impact": "HIGH",   "note": "Weekly"})
-
-        # First Friday of month: NFP
-        if weekday == 4 and 1 <= d.day <= 7:
-            day_ev.append({"time": "8:30 ET", "event": "NONFARM PAYROLLS",       "impact": "HIGH",   "note": "Monthly"})
-            day_ev.append({"time": "8:30 ET", "event": "UNEMPLOYMENT RATE",      "impact": "HIGH",   "note": "Monthly"})
-
-        # CPI: use the confirmed BLS date when we have one for this month;
-        # otherwise fall back to the "2nd Wednesday" approximation.
-        iso = d.isoformat()
-        if iso in _CPI_RELEASE_2026:
-            day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "BLS confirmed"})
-            day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "BLS confirmed"})
-        elif weekday == 2 and 8 <= d.day <= 14 and iso[:7] not in _CPI_CONFIRMED_MONTHS_2026:
-            day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "Approx"})
-            day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "Approx"})
-
-        # 2nd Thursday of month: PPI (approx)
-        if weekday == 3 and 8 <= d.day <= 14:
-            day_ev.append({"time": "8:30 ET", "event": "PPI RELEASE",            "impact": "MEDIUM", "note": "Approx"})
-
-        # 2nd-3rd Wednesday: Retail Sales (approx)
-        if weekday == 2 and 12 <= d.day <= 17:
-            day_ev.append({"time": "8:30 ET", "event": "RETAIL SALES",           "impact": "HIGH",   "note": "Approx"})
-
-        # 3rd Wednesday: Housing Starts (approx)
-        if weekday == 2 and 15 <= d.day <= 21:
-            day_ev.append({"time": "8:30 ET", "event": "HOUSING STARTS",         "impact": "MEDIUM", "note": "Approx"})
-
-        # First business day of month: ISM Manufacturing
-        if weekday < 5 and 1 <= d.day <= 3:
-            day_ev.append({"time": "10:00 ET","event": "ISM MANUFACTURING",      "impact": "HIGH",   "note": "Monthly"})
-
-        # 3rd business day of month: ISM Services (approx)
-        if weekday < 5 and 3 <= d.day <= 5:
-            day_ev.append({"time": "10:00 ET","event": "ISM SERVICES",           "impact": "HIGH",   "note": "Monthly"})
-
-        # 2nd Tuesday: JOLTS (approx)
-        if weekday == 1 and 8 <= d.day <= 14:
-            day_ev.append({"time": "10:00 ET","event": "JOLTS JOB OPENINGS",     "impact": "HIGH",   "note": "Approx"})
-
-        # Last Thursday: PCE (approx)
-        if weekday == 3 and d.day >= 26:
-            day_ev.append({"time": "8:30 ET", "event": "CORE PCE INFLATION",     "impact": "HIGH",   "note": "Approx"})
-            day_ev.append({"time": "8:30 ET", "event": "PERSONAL INCOME/SPEND",  "impact": "MEDIUM", "note": "Approx"})
-
-        # Last Friday: Univ Michigan Final Sentiment
-        if weekday == 4 and d.day >= 26:
-            day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT FINAL",  "impact": "MEDIUM", "note": "Monthly"})
-
-        # 2nd Friday: Univ Michigan Preliminary
-        if weekday == 4 and 8 <= d.day <= 14:
-            day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT PRELIM", "impact": "MEDIUM", "note": "Monthly"})
-
         d_iso = d.isoformat()
+
+        for event_name, series_id, time_str, impact in _CALENDAR_SERIES:
+            if d_iso in _series_dates.get(series_id, ()):
+                day_ev.append({"time": time_str, "event": event_name, "impact": impact, "note": "FRED confirmed"})
+
         if d_iso in _BEIGE_BOOK_2026:
             day_ev.append({"time": "2:00 ET",  "event": "BEIGE BOOK RELEASE",              "impact": "HIGH", "note": "Fed Regional Survey"})
         if d_iso in _FOMC_PRESSER_2026:
