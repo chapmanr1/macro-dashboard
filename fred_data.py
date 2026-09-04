@@ -1015,6 +1015,15 @@ def get_economic_calendar():
         "2026-02-11", "2026-02-12", "2026-07-15", "2026-07-16",
     }
 
+    # Confirmed BLS CPI release dates — verify against bls.gov/schedule/news_release/cpi.htm
+    # annually. Only months confirmed here suppress the "2nd Wednesday" approximation below;
+    # unlisted months (e.g. release lags after a data gap) still fall back to the guess.
+    _CPI_RELEASE_2026 = {
+        "2026-03-11", "2026-04-10", "2026-05-12", "2026-06-10",
+        "2026-07-14", "2026-08-12", "2026-09-11",
+    }
+    _CPI_CONFIRMED_MONTHS_2026 = {dt[:7] for dt in _CPI_RELEASE_2026}
+
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
         weekday = d.weekday()  # 0=Mon, 6=Sun
@@ -1032,8 +1041,13 @@ def get_economic_calendar():
             day_ev.append({"time": "8:30 ET", "event": "NONFARM PAYROLLS",       "impact": "HIGH",   "note": "Monthly"})
             day_ev.append({"time": "8:30 ET", "event": "UNEMPLOYMENT RATE",      "impact": "HIGH",   "note": "Monthly"})
 
-        # 2nd Wednesday of month: CPI (approx)
-        if weekday == 2 and 8 <= d.day <= 14:
+        # CPI: use the confirmed BLS date when we have one for this month;
+        # otherwise fall back to the "2nd Wednesday" approximation.
+        iso = d.isoformat()
+        if iso in _CPI_RELEASE_2026:
+            day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "BLS confirmed"})
+            day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "BLS confirmed"})
+        elif weekday == 2 and 8 <= d.day <= 14 and iso[:7] not in _CPI_CONFIRMED_MONTHS_2026:
             day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "Approx"})
             day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "Approx"})
 
