@@ -1044,7 +1044,7 @@ def _get_release_id(series_id: str):
     try:
         resp = requests.get(f"{FRED_HOST}/series/release", params={
             "series_id": series_id, "api_key": FRED_API_KEY, "file_type": "json",
-        }, timeout=12)
+        }, timeout=6)
         resp.raise_for_status()
         releases = resp.json().get("releases", [])
         if not releases:
@@ -1081,7 +1081,7 @@ def _get_upcoming_release_dates(series_id: str, days_ahead: int = 14) -> list:
             "realtime_end":                         (today + timedelta(days=days_ahead)).isoformat(),
             "include_release_dates_with_no_data":   "true",
             "sort_order":                           "asc",
-        }, timeout=12)
+        }, timeout=6)
         resp.raise_for_status()
         dates = [rd["date"] for rd in resp.json().get("release_dates", [])]
         if not dates:
@@ -1124,12 +1124,24 @@ def get_economic_calendar():
         "2026-02-11", "2026-02-12", "2026-07-15", "2026-07-16",
     }
 
-    # Resolve each unique series' real upcoming release dates once (each
-    # lookup is itself cached across requests for CACHE_TTL — see above).
+    # Resolve each unique series' real upcoming release dates in parallel —
+    # sequentially, up to 9 series x 2 FRED calls each could take 10+
+    # seconds combined, which stalls every other tab on this single-worker
+    # server (main.py's _prewarm_caches() also warms this at startup, so a
+    # live page load rarely hits this cold path at all). Each lookup is
+    # itself cached across requests for CACHE_TTL — see above.
+    import concurrent.futures as _cf
+    unique_series = list(dict.fromkeys(sid for _, sid, _, _ in _CALENDAR_SERIES))
     _series_dates: dict = {}
-    for _, series_id, _, _ in _CALENDAR_SERIES:
-        if series_id not in _series_dates:
-            _series_dates[series_id] = set(_get_upcoming_release_dates(series_id))
+    with _cf.ThreadPoolExecutor(max_workers=len(unique_series)) as pool:
+        futures = {pool.submit(_get_upcoming_release_dates, sid): sid for sid in unique_series}
+        for fut in _cf.as_completed(futures, timeout=30):
+            sid = futures[fut]
+            try:
+                _series_dates[sid] = set(fut.result())
+            except Exception as e:
+                log.warning(f"Calendar series fetch failed for {sid}: {e}")
+                _series_dates[sid] = set(_STATIC_RELEASE_BACKSTOP.get(sid, set()))
 
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
