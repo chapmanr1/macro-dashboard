@@ -1132,16 +1132,28 @@ def get_economic_calendar():
     # itself cached across requests for CACHE_TTL — see above.
     import concurrent.futures as _cf
     unique_series = list(dict.fromkeys(sid for _, sid, _, _ in _CALENDAR_SERIES))
-    _series_dates: dict = {}
-    with _cf.ThreadPoolExecutor(max_workers=len(unique_series)) as pool:
+    _series_dates: dict = {sid: set(_STATIC_RELEASE_BACKSTOP.get(sid, set())) for sid in unique_series}
+    # Capped well below len(unique_series): this pool already runs nested inside
+    # main.py's startup pre-warm pool, so uncapped concurrency here means up to
+    # ~14 simultaneous outbound connections at boot on a single small instance.
+    with _cf.ThreadPoolExecutor(max_workers=min(4, len(unique_series))) as pool:
         futures = {pool.submit(_get_upcoming_release_dates, sid): sid for sid in unique_series}
-        for fut in _cf.as_completed(futures, timeout=30):
-            sid = futures[fut]
-            try:
-                _series_dates[sid] = set(fut.result())
-            except Exception as e:
-                log.warning(f"Calendar series fetch failed for {sid}: {e}")
-                _series_dates[sid] = set(_STATIC_RELEASE_BACKSTOP.get(sid, set()))
+        try:
+            done_iter = _cf.as_completed(futures, timeout=30)
+            while True:
+                try:
+                    fut = next(done_iter)
+                except StopIteration:
+                    break
+                sid = futures[fut]
+                try:
+                    _series_dates[sid] = set(fut.result())
+                except Exception as e:
+                    log.warning(f"Calendar series fetch failed for {sid}: {e}")
+                    # keep the static-backstop value already seeded above
+        except _cf.TimeoutError:
+            log.warning("Calendar: some FRED release-date lookups did not finish within 30s; "
+                        "using static backstop (or nothing) for whichever series are still pending.")
 
     for day_offset in range(8):
         d       = today + timedelta(days=day_offset)
