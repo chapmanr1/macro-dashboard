@@ -455,10 +455,7 @@ def _prewarm_caches() -> None:
     Fetch all slow FRED caches in parallel at startup so the first user request
     is never cold. Runs as a background daemon thread — does not block startup.
     Regime + macro + yields + credit each make serial FRED calls (~15-40s each);
-    the economic calendar makes up to 9 FRED calls in parallel internally
-    (see fred_data._get_upcoming_release_dates). Running all of these in
-    parallel here cuts total warm time to the slowest single module, and
-    means a live page load never has to wait on any of them cold.
+    running them in parallel cuts total warm time to the slowest single module.
     """
     def _run():
         import concurrent.futures as _cf
@@ -469,8 +466,8 @@ def _prewarm_caches() -> None:
         except ImportError:
             pass
         try:
-            from fred_data import get_macro, get_yields, get_credit, get_economic_calendar
-            tasks += [get_macro, get_yields, get_credit, get_economic_calendar]
+            from fred_data import get_macro, get_yields, get_credit
+            tasks += [get_macro, get_yields, get_credit]
         except ImportError:
             pass
         if not tasks:
