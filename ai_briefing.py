@@ -487,16 +487,20 @@ HARD REQUIREMENTS:
             for k, v in credit_data.items()
         }
 
+        def _fp(v: object) -> str:
+            """Format a float as +.2f, or 'N/A' if None."""
+            return f"{v:+.2f}" if v is not None else "N/A"
+
         # Build comprehensive user message
         spy_block = ""
         if "spx_current" in tech_data:
             spy_block = f"""S&P 500 (actual SPX):
   Current: {tech_data.get('spx_current', 'N/A')}
-  vs 50DMA ({tech_data.get('spx_50dma_level', 'N/A')}): {tech_data.get('spx_vs_50dma', 'N/A'):+.2f}%
-  vs 200DMA ({tech_data.get('spx_200dma_level', 'N/A')}): {tech_data.get('spx_vs_200dma', 'N/A'):+.2f}%
-  10d momentum: {tech_data.get('spx_10d_momentum', 'N/A'):+.2f}%
-  30d momentum: {tech_data.get('spx_30d_momentum', 'N/A'):+.2f}%
-  52w high: {tech_data.get('spx_52w_high', 'N/A')} ({tech_data.get('spx_pct_from_high', 'N/A'):+.2f}% from high)
+  vs 50DMA ({tech_data.get('spx_50dma_level', 'N/A')}): {_fp(tech_data.get('spx_vs_50dma'))}%
+  vs 200DMA ({tech_data.get('spx_200dma_level', 'N/A')}): {_fp(tech_data.get('spx_vs_200dma'))}%
+  10d momentum: {_fp(tech_data.get('spx_10d_momentum'))}%
+  30d momentum: {_fp(tech_data.get('spx_30d_momentum'))}%
+  52w high: {tech_data.get('spx_52w_high', 'N/A')} ({_fp(tech_data.get('spx_pct_from_high'))}% from high)
   52w low:  {tech_data.get('spx_52w_low', 'N/A')}"""
         else:
             spy_block = f"S&P 500 technical data unavailable: {tech_data.get('spx_error', 'unknown error')}"
@@ -506,7 +510,7 @@ HARD REQUIREMENTS:
             vix_block = f"""VIX:
   Current: {tech_data.get('vix_current', 'N/A')}
   30d avg:  {tech_data.get('vix_30d_avg', 'N/A')}
-  vs avg:   {tech_data.get('vix_vs_avg', 'N/A'):+.2f}
+  vs avg:   {_fp(tech_data.get('vix_vs_avg'))}
   Signal:   {tech_data.get('vix_signal', 'N/A')}"""
         else:
             vix_block = f"VIX data unavailable: {tech_data.get('vix_error', 'unknown error')}"
@@ -529,7 +533,7 @@ HARD REQUIREMENTS:
         else:
             sector_block = "Sector performance data unavailable."
 
-        kl_spy = json.dumps(key_levels.get("spy", {}), indent=2)
+        kl_spy = json.dumps(key_levels.get("spx", {}), indent=2)
         kl_ty  = json.dumps(key_levels.get("ten_year", {}), indent=2)
         kl_vix = json.dumps(key_levels.get("vix", {}), indent=2)
 
@@ -784,6 +788,7 @@ Generate the briefing now. Use specific numbers from the data above. Do not fabr
         message = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=3500,
+            timeout=90,
             system=[
                 {
                     "type": "text",
@@ -837,19 +842,26 @@ def force_regenerate() -> dict:
 
 
 def _prewarm_briefing() -> None:
-    """Background startup task: generate briefing cache so it's ready on first page load."""
+    """Background startup task: generate briefing cache so it's ready on first page load.
+    Retries up to 3 times with 30s waits to survive cold FRED/Anthropic slow starts."""
     import time as _time
     _time.sleep(20)  # Let other startup tasks (FRED, market data) initialize first
-    try:
-        cached = _load_cache()
-        if cached and _cache_valid(cached):
-            log.info("Briefing pre-warm skipped — valid cache already exists.")
-            return
-        log.info("Briefing pre-warm: generating fresh briefing in background...")
-        get_briefing()
-        log.info("Briefing pre-warm complete.")
-    except Exception as e:
-        log.warning(f"Briefing pre-warm failed (non-fatal): {e}")
+    for attempt in range(1, 4):
+        try:
+            cached = _load_cache()
+            if cached and _cache_valid(cached):
+                log.info("Briefing pre-warm skipped — valid cache already exists.")
+                return
+            log.info(f"Briefing pre-warm: generating (attempt {attempt}/3)...")
+            result = get_briefing()
+            if result.get("status") == "success":
+                log.info("Briefing pre-warm complete.")
+                return
+            log.warning(f"Briefing pre-warm attempt {attempt} returned status={result.get('status')!r}")
+        except Exception as e:
+            log.warning(f"Briefing pre-warm attempt {attempt} failed: {e}")
+        if attempt < 3:
+            _time.sleep(30)
 
 
 def _load_cache():

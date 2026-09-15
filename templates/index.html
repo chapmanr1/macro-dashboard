@@ -6669,8 +6669,24 @@ async function loadBriefing() {
       return;
     }
 
-    // data_error or api_error
-    content.innerHTML = `<div class="briefing-error">&#9888; ${data.message || 'Briefing unavailable'}</div>`;
+    // data_error or api_error — backend may still be warming up after a restart.
+    // Retry up to 2 more times (60s apart) before giving up.
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      timestamp.textContent = `RETRYING IN 60s (${attempt}/2)...`;
+      content.innerHTML = `<div class="briefing-loading">BRIEFING GENERATING — RETRYING IN 60 SECONDS...</div>`;
+      await new Promise(r => setTimeout(r, 60000));
+      try {
+        const retry = await apiFetch('/api/briefing', 90000);
+        if (retry.status === 'success') {
+          content.innerHTML = `<div class="briefing-content">${_formatBriefingText(retry.briefing)}</div>`;
+          const t = new Date(retry.generated_at);
+          const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+          timestamp.textContent = `GENERATED ${timeStr}${retry.from_cache ? ' (CACHED)' : ''}`;
+          return;
+        }
+      } catch (_) { /* continue to next attempt */ }
+    }
+    content.innerHTML = `<div class="briefing-error">&#9888; ${data.message || 'Briefing unavailable. Tap &#8635; to retry.'}</div>`;
     timestamp.textContent = 'ERROR';
 
   } catch (err) {
