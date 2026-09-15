@@ -58,7 +58,7 @@ except ImportError:
     def get_credit():
         return {"spreads": [], "breakevens": [], "real_yields": [], "falsification_triggers": [],
                 "timestamp": datetime.utcnow().isoformat(), "error": "Credit module not loaded"}
-    def get_economic_calendar():
+    def get_economic_calendar(days: int = 8) -> list:
         return []
     def get_macro_history(series_id: str, n_obs: int) -> dict:
         return {"label": series_id, "unit": "", "data": [], "error": "FRED module not loaded"}
@@ -170,7 +170,8 @@ def api_credit():
 @app.route("/api/calendar")
 def api_calendar():
     try:
-        return jsonify({"events": get_economic_calendar(), "timestamp": datetime.utcnow().isoformat()})
+        days = min(max(1, int(request.args.get("days", 8))), 366)
+        return jsonify({"events": get_economic_calendar(days=days), "timestamp": datetime.utcnow().isoformat()})
     except Exception as e:
         log.error(f"Calendar error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "events": [], "timestamp": datetime.utcnow().isoformat()}), 500
