@@ -988,9 +988,9 @@ def _fetch_surprise_data() -> dict:
 
 
 # ── ECONOMIC CALENDAR ─────────────────────────────────────────
-def get_economic_calendar():
+def get_economic_calendar(days: int = 8) -> list:
     """
-    Generate approximate economic calendar for the next 7 days.
+    Generate approximate economic calendar for the next N days.
     Based on standard federal release patterns — dates are approximate.
     Annotates events with latest FRED actuals where available.
     """
@@ -1024,7 +1024,7 @@ def get_economic_calendar():
     }
     _CPI_CONFIRMED_MONTHS_2026 = {dt[:7] for dt in _CPI_RELEASE_2026}
 
-    for day_offset in range(8):
+    for day_offset in range(max(1, days)):
         d       = today + timedelta(days=day_offset)
         weekday = d.weekday()  # 0=Mon, 6=Sun
         day_ev  = []
