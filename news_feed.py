@@ -369,14 +369,31 @@ def get_news():
     raw    = []
     errors = []
 
-    for feed in RSS_FEEDS:
+    # Fetch all feeds in parallel, not one at a time: sequentially, a handful
+    # of dead/slow feeds (each up to REQUEST_TIMEOUT=10s) can sum to minutes
+    # of blocking on this single-worker server — enough to exceed gunicorn's
+    # request timeout and take the whole app down with it. Parallel fetch
+    # bounds total wait to roughly the slowest single feed instead.
+    import concurrent.futures as _cf
+    with _cf.ThreadPoolExecutor(max_workers=len(RSS_FEEDS)) as pool:
+        futures = {pool.submit(_fetch_rss, feed): feed for feed in RSS_FEEDS}
         try:
-            articles = _fetch_rss(feed)
-            raw.extend(articles)
-            log.info(f"News: {len(articles)} from {feed['source']}")
-        except Exception as e:
-            log.warning(f"RSS failed [{feed['source']}]: {e}")
-            errors.append(f"{feed['source']}: {str(e)[:60]}")
+            done_iter = _cf.as_completed(futures, timeout=REQUEST_TIMEOUT + 5)
+            while True:
+                try:
+                    fut = next(done_iter)
+                except StopIteration:
+                    break
+                feed = futures[fut]
+                try:
+                    articles = fut.result()
+                    raw.extend(articles)
+                    log.info(f"News: {len(articles)} from {feed['source']}")
+                except Exception as e:
+                    log.warning(f"RSS failed [{feed['source']}]: {e}")
+                    errors.append(f"{feed['source']}: {str(e)[:60]}")
+        except _cf.TimeoutError:
+            log.warning("News: some RSS feeds did not finish in time; using whatever completed.")
 
     if not raw:
         error_msg = "; ".join(errors) if errors else "All RSS feeds failed."
