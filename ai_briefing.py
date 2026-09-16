@@ -6,6 +6,7 @@ import json
 import logging
 import pytz
 import threading
+import traceback
 from datetime import datetime, timedelta
 from twelve_data import get_quotes
 from fred_data import get_series_history
@@ -805,10 +806,10 @@ Generate the briefing now. Use specific numbers from the data above. Do not fabr
         }
 
     except Exception as e:
-        log.error(f"AI briefing error: {e}")
+        log.error(f"AI briefing error [{type(e).__name__}]: {e}\n{traceback.format_exc()}")
         return {
             "status":   "api_error",
-            "message":  f"AI briefing failed: {e}",
+            "message":  f"AI briefing failed [{type(e).__name__}]: {e}",
             "fallback": "Briefing temporarily unavailable. Check API key and try again.",
         }
 
