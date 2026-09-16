@@ -33,14 +33,6 @@ def _set_cache(data):
 # ── RSS FEEDS ─────────────────────────────────────────────────
 RSS_FEEDS = [
     {
-        "url":    "https://feeds.reuters.com/reuters/businessNews",
-        "source": "Reuters",
-    },
-    {
-        "url":    "https://feeds.reuters.com/reuters/topNews",
-        "source": "Reuters",
-    },
-    {
         "url":    "https://www.marketwatch.com/rss/economy",
         "source": "MarketWatch",
     },
