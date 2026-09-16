@@ -116,19 +116,44 @@ def _fetch_indicators():
         ("m2",           SERIES["m2"],             16, "yoy"),
     ]
 
-    for key, series_id, limit, calc in fetches:
+    # Fetch all 7 series in parallel, not one at a time: sequentially, each
+    # can cost up to ~7s of retry backoff alone if FRED rate-limits it (this
+    # runs concurrently with fred_data.py's own separate FRED calls at
+    # startup, which is exactly what triggers that rate limiting) -- 7 of
+    # those back to back is enough to stall this single-worker server long
+    # enough to matter, and /api/regime loads on every single page view.
+    import concurrent.futures as _cf
+    with _cf.ThreadPoolExecutor(max_workers=len(fetches)) as pool:
+        futures = {
+            pool.submit(_fetch_series, series_id, limit): (key, series_id, calc)
+            for key, series_id, limit, calc in fetches
+        }
         try:
-            obs = _fetch_series(series_id, limit=limit)
-            if calc == "yoy":
-                indicators[key] = _yoy_change(obs)
-            elif calc == "qoq":
-                indicators[key] = _qoq_annualized(obs)
-            else:
-                indicators[key] = _latest(obs)
-        except Exception as e:
-            log.warning(f"FRED fetch failed for {series_id}: {e}")
-            indicators[key] = None
-            errors.append(f"{key}: {str(e)[:60]}")
+            done_iter = _cf.as_completed(futures, timeout=15)
+            while True:
+                try:
+                    fut = next(done_iter)
+                except StopIteration:
+                    break
+                key, series_id, calc = futures[fut]
+                try:
+                    obs = fut.result()
+                    if calc == "yoy":
+                        indicators[key] = _yoy_change(obs)
+                    elif calc == "qoq":
+                        indicators[key] = _qoq_annualized(obs)
+                    else:
+                        indicators[key] = _latest(obs)
+                except Exception as e:
+                    log.warning(f"FRED fetch failed for {series_id}: {e}")
+                    indicators[key] = None
+                    errors.append(f"{key}: {str(e)[:60]}")
+        except _cf.TimeoutError:
+            log.warning("Regime: some FRED indicator fetches did not finish in time.")
+            for key, series_id, calc in futures.values():
+                if key not in indicators:
+                    indicators[key] = None
+                    errors.append(f"{key}: timed out")
 
     indicators["_errors"] = errors
     return indicators
