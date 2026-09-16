@@ -786,10 +786,9 @@ VIX:
 {wl_block}
 Generate the briefing now. Use specific numbers from the data above. Do not fabricate any figures."""
 
-        message = client.messages.create(
+        message = client.with_options(timeout=90).messages.create(
             model="claude-sonnet-4-6",
             max_tokens=3500,
-            timeout=90,
             system=[
                 {
                     "type": "text",
