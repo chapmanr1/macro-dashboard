@@ -93,40 +93,63 @@ def get_global_indicators() -> dict:
 
     log.info("Global: fetching OECD CLI data from FRED...")
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    economies = []
 
-    for s in GLOBAL_CLI_SERIES:
-        entry: dict = {
+    def _default_entry(s: dict) -> dict:
+        return {
             "id": s["id"], "label": s["label"], "description": s["description"],
             "current": None, "prior": None, "change": None,
             "direction": "FLAT", "signal": "N/A", "signal_color": "muted",
             "as_of": None, "sparkline": [], "sparkline_dated": [],
         }
+
+    def _fetch_one(s: dict) -> dict:
+        entry = _default_entry(s)
+        obs     = _fetch_obs(s["fred_id"], limit=14)
+        current = _valid_float(obs, skip=0)
+        prior   = _valid_float(obs, skip=1)
+        change  = round(current - prior, 3) if current is not None and prior is not None else None
+        signal, color = _cli_signal(current, prior)
+
+        as_of = next((o["date"] for o in obs
+                      if o.get("value") not in (".", "", None)), None)
+        entry.update({
+            "current":         round(current, 2) if current is not None else None,
+            "prior":           round(prior, 2) if prior is not None else None,
+            "change":          change,
+            "direction":       "UP" if (change or 0) > 0 else "DOWN" if (change or 0) < 0 else "FLAT",
+            "signal":          signal,
+            "signal_color":    color,
+            "as_of":           as_of,
+            "sparkline":       _sparkline(obs),
+            "sparkline_dated": _sparkline_dated(obs),
+        })
+        log.info(f"Global CLI [{s['id']}]: {current:.2f} → {signal}")
+        return entry
+
+    # Fetch all 4 economies in parallel, not one at a time -- same pattern
+    # applied to the calendar, news, and regime engine fixes: a sequential
+    # loop of external calls can stall this single-worker server for the
+    # sum of all of them instead of just the slowest one.
+    import concurrent.futures as _cf
+    economies_by_id = {s["id"]: _default_entry(s) for s in GLOBAL_CLI_SERIES}
+    with _cf.ThreadPoolExecutor(max_workers=len(GLOBAL_CLI_SERIES)) as pool:
+        futures = {pool.submit(_fetch_one, s): s for s in GLOBAL_CLI_SERIES}
         try:
-            obs     = _fetch_obs(s["fred_id"], limit=14)
-            current = _valid_float(obs, skip=0)
-            prior   = _valid_float(obs, skip=1)
-            change  = round(current - prior, 3) if current is not None and prior is not None else None
-            signal, color = _cli_signal(current, prior)
+            done_iter = _cf.as_completed(futures, timeout=15)
+            while True:
+                try:
+                    fut = next(done_iter)
+                except StopIteration:
+                    break
+                s = futures[fut]
+                try:
+                    economies_by_id[s["id"]] = fut.result()
+                except Exception as e:
+                    log.warning(f"Global CLI fetch failed [{s['fred_id']}]: {e}")
+        except _cf.TimeoutError:
+            log.warning("Global: some CLI fetches did not finish in time.")
 
-            as_of = next((o["date"] for o in obs
-                          if o.get("value") not in (".", "", None)), None)
-            entry.update({
-                "current":         round(current, 2) if current is not None else None,
-                "prior":           round(prior, 2) if prior is not None else None,
-                "change":          change,
-                "direction":       "UP" if (change or 0) > 0 else "DOWN" if (change or 0) < 0 else "FLAT",
-                "signal":          signal,
-                "signal_color":    color,
-                "as_of":           as_of,
-                "sparkline":       _sparkline(obs),
-                "sparkline_dated": _sparkline_dated(obs),
-            })
-            log.info(f"Global CLI [{s['id']}]: {current:.2f} → {signal}")
-        except Exception as e:
-            log.warning(f"Global CLI fetch failed [{s['fred_id']}]: {e}")
-
-        economies.append(entry)
+    economies = [economies_by_id[s["id"]] for s in GLOBAL_CLI_SERIES]
 
     result = {"economies": economies, "timestamp": ts}
     _cache["data"]  = result
