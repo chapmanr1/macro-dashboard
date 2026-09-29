@@ -707,9 +707,28 @@ def _compute_k_shape(indicators):
 
 
 # ── FALSIFICATION TRIGGER EVALUATION ────────────────────────
-def _eval_falsification_triggers():
+def _eval_falsification_triggers(prefetched: dict | None = None) -> list:
+    import concurrent.futures as _cf
     from config import FALSIFICATION_TRIGGERS
     results = []
+
+    # Pre-fetch all non-manual trigger series in parallel when no obs provided
+    if prefetched is None:
+        _to_fetch = [
+            (t["fred_series"], 16 if t["calc"] in ("yoy", "qoq") else 3)
+            for t in FALSIFICATION_TRIGGERS
+            if t.get("calc") != "manual" and t.get("fred_series")
+        ]
+        _owned: dict = {}
+        with _cf.ThreadPoolExecutor(max_workers=4) as pool:
+            _futs = {pool.submit(_fetch_series, sid, lim): sid for sid, lim in _to_fetch}
+        for fut, sid in _futs.items():
+            try:
+                _owned[sid] = fut.result()
+            except Exception as _e:
+                log.warning(f"Trigger prefetch failed [{sid}]: {_e}")
+                _owned[sid] = []
+        prefetched = _owned
 
     for trigger in FALSIFICATION_TRIGGERS:
         entry = {
@@ -738,7 +757,8 @@ def _eval_falsification_triggers():
             calc      = trigger["calc"]
             limit     = 16 if calc in ("yoy", "qoq") else 3
 
-            obs = _fetch_series(series_id, limit=limit)
+            obs = (prefetched[series_id] if series_id in prefetched
+                   else _fetch_series(series_id, limit=limit))
 
             if calc == "yoy":
                 current, _ = _yoy_pct(obs)
@@ -829,7 +849,7 @@ def _eval_falsification_triggers():
 
 
 # ── THESIS INTEGRITY DATA ─────────────────────────────────────
-def _compute_thesis_sparklines() -> dict:
+def _compute_thesis_sparklines(prefetched: dict | None = None) -> dict:
     """Fetch 7–8 recent transformed values per trigger for inline sparklines."""
     cfg = {
         "core_pce":     ("PCEPILFE",     "yoy",       20),
@@ -840,7 +860,8 @@ def _compute_thesis_sparklines() -> dict:
     result: dict = {}
     for tid, (sid, calc, limit) in cfg.items():
         try:
-            obs = _fetch_series(sid, limit=limit)
+            obs = (prefetched[sid] if (prefetched and sid in prefetched)
+                   else _fetch_series(sid, limit=limit))
             vals: list = []
             if calc == "yoy":
                 for i in range(7):
@@ -873,8 +894,26 @@ def get_thesis_data() -> dict:
     if _cache_valid("thesis"):
         return _cache["thesis"]["data"]
 
-    triggers   = _eval_falsification_triggers()
-    sparklines = _compute_thesis_sparklines()
+    # Fetch all 4 thesis series once in parallel (max limits needed by either function)
+    import concurrent.futures as _cf
+    _THESIS_FETCH = [
+        ("PCEPILFE",    20),
+        ("GDPC1",        9),
+        ("BAMLH0A0HYM2", 8),
+        ("OPHNFB",      20),
+    ]
+    _prefetched: dict = {}
+    with _cf.ThreadPoolExecutor(max_workers=4) as pool:
+        _futs = {pool.submit(_fetch_series, sid, lim): sid for sid, lim in _THESIS_FETCH}
+    for fut, sid in _futs.items():
+        try:
+            _prefetched[sid] = fut.result()
+        except Exception as _e:
+            log.warning(f"Thesis prefetch failed [{sid}]: {_e}")
+            _prefetched[sid] = []
+
+    triggers   = _eval_falsification_triggers(_prefetched)
+    sparklines = _compute_thesis_sparklines(_prefetched)
     for t in triggers:
         t["sparkline"] = sparklines.get(t["id"], [])
 
@@ -1266,6 +1305,35 @@ def _fetch_economy():
     categories = {}
     raw_vals   = {}
     all_errors = []
+    import concurrent.futures as _cf
+
+    # Fetch all 22+ economy FRED series in parallel — avoids sequential round-trips
+    flat_series = [s for cat_series in ECONOMY_SERIES.values() for s in cat_series]
+
+    def _fetch_one_econ(s: dict) -> tuple:
+        try:
+            return s["fred_id"], _fetch_series(s["fred_id"], limit=s["limit"]), None
+        except Exception as e:
+            return s["fred_id"], [], e
+
+    fetched: dict = {}  # fred_id → (obs, error)
+    _hy_fut = None
+    with _cf.ThreadPoolExecutor(max_workers=12) as pool:
+        _hy_fut = pool.submit(_fetch_series, "BAMLH0A0HYM2", 3)
+        _econ_futs = [(pool.submit(_fetch_one_econ, s), s) for s in flat_series]
+    # Pool shut down (wait=True) — all futures complete, .result() returns immediately
+    for fut, s in _econ_futs:
+        try:
+            fred_id, obs, err = fut.result()
+            fetched[fred_id] = (obs, err)
+        except Exception as e:
+            fetched[s["fred_id"]] = ([], e)
+
+    hy_obs = []
+    try:
+        hy_obs = _hy_fut.result()
+    except Exception:
+        pass
 
     for cat_name, cat_series in ECONOMY_SERIES.items():
         cat_items = []
@@ -1277,37 +1345,38 @@ def _fetch_economy():
                 "current": None, "prior": None, "change": None,
                 "direction": "FLAT", "signal": "N/A", "interpretation": None, "as_of": None,
             }
-            try:
-                obs = _fetch_series(s["fred_id"], limit=s["limit"])
+            obs, err = fetched.get(s["fred_id"], ([], None))
+            if err:
+                log.warning(f"Economy fetch failed [{s['fred_id']}]: {err}")
+                all_errors.append(f"{s['label']}: {str(err)[:80]}")
+            if obs:
+                try:
+                    if s["calc"] == "yoy":
+                        current, prior = _yoy_pct(obs)
+                    elif s["calc"] == "qoq_annualized":
+                        current, prior = _qoq_annualized(obs)
+                    elif s["calc"] == "mom_pct":
+                        current, prior = _mom_pct(obs)
+                    else:
+                        current = _latest_val(obs)
+                        prior   = _prior_val(obs, offset=1)
 
-                if s["calc"] == "yoy":
-                    current, prior = _yoy_pct(obs)
-                elif s["calc"] == "qoq_annualized":
-                    current, prior = _qoq_annualized(obs)
-                elif s["calc"] == "mom_pct":
-                    current, prior = _mom_pct(obs)
-                else:
-                    current = _latest_val(obs)
-                    prior   = _prior_val(obs, offset=1)
-
-                change = _safe_change(current, prior)
-                entry.update({
-                    "current":         current,
-                    "prior":           prior,
-                    "change":          change,
-                    "direction":       _direction(change),
-                    "signal":          _signal_word(s["id"], current, s["positive_is_good"]),
-                    "interpretation":  _get_interpretation(s["id"], current, change),
-                    "as_of":           _obs_date(obs),
-                    "sparkline":        _extract_sparkline(obs, s["calc"]),
-                    "sparkline_dated":  _extract_sparkline_dated(obs, s["calc"]),
-                })
-                raw_vals[s["id"]] = current
-
-            except Exception as e:
-                log.warning(f"Economy fetch failed [{s['fred_id']}]: {e}")
-                all_errors.append(f"{s['label']}: {str(e)[:80]}")
-
+                    change = _safe_change(current, prior)
+                    entry.update({
+                        "current":         current,
+                        "prior":           prior,
+                        "change":          change,
+                        "direction":       _direction(change),
+                        "signal":          _signal_word(s["id"], current, s["positive_is_good"]),
+                        "interpretation":  _get_interpretation(s["id"], current, change),
+                        "as_of":           _obs_date(obs),
+                        "sparkline":        _extract_sparkline(obs, s["calc"]),
+                        "sparkline_dated":  _extract_sparkline_dated(obs, s["calc"]),
+                    })
+                    raw_vals[s["id"]] = current
+                except Exception as e:
+                    log.warning(f"Economy process failed [{s['fred_id']}]: {e}")
+                    all_errors.append(f"{s['label']}: {str(e)[:80]}")
             cat_items.append(entry)
         categories[cat_name] = cat_items
 
@@ -1316,7 +1385,7 @@ def _fetch_economy():
         "gdp":               raw_vals.get("gdp"),
         "unemployment":      raw_vals.get("unemployment"),
         "unemployment_prior":raw_vals.get("unemployment"),  # placeholder; same series
-        "hy_oas":            None,  # pulled from credit cache if available
+        "hy_oas":            None,
     }
     try:
         yields_data = get_yields()
@@ -1324,13 +1393,9 @@ def _fetch_economy():
     except Exception:
         pass
 
-    # Try to pull HY OAS from a quick FRED fetch
-    try:
-        hy_obs = _fetch_series("BAMLH0A0HYM2", limit=3)
+    if hy_obs:
         hy_raw = _latest_val(hy_obs)
         recession_inputs["hy_oas"] = hy_raw * 100 if hy_raw is not None else None
-    except Exception:
-        pass
 
     recession_prob, recession_signal, recession_color = _compute_recession_probability(recession_inputs)
     recession_interp = (
