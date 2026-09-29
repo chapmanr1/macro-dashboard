@@ -30,10 +30,11 @@ Port defaults to 5000 (`PORT` env var overrides). No tests or linters configured
 
 ## Data sources (current architecture — do not change without asking)
 - FRED API → indices (SP500, DJIA, NASDAQCOM, RU2000PR, VIXCLS),
-  yields, macro indicators, credit spreads
+  yields, macro indicators, credit spreads, WTI crude (DCOILWTICO),
+  gold (GOLDAMGBD228NLBM), EUR/USD (DEXUSEU)
 - Twelve Data free tier → individual stock quotes, watchlist,
   sector ETF rotation (XLK, XLF, XLE, XLV, XLI, XLB, XLP, XLY,
-  XLU, XLRE, XLC), charts
+  XLU, XLRE, XLC), breadth (SPY/RSP), charts
 - Anthropic API (claude-sonnet-4-6) → AI Morning Briefing
 - RSS feeds → news aggregation (multiple sources)
 - SEC EDGAR → company filings (research panel)
@@ -91,7 +92,7 @@ Falsification triggers (if these occur thesis weakens):
 
 **FRED index pre-warming**: `market_data.py` spawns a background thread at import time to pre-fetch `get_index_data()`. If FRED isn't warm when the first `/api/market` request arrives, the market response caches for only 30s so the next request retries rather than serving stale empty data for the full TTL.
 
-**Twelve Data rate limit**: Free tier is 8 calls/min, 800/day. `twelve_data.py` has a per-process rate limiter. Current market fetch uses 3 batches (breadth+EUR/USD, commodities, sectors = 3 TD calls per refresh). Adding new TD calls must account for this budget.
+**Twelve Data rate limit**: Free tier is 8 calls/min, 800/day. `twelve_data.py` has a per-process rate limiter. Current market fetch uses 2 batches (breadth=SPY+RSP, sectors = 2 TD calls per refresh). Commodities and EUR/USD moved to FRED. Adding new TD calls must account for this budget.
 
 **All data functions return plain dicts** — Flask routes wrap them with `jsonify()`. When one module needs data from another, import and call the function directly. Never make HTTP calls to `localhost` or `127.0.0.1`.
 

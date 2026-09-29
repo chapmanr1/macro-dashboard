@@ -1318,7 +1318,7 @@ def _fetch_economy():
 
     fetched: dict = {}  # fred_id → (obs, error)
     _hy_fut = None
-    with _cf.ThreadPoolExecutor(max_workers=12) as pool:
+    with _cf.ThreadPoolExecutor(max_workers=6) as pool:
         _hy_fut = pool.submit(_fetch_series, "BAMLH0A0HYM2", 3)
         _econ_futs = [(pool.submit(_fetch_one_econ, s), s) for s in flat_series]
     # Pool shut down (wait=True) — all futures complete, .result() returns immediately
@@ -1530,11 +1530,14 @@ def _fetch_credit():
 
 # ── INDEX DATA (FRED daily series) ───────────────────────────
 INDEX_SERIES = [
-    {"id": "sp500",  "fred_id": "SP500",     "label": "S&P 500",   "symbol": "^GSPC",    "abbr": "SPX",  "decimals": 2},
-    {"id": "djia",   "fred_id": "DJIA",      "label": "DOW JONES", "symbol": "^DJI",     "abbr": "DJIA", "decimals": 2},
-    {"id": "nasdaq", "fred_id": "NASDAQCOM", "label": "NASDAQ",    "symbol": "^IXIC",    "abbr": "NDX",  "decimals": 2},
-    {"id": "vix",    "fred_id": "VIXCLS",    "label": "VIX",       "symbol": "^VIX",     "abbr": "VIX",  "decimals": 2},
-    {"id": "dxy",    "fred_id": "DTWEXBGS",  "label": "DXY",       "symbol": "DTWEXBGS", "abbr": "DXY",  "decimals": 2},
+    {"id": "sp500",  "fred_id": "SP500",              "label": "S&P 500",   "symbol": "^GSPC",           "abbr": "SPX",  "decimals": 2},
+    {"id": "djia",   "fred_id": "DJIA",               "label": "DOW JONES", "symbol": "^DJI",            "abbr": "DJIA", "decimals": 2},
+    {"id": "nasdaq", "fred_id": "NASDAQCOM",          "label": "NASDAQ",    "symbol": "^IXIC",           "abbr": "NDX",  "decimals": 2},
+    {"id": "vix",    "fred_id": "VIXCLS",             "label": "VIX",       "symbol": "^VIX",            "abbr": "VIX",  "decimals": 2},
+    {"id": "dxy",    "fred_id": "DTWEXBGS",           "label": "DXY",       "symbol": "DTWEXBGS",        "abbr": "DXY",  "decimals": 2},
+    {"id": "crude",  "fred_id": "DCOILWTICO",         "label": "CRUDE OIL", "symbol": "DCOILWTICO",      "abbr": "WTI",  "decimals": 2},
+    {"id": "gold",   "fred_id": "GOLDAMGBD228NLBM",   "label": "GOLD",      "symbol": "GOLDAMGBD228NLBM","abbr": "XAU",  "decimals": 2},
+    {"id": "eurusd", "fred_id": "DEXUSEU",            "label": "EUR/USD",   "symbol": "DEXUSEU",         "abbr": "EUR",  "decimals": 4},
 ]
 
 
@@ -1594,16 +1597,19 @@ def _fetch_one_index(s: dict) -> dict:
 
 
 def _fetch_index_data() -> dict:
-    """Fetch all index series in parallel — avoids sequential 12s timeouts stacking."""
+    """Fetch all index/commodity/FX series in parallel — avoids sequential timeouts stacking."""
     import concurrent.futures
     log.info("Indices: fetching fresh FRED data (parallel)...")
-    ts      = datetime.utcnow().isoformat()
-    indices = []
-    vix_out = None
-    dxy_out = None
+    ts         = datetime.utcnow().isoformat()
+    indices    = []
+    vix_out    = None
+    dxy_out    = None
+    crude_out  = None
+    gold_out   = None
+    eurusd_out = None
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-        results = list(pool.map(_fetch_one_index, INDEX_SERIES, timeout=20))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(INDEX_SERIES)) as pool:
+        results = list(pool.map(_fetch_one_index, INDEX_SERIES, timeout=25))
 
     for entry in results:
         idx_id = entry.pop("_id", None)
@@ -1611,13 +1617,23 @@ def _fetch_index_data() -> dict:
             vix_out = entry
         elif idx_id == "dxy":
             dxy_out = entry
+        elif idx_id == "crude":
+            crude_out = entry
+        elif idx_id == "gold":
+            gold_out = entry
+        elif idx_id == "eurusd":
+            eurusd_out = entry
         else:
             indices.append(entry)
 
-    result = {"indices": indices, "vix": vix_out, "dxy": dxy_out, "timestamp": ts}
+    result = {
+        "indices": indices, "vix": vix_out, "dxy": dxy_out,
+        "crude": crude_out, "gold": gold_out, "eurusd": eurusd_out,
+        "timestamp": ts,
+    }
     _cache["indices"]["data"] = result
     _cache["indices"]["ts"]   = time.time()
-    log.info(f"Indices: fetched {len(indices)} indices + VIX + DXY from FRED.")
+    log.info(f"Indices: fetched {len(indices)} indices + VIX + DXY + WTI + Gold + EUR/USD from FRED.")
     return result
 
 

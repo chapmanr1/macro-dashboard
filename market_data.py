@@ -1,6 +1,6 @@
 # FILE: market_data.py
 # Bloomberg Macro Dashboard — Market Data
-# Indices + VIX + DXY from FRED; sectors, breadth, commodities, EUR/USD from Twelve Data.
+# Indices + VIX + DXY + WTI + Gold + EUR/USD from FRED; sectors and breadth from Twelve Data.
 
 import time
 import logging
@@ -57,16 +57,18 @@ SECTORS = [
 ]
 
 COMMODITIES = [
-    {"symbol": "CL=F",  "label": "CRUDE OIL",   "suffix": "$/bbl", "decimals": 2},
-    {"symbol": "GC=F",  "label": "GOLD",        "suffix": "$/oz",  "decimals": 2},
-    {"symbol": "SI=F",  "label": "SILVER",      "suffix": "$/oz",  "decimals": 3},
-    {"symbol": "HG=F",  "label": "COPPER",      "suffix": "$/lb",  "decimals": 3},
-    {"symbol": "NG=F",  "label": "NAT GAS",     "suffix": "$/mmBtu","decimals": 3},
+    # WTI and Gold now sourced from FRED (fred_key matches get_index_data() result key).
+    # Silver, Copper, Nat Gas: TD free plan does not support these; shown as pending.
+    {"symbol": "DCOILWTICO",       "label": "CRUDE OIL", "suffix": "$/bbl",  "decimals": 2, "source": "FRED", "fred_key": "crude"},
+    {"symbol": "GOLDAMGBD228NLBM", "label": "GOLD",      "suffix": "$/oz",   "decimals": 2, "source": "FRED", "fred_key": "gold"},
+    {"symbol": "SI=F",             "label": "SILVER",    "suffix": "$/oz",   "decimals": 3, "source": "pending"},
+    {"symbol": "HG=F",             "label": "COPPER",    "suffix": "$/lb",   "decimals": 3, "source": "pending"},
+    {"symbol": "NG=F",             "label": "NAT GAS",   "suffix": "$/mmBtu","decimals": 3, "source": "pending"},
 ]
 
-# DXY comes from FRED (DTWEXBGS). Only EUR/USD remains from Twelve Data.
+# DXY and EUR/USD both from FRED — no TD currency calls needed.
 CURRENCIES = [
-    {"symbol": "EURUSD=X", "label": "EUR/USD", "description": "Euro / US Dollar", "decimals": 4},
+    {"symbol": "DEXUSEU", "label": "EUR/USD", "description": "Euro / US Dollar", "decimals": 4, "source": "FRED", "fred_key": "eurusd"},
 ]
 VIX_DISPLAY_MAX = 50
 
@@ -299,16 +301,13 @@ def _fetch_market_data() -> dict:
     fred_dxy     = fred_idx.get("dxy")  # FRED DTWEXBGS — Trade Weighted Dollar Index
 
     # ── Twelve Data batches ──────────────────────────────────────
-    # Batch 1: breadth (SPY, RSP) + EUR/USD
-    breadth_syms  = [b["symbol"] for b in BREADTH_SYMBOLS]
-    currency_syms = [c["symbol"] for c in CURRENCIES]
-    batch1 = get_quotes(breadth_syms + currency_syms)
+    # Batch 1: breadth (SPY, RSP) only — EUR/USD moved to FRED
+    breadth_syms = [b["symbol"] for b in BREADTH_SYMBOLS]
+    batch1 = get_quotes(breadth_syms)
 
-    # Batch 2: commodities
-    batch2 = get_quotes([c["symbol"] for c in COMMODITIES])
-
-    # Batch 3: sectors (XLK–XLC)
-    batch3 = get_quotes([s["symbol"] for s in SECTORS])
+    # Batch 2: sectors (XLK–XLC)
+    # Commodities batch removed — WTI + Gold now from FRED (get_index_data)
+    batch2 = get_quotes([s["symbol"] for s in SECTORS])
 
     # ── INDICES ───────────────────────────────────────────────
     # SPX, DJIA, NDX from FRED. RUT pending replacement data source.
@@ -364,7 +363,7 @@ def _fetch_market_data() -> dict:
     # ── SECTORS ───────────────────────────────────────────────
     sectors_out = []
     for sec in SECTORS:
-        q = batch3.get(sec["symbol"])
+        q = batch2.get(sec["symbol"])
         stats = _parse_quote(q) if q else None
         if stats:
             sectors_out.append({**sec, **stats})
@@ -397,33 +396,40 @@ def _fetch_market_data() -> dict:
     breadth_out["detail"] = breadth_detail
 
     # ── COMMODITIES ───────────────────────────────────────────
+    # WTI and Gold from FRED index data. Silver/Copper/NatGas pending source.
     commodities_out = []
     for com in COMMODITIES:
-        q = batch2.get(com["symbol"])
-        stats = _parse_quote(q) if q else None
-        entry = {**com}
-        if stats:
-            entry.update({
-                "price":      round(stats["price"],      com["decimals"]),
-                "change":     round(stats["change"],     com["decimals"]),
-                "pct_change": stats["pct_change"],
-                "direction":  stats["direction"],
-            })
+        entry = {k: v for k, v in com.items()}
+        if com.get("source") == "FRED":
+            fred_com = fred_idx.get(com["fred_key"])
+            if fred_com and fred_com.get("price") is not None:
+                entry.update({
+                    "price":      round(fred_com["price"],  com["decimals"]),
+                    "change":     round(fred_com["change"], com["decimals"]) if fred_com.get("change") is not None else None,
+                    "pct_change": fred_com.get("pct_change"),
+                    "direction":  fred_com.get("direction", "FLAT"),
+                    "as_of":      fred_com.get("as_of"),
+                    "source":     "FRED",
+                })
+            else:
+                entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT", "error": True})
         else:
-            entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
+            # Pending data source — always show as unavailable
+            entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT", "pending_source": True})
         commodities_out.append(entry)
 
     # ── COPPER / GOLD RATIO ───────────────────────────────────
+    # Copper is still pending; ratio requires both prices.
     copper_entry = next((c for c in commodities_out if c["symbol"] == "HG=F"), None)
-    gold_entry   = next((c for c in commodities_out if c["symbol"] == "GC=F"), None)
+    gold_entry   = next((c for c in commodities_out if c["symbol"] == "GOLDAMGBD228NLBM"), None)
     cu_au_ratio  = None
     if copper_entry and gold_entry and copper_entry.get("price") and gold_entry.get("price"):
         cu_au_ratio = round(copper_entry["price"] / gold_entry["price"], 5)
     cu_au_signal, cu_au_detail = _cu_au_signal(cu_au_ratio)
 
     # ── CURRENCIES ────────────────────────────────────────────
-    # DXY: FRED DTWEXBGS (Trade Weighted US Dollar Index) — actual Fed index.
-    # EUR/USD: Twelve Data.
+    # DXY: FRED DTWEXBGS (Trade Weighted US Dollar Index).
+    # EUR/USD: FRED DEXUSEU — moved from Twelve Data.
     currencies_out = []
     dxy_value = None
 
@@ -450,19 +456,27 @@ def _fetch_market_data() -> dict:
         })
 
     for cur in CURRENCIES:
-        q = batch1.get(cur["symbol"])
-        stats = _parse_quote(q) if q else None
-        entry = {**cur}
-        if stats:
-            entry.update({
-                "price":      round(stats["price"],      cur["decimals"]),
-                "change":     round(stats["change"],     cur["decimals"]),
-                "pct_change": stats["pct_change"],
-                "direction":  stats["direction"],
+        fred_fx = fred_idx.get(cur["fred_key"])
+        if fred_fx and fred_fx.get("price") is not None:
+            currencies_out.append({
+                "symbol":      cur["symbol"],
+                "label":       cur["label"],
+                "description": cur["description"],
+                "decimals":    cur["decimals"],
+                "price":       round(fred_fx["price"],  cur["decimals"]),
+                "change":      round(fred_fx["change"], cur["decimals"]) if fred_fx.get("change") is not None else None,
+                "pct_change":  fred_fx.get("pct_change"),
+                "direction":   fred_fx.get("direction", "FLAT"),
+                "as_of":       fred_fx.get("as_of"),
+                "source":      "FRED",
             })
         else:
-            entry.update({"price": None, "change": None, "pct_change": None, "direction": "FLAT"})
-        currencies_out.append(entry)
+            currencies_out.append({
+                "symbol": cur["symbol"], "label": cur["label"],
+                "description": cur["description"],
+                "decimals": cur["decimals"], "price": None,
+                "change": None, "pct_change": None, "direction": "FLAT",
+            })
 
     dollar_signal, dollar_detail = _dollar_signal(dxy_value)
 
@@ -495,7 +509,8 @@ def _fetch_market_data() -> dict:
     # degraded response for the full 20-minute TTL.
     _cache["ts"] = time.time() if fred_indices else time.time() - CACHE_TTL + 30
     log.info(f"Market: fetched — futures={futures_signal}, VIX={vix_value}, sector={sector_signal}"
-             + ("" if fred_indices else " [FRED indices not yet warm — short TTL]"))
+             + ("" if fred_indices else " [FRED indices not yet warm — short TTL]")
+             + (f", WTI={fred_idx.get('crude', {}).get('price')}" if fred_idx.get("crude") else ""))
     return result
 
 

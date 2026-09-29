@@ -257,6 +257,7 @@ def get_cot_positioning() -> dict:
             log.warning(f"COT: fetch failed for {y}: {e}")
 
     if not all_rows:
+        del all_rows
         result: dict = {"positions": [], "as_of": None, "timestamp": ts,
                         "error": "COT data unavailable"}
         _COT_CACHE["data"] = result
@@ -302,6 +303,13 @@ def get_cot_positioning() -> dict:
             log.warning(f"COT: parse failed [{inst['id']}]: {e}")
 
         positions.append(entry)
+
+    # Explicitly free the raw row data (can be 20-50MB) before returning.
+    # Python's pymalloc doesn't return arenas to the OS on its own — gc.collect()
+    # ensures objects with no references are freed before the next allocation spike.
+    del all_rows
+    import gc
+    gc.collect()
 
     result = {"positions": positions, "as_of": global_as_of, "timestamp": ts}
     _COT_CACHE["data"] = result
