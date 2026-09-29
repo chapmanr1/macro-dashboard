@@ -7,15 +7,26 @@ import logging
 import pytz
 import threading
 import traceback
+from typing import Optional
 from datetime import datetime, timedelta
 from twelve_data import get_quotes
 from fred_data import get_series_history
+
+# Import at module level so pydantic-core + httpx + SSL certs load at gunicorn
+# boot (~175MB headroom) rather than mid-generation (~350MB headroom). Lazy
+# import inside _generate_briefing caused a 100-150MB spike that pushed past
+# Render Starter's 512MB hard limit.
+from anthropic import Anthropic as _Anthropic
 
 log = logging.getLogger(__name__)
 
 CACHE_FILE  = "briefing_cache.json"
 CACHE_HOURS = 6
 EASTERN     = pytz.timezone("America/New_York")
+
+# Reused across briefing calls — avoids creating a new httpx client + SSL
+# context on every generation (each ~50MB on first init).
+_anthropic_client: Optional[_Anthropic] = None
 
 # Prevents concurrent requests from each triggering a separate Anthropic API call
 _generation_lock = threading.Lock()
@@ -397,8 +408,10 @@ def _generate_briefing(api_key: str) -> dict:
 
     # ── CALL ANTHROPIC ────────────────────────────────────────
     try:
-        from anthropic import Anthropic
-        client = Anthropic(api_key=api_key)
+        global _anthropic_client
+        if _anthropic_client is None:
+            _anthropic_client = _Anthropic(api_key=api_key)
+        client = _anthropic_client
 
         system_prompt = """You are a senior macro strategist writing the morning briefing for Ryan Chapman, a financial advisor at Stifel Financial.
 
@@ -781,9 +794,10 @@ VIX:
 {wl_block}
 Generate the briefing now. Use specific numbers from the data above. Do not fabricate any figures."""
 
-        message = client.with_options(timeout=90).messages.create(
+        message = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=3500,
+            timeout=90.0,
             system=[
                 {
                     "type": "text",
