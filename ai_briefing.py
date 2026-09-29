@@ -96,28 +96,6 @@ def _calculate_technicals():
     except Exception as e:
         tech["ten_year_error"] = str(e)[:120]
 
-    # ── SECTOR PERFORMANCE ────────────────────────────────────
-    try:
-        sector_map = {
-            "XLK": "Technology", "XLF": "Financials", "XLE": "Energy",
-            "XLV": "Healthcare", "XLI": "Industrials", "XLY": "Cons Discretionary",
-            "XLP": "Cons Staples", "XLU": "Utilities", "XLRE": "Real Estate",
-            "XLB": "Materials", "XLC": "Communications",
-        }
-        quotes = get_quotes(list(sector_map.keys()))
-        perf = {}
-        for sym, name in sector_map.items():
-            q = quotes.get(sym)
-            if q and q.get("percent_change") is not None:
-                perf[name] = round(float(q["percent_change"]), 2)
-        if perf:
-            sorted_p = sorted(perf.items(), key=lambda x: x[1], reverse=True)
-            tech["sector_performance"] = dict(sorted_p)
-            tech["sector_leaders"]  = [s[0] for s in sorted_p[:3]]
-            tech["sector_laggards"] = [s[0] for s in sorted_p[-3:]]
-    except Exception as e:
-        tech["sector_error"] = str(e)[:120]
-
     return tech
 
 
@@ -281,9 +259,15 @@ def get_briefing():
             "from_cache":   True,
         }
 
-    with _generation_lock:
-        # Re-check cache after acquiring lock — a concurrent request may have
-        # already generated and saved it while we were waiting.
+    # Non-blocking acquire — if the background pre-warm already holds the lock,
+    # return immediately rather than freezing the gunicorn worker for 2-3 minutes.
+    acquired = _generation_lock.acquire(blocking=False)
+    if not acquired:
+        return {
+            "status":  "generating",
+            "message": "Morning briefing is being generated. Check back in a minute.",
+        }
+    try:
         cached = _load_cache()
         if cached and _cache_valid(cached):
             return {
@@ -292,8 +276,9 @@ def get_briefing():
                 "generated_at": cached["generated_at"],
                 "from_cache":   True,
             }
-
         return _generate_briefing(api_key)
+    finally:
+        _generation_lock.release()
 
 
 def _generate_briefing(api_key: str) -> dict:
@@ -337,6 +322,16 @@ def _generate_briefing(api_key: str) -> dict:
 
     # ── SUPPLEMENTAL CALCULATIONS ─────────────────────────────
     tech_data    = _calculate_technicals()
+    # Populate sector performance from already-fetched market_data (avoids extra TD call)
+    if not tech_data.get("sector_performance"):
+        sectors = market_data.get("sectors", [])
+        if sectors:
+            perf = {s["label"]: s.get("pct_change") for s in sectors if s.get("pct_change") is not None}
+            if perf:
+                sorted_p = sorted(perf.items(), key=lambda x: x[1], reverse=True)
+                tech_data["sector_performance"] = dict(sorted_p)
+                tech_data["sector_leaders"]  = [s[0] for s in sorted_p[:3]]
+                tech_data["sector_laggards"] = [s[0] for s in sorted_p[-3:]]
     key_levels   = _calculate_key_levels(tech_data)
     calendar     = _build_economic_calendar()
     watchlist_tickers   = _load_watchlist_tickers()
