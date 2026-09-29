@@ -91,13 +91,15 @@ def _set_cache(key, data):
 def _fetch_series(series_id, limit=36):
     if not FRED_API_KEY:
         raise ValueError("FRED_API_KEY not configured.")
+    # observation_start intentionally omitted: sort_order=desc&limit=N already returns
+    # the N most recent observations, and some series (e.g. GOLDAMGBD228NLBM) return
+    # 400 Bad Request when observation_start falls outside the series' active date range.
     params = {
-        "series_id":         series_id,
-        "api_key":           FRED_API_KEY,
-        "file_type":         "json",
-        "sort_order":        "desc",
-        "limit":             limit,
-        "observation_start": (datetime.utcnow() - timedelta(days=1825)).strftime("%Y-%m-%d"),
+        "series_id":  series_id,
+        "api_key":    FRED_API_KEY,
+        "file_type":  "json",
+        "sort_order": "desc",
+        "limit":      limit,
     }
     for attempt in range(3):
         resp = requests.get(FRED_BASE, params=params, timeout=12)
@@ -1640,9 +1642,13 @@ def _fetch_index_data() -> dict:
 def get_series_history(series_id: str, n_obs: int) -> list[dict]:
     """
     Fetch the last n_obs observations of a FRED series, returned oldest-first.
-    Returns list of {"date": str, "value": float}.
+    Returns list of {"date": str, "value": float}. Cached for CACHE_TTL (1 hour).
     Used by ai_briefing.py for SPX and VIXCLS time-series analysis.
     """
+    key = f"_raw_{series_id.upper()}_{n_obs}"
+    entry = _history_cache.get(key)
+    if entry and (time.time() - entry["ts"]) < CACHE_TTL:
+        return entry["data"]
     try:
         obs = _fetch_series(series_id, limit=n_obs)
         result = []
@@ -1651,6 +1657,7 @@ def get_series_history(series_id: str, n_obs: int) -> list[dict]:
                 result.append({"date": o["date"], "value": float(o["value"])})
             except (KeyError, ValueError):
                 continue
+        _history_cache[key] = {"data": result, "ts": time.time()}
         return result
     except Exception as e:
         log.warning(f"get_series_history failed [{series_id}]: {e}")

@@ -13,7 +13,7 @@ from email.utils import parsedate_to_datetime
 log = logging.getLogger(__name__)
 
 # ── CONFIG ────────────────────────────────────────────────────
-CACHE_TTL       = 120
+CACHE_TTL       = 900
 MAX_ARTICLES    = 20
 REQUEST_TIMEOUT = 10
 

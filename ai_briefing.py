@@ -495,6 +495,14 @@ HARD REQUIREMENTS:
             k: (_strip_sparklines(v) if isinstance(v, list) else v)
             for k, v in credit_data.items()
         }
+        clean_macro = {
+            k: (_strip_sparklines(v) if isinstance(v, list) else v)
+            for k, v in macro_data.items()
+        }
+        clean_yields = {
+            k: (_strip_sparklines(v) if isinstance(v, list) else v)
+            for k, v in yields_data.items()
+        }
 
         def _fp(v: object) -> str:
             """Format a float as +.2f, or 'N/A' if None."""
@@ -753,10 +761,10 @@ Tomorrow: {json.dumps(context['calendar']['tomorrow'])}
 HY stress levels: 400bp = stress, 500bp = crisis
 
 ═══ MACRO INDICATORS ═══
-{json.dumps(context['macro_indicators'], indent=2)}
+{json.dumps(clean_macro, indent=2)}
 
 ═══ YIELD CURVE ═══
-{json.dumps(context['yield_curve'], indent=2)}
+{json.dumps(clean_yields, indent=2)}
 
 ═══ TECHNICALS ═══
 {spy_block}

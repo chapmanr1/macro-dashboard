@@ -174,15 +174,22 @@ COT_TTL = 86400  # 24 hours
 
 
 def _fetch_cot_year(year: int) -> list:
-    """Download and parse CFTC legacy futures-only COT zip for one calendar year."""
+    """Download CFTC COT zip and return only rows for COT_INSTRUMENTS.
+    Streams and filters during CSV parsing — avoids loading all 13,000+ rows into memory."""
     url = f"https://www.cftc.gov/files/dea/history/deacot{year}.zip"
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
+    name_keys = {inst["name_key"].upper() for inst in COT_INSTRUMENTS}
+    matched: list = []
     with zipfile.ZipFile(io.BytesIO(resp.content)) as z:
         fname = z.namelist()[0]
         with z.open(fname) as f:
-            text = f.read().decode("latin-1", errors="replace")
-    return list(csv.DictReader(io.StringIO(text)))
+            reader = csv.DictReader(io.TextIOWrapper(f, encoding="latin-1", errors="replace"))
+            for row in reader:
+                mkt = row.get("Market and Exchange Names", "").upper()
+                if any(k in mkt for k in name_keys):
+                    matched.append(row)
+    return matched
 
 
 def _parse_cot_date(row: dict) -> Optional[datetime]:
@@ -304,12 +311,14 @@ def get_cot_positioning() -> dict:
 
         positions.append(entry)
 
-    # Explicitly free the raw row data (can be 20-50MB) before returning.
-    # Python's pymalloc doesn't return arenas to the OS on its own — gc.collect()
-    # ensures objects with no references are freed before the next allocation spike.
     del all_rows
     import gc
     gc.collect()
+    try:
+        import ctypes
+        ctypes.CDLL(None).malloc_trim(0)
+    except Exception:
+        pass
 
     result = {"positions": positions, "as_of": global_as_of, "timestamp": ts}
     _COT_CACHE["data"] = result
