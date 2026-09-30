@@ -33,10 +33,6 @@ def _set_cache(data):
 # ── RSS FEEDS ─────────────────────────────────────────────────
 RSS_FEEDS = [
     {
-        "url":    "https://www.marketwatch.com/rss/economy",
-        "source": "MarketWatch",
-    },
-    {
         "url":    "https://www.marketwatch.com/rss/marketpulse",
         "source": "MarketWatch",
     },
@@ -77,10 +73,6 @@ RSS_FEEDS = [
         "source": "Financial Times",
     },
     {
-        "url":    "https://feeds.ap.org/rss/APFinance",
-        "source": "AP Finance",
-    },
-    {
         "url":    "https://www.axios.com/feeds/feed.rss",
         "source": "Axios",
     },
@@ -91,10 +83,6 @@ RSS_FEEDS = [
     {
         "url":    "https://www.federalreserve.gov/feeds/press_all.xml",
         "source": "Federal Reserve",
-    },
-    {
-        "url":    "https://www.bls.gov/feed/bls_latest.rss",
-        "source": "BLS",
     },
     {
         "url":    "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines",
