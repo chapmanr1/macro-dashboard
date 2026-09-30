@@ -4,6 +4,7 @@
 
 import time
 import logging
+import threading
 import requests
 from collections import deque
 from config import TWELVE_DATA_API_KEY
@@ -31,33 +32,44 @@ def to_td_symbol(symbol: str) -> str:
 
 
 # ── RATE LIMITER ──────────────────────────────────────────────
-# Free tier: 8 API calls per minute.
-_call_times: deque = deque()
+# Free tier: 8 credits per minute. TD bills per SYMBOL, not per request —
+# a batch /quote for 11 symbols costs 11 credits and is rejected outright
+# if it would exceed the per-minute budget.
+_credit_times: deque = deque()  # one timestamp per credit spent
+_credit_lock = threading.Lock()
 _RATE_LIMIT = 8
 _RATE_WINDOW = 60.0
 
 
-def _rate_limit() -> None:
-    """Block until we are under the 8-calls/minute ceiling."""
-    now = time.time()
-    # Evict timestamps older than the window
-    while _call_times and now - _call_times[0] >= _RATE_WINDOW:
-        _call_times.popleft()
-    if len(_call_times) >= _RATE_LIMIT:
-        sleep_for = _RATE_WINDOW - (now - _call_times[0]) + 0.05
-        if sleep_for > 0:
-            log.debug(f"Rate limit: sleeping {sleep_for:.2f}s")
-            time.sleep(sleep_for)
-    _call_times.append(time.time())
+def _rate_limit(credits: int = 1) -> None:
+    """Block until `credits` can be spent without exceeding 8 credits/minute."""
+    if credits > _RATE_LIMIT:
+        raise ValueError(f"Request needs {credits} credits; max per minute is {_RATE_LIMIT}")
+    # Lock is held while sleeping on purpose: callers queue up rather than
+    # two threads both seeing free budget and overspending it together.
+    with _credit_lock:
+        while True:
+            now = time.time()
+            while _credit_times and now - _credit_times[0] >= _RATE_WINDOW:
+                _credit_times.popleft()
+            if len(_credit_times) + credits <= _RATE_LIMIT:
+                break
+            # Wait until enough of the oldest credits age out of the window
+            release_at = _credit_times[len(_credit_times) + credits - _RATE_LIMIT - 1]
+            sleep_for = _RATE_WINDOW - (now - release_at) + 0.05
+            log.info(f"Twelve Data rate limit: waiting {sleep_for:.1f}s for {credits} credit(s)")
+            time.sleep(max(sleep_for, 0.05))
+        stamp = time.time()
+        _credit_times.extend([stamp] * credits)
 
 
 # ── BASE HTTP ─────────────────────────────────────────────────
 
-def _get(endpoint: str, params: dict) -> dict:
+def _get(endpoint: str, params: dict, credits: int = 1) -> dict:
     """Make a rate-limited GET to the Twelve Data API."""
     if not TWELVE_DATA_API_KEY:
         raise RuntimeError("TWELVE_DATA_API_KEY not set")
-    _rate_limit()
+    _rate_limit(credits)
     params = {**params, "apikey": TWELVE_DATA_API_KEY}
     resp = requests.get(f"{BASE_URL}/{endpoint}", params=params, timeout=15)
     resp.raise_for_status()
@@ -76,7 +88,9 @@ def get_quotes(symbols: list[str]) -> dict[str, dict]:
 
     Returns a dict keyed by the ORIGINAL symbol as passed in, so callers
     don't need to know about the translation.
-    Returns an empty dict on failure; individual failed symbols are omitted.
+    Lists longer than 8 symbols are split into chunks that each fit the
+    per-minute credit budget; later chunks may block up to ~60s waiting.
+    Returns an empty dict on failure; failed symbols or chunks are omitted.
     """
     if not symbols:
         return {}
@@ -87,12 +101,17 @@ def get_quotes(symbols: list[str]) -> dict[str, dict]:
     for s in symbols:
         td_to_origs.setdefault(to_td_symbol(s), []).append(s)
     td_syms_deduped = list(td_to_origs.keys())
-    try:
-        data = _get("quote", {"symbol": ",".join(td_syms_deduped)})
+    result: dict[str, dict] = {}
+    for i in range(0, len(td_syms_deduped), _RATE_LIMIT):
+        chunk = td_syms_deduped[i:i + _RATE_LIMIT]
+        try:
+            data = _get("quote", {"symbol": ",".join(chunk)}, credits=len(chunk))
+        except (requests.RequestException, RuntimeError, ValueError) as e:
+            log.warning(f"get_quotes failed for {chunk}: {e}")
+            continue
         # Single-symbol response is a bare dict; multi-symbol is {symbol: dict}
-        if len(td_syms_deduped) == 1:
-            data = {td_syms_deduped[0]: data}
-        result: dict[str, dict] = {}
+        if len(chunk) == 1:
+            data = {chunk[0]: data}
         for td_sym, quote in data.items():
             if not isinstance(quote, dict):
                 continue
@@ -101,10 +120,7 @@ def get_quotes(symbols: list[str]) -> dict[str, dict]:
                 continue
             for orig in td_to_origs.get(td_sym, [td_sym]):
                 result[orig] = quote
-        return result
-    except Exception as e:
-        log.warning(f"get_quotes failed: {e}")
-        return {}
+    return result
 
 
 def get_time_series(symbol: str, interval: str, outputsize: int) -> list[dict]:
