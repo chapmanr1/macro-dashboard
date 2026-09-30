@@ -26,12 +26,10 @@ def _warm_fred_index_cache() -> None:
 
 _warm_fred_index_cache()
 
-_cache = {"data": None, "ts": 0, "td_ts": 0}
+_cache = {"data": None, "ts": 0}
 
 def _cache_valid():
-    # Also rebuild as soon as the background Twelve Data refresh lands new quotes
-    return (_cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
-            and _cache["td_ts"] == _td_cache["ts"])
+    return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
 
 # ── SYMBOL DEFINITIONS ────────────────────────────────────────
 # S&P 500, Dow, Nasdaq, VIX, DXY come from FRED (see fred_data.get_index_data).
@@ -84,35 +82,6 @@ VIX_TERM_PENDING = [
     {"symbol": "VIXM", "label": "VIX MID",  "months": "5M",  "description": "~5-month VIX futures"},
     {"symbol": "VXZ",  "label": "VIX LONG", "months": "7M+", "description": "~7-month VIX futures"},
 ]
-
-# ── TWELVE DATA BACKGROUND REFRESH ────────────────────────────
-# Breadth + sectors = 13 credits, more than the 8/minute free-tier budget, so
-# get_quotes() spreads them over ~60s. That wait happens in this background
-# thread; /api/market only reads _td_cache and never blocks on Twelve Data.
-TD_REFRESH_SECS = CACHE_TTL  # refresh hourly (~13 credits/hr, ~312/day of 800)
-TD_RETRY_SECS   = 120        # retry sooner if some symbols came back missing
-
-_td_cache: dict = {"quotes": {}, "ts": 0}
-
-
-def _refresh_td_quotes() -> None:
-    """Background thread: keep breadth + sector quotes fresh in _td_cache."""
-    import threading as _th
-    symbols = [b["symbol"] for b in BREADTH_SYMBOLS] + [s["symbol"] for s in SECTORS]
-
-    def _run() -> None:
-        while True:
-            quotes = get_quotes(symbols)
-            if quotes:
-                _td_cache["quotes"] = quotes
-                _td_cache["ts"] = time.time()
-            complete = len(quotes) == len(symbols)
-            log.info(f"Market: Twelve Data refresh — {len(quotes)}/{len(symbols)} symbols"
-                     + ("" if complete else f", retrying in {TD_RETRY_SECS}s"))
-            time.sleep(TD_REFRESH_SECS if complete else TD_RETRY_SECS)
-    _th.Thread(target=_run, daemon=True).start()
-
-_refresh_td_quotes()
 
 # ── QUOTE PARSING ─────────────────────────────────────────────
 
@@ -307,7 +276,7 @@ def get_market() -> dict:
         log.info("Market: returning cached data.")
         return _cache["data"]
 
-    log.info("Market: rebuilding from FRED + Twelve Data caches...")
+    log.info("Market: fetching fresh data from Twelve Data...")
     ts = datetime.now(timezone.utc).isoformat()
     try:
         return _fetch_market_data()
@@ -331,12 +300,14 @@ def _fetch_market_data() -> dict:
     fred_vix     = fred_idx.get("vix")
     fred_dxy     = fred_idx.get("dxy")  # FRED DTWEXBGS — Trade Weighted Dollar Index
 
-    # ── Twelve Data quotes (breadth + sectors) ───────────────────
-    # Read-only: filled by the _refresh_td_quotes() background thread.
-    # Empty for ~1 minute after a deploy until the first refresh lands.
-    td_ts     = _td_cache["ts"]
-    td_quotes = _td_cache["quotes"]
-    batch1 = batch2 = td_quotes
+    # ── Twelve Data batches ──────────────────────────────────────
+    # Batch 1: breadth (SPY, RSP) only — EUR/USD moved to FRED
+    breadth_syms = [b["symbol"] for b in BREADTH_SYMBOLS]
+    batch1 = get_quotes(breadth_syms)
+
+    # Batch 2: sectors (XLK–XLC)
+    # Commodities batch removed — WTI + Gold now from FRED (get_index_data)
+    batch2 = get_quotes([s["symbol"] for s in SECTORS])
 
     # ── INDICES ───────────────────────────────────────────────
     # SPX, DJIA, NDX from FRED. RUT pending replacement data source.
@@ -533,7 +504,6 @@ def _fetch_market_data() -> dict:
     }
 
     _cache["data"] = result
-    _cache["td_ts"] = td_ts  # cache is invalidated when the TD refresh thread lands newer quotes
     # If FRED indices weren't ready yet (warm thread still running), cache for only 30 seconds
     # so the next request picks up the full data once FRED finishes, rather than serving the
     # degraded response for the full 20-minute TTL.
