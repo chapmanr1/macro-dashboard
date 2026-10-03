@@ -35,8 +35,8 @@ _HISTORY_META: dict = {
     # Inflation
     "CPIAUCSL":         {"label": "CPI YoY",              "unit": "%",  "calc": "yoy"},
     "PCEPILFE":         {"label": "Core PCE YoY",         "unit": "%",  "calc": "yoy"},
-    "DPCCRC1M027SBEA":  {"label": "Core Goods PCE YoY",   "unit": "%",  "calc": "yoy"},
-    "DPCCRV1M027SBEA":  {"label": "Core Svcs PCE YoY",    "unit": "%",  "calc": "yoy"},
+    "DGDSRG3M086SBEA":  {"label": "PCE Goods Prices YoY", "unit": "%",  "calc": "yoy"},
+    "IA001260M":        {"label": "Supercore PCE YoY",    "unit": "%",  "calc": "yoy"},
     # Labor / policy
     "UNRATE":           {"label": "Unemployment Rate",    "unit": "%",  "calc": "level"},
     "FEDFUNDS":         {"label": "Fed Funds Rate",       "unit": "%",  "calc": "level"},
@@ -383,18 +383,18 @@ def _interp_nfci(val, change):
     return f"NFCI at {val:.2f} — financial conditions looser than average; easy credit and compressed volatility providing a supportive backdrop."
 
 def _interp_pce_goods(val, change):
-    if val is None: return "Core goods PCE data unavailable."
-    if val <= 0:   return f"Core goods PCE at {val:.1f}% YoY — goods deflation present; disinflationary for headline PCE, consistent with post-supply-chain normalization."
-    if val <= 2.0: return f"Core goods PCE at {val:.1f}% YoY — goods prices contained, providing an offset to sticky services inflation in the overall PCE basket."
-    if val <= 4.0: return f"Core goods PCE at {val:.1f}% YoY — goods prices elevated; supply chain pressures or demand-driven inflation in durable and nondurable goods."
-    return f"Core goods PCE at {val:.1f}% YoY — goods inflation running hot; broad-based pricing pressure across the physical goods economy."
+    if val is None: return "PCE goods price data unavailable."
+    if val <= 0:   return f"PCE goods prices at {val:.1f}% YoY — goods deflation; disinflationary for headline PCE. Includes food and energy goods, so gasoline swings move it."
+    if val <= 2.0: return f"PCE goods prices at {val:.1f}% YoY — goods prices contained, offsetting stickier services inflation."
+    if val <= 4.0: return f"PCE goods prices at {val:.1f}% YoY — goods prices elevated; check whether energy or tariffs/supply pressures are driving it."
+    return f"PCE goods prices at {val:.1f}% YoY — goods inflation running hot; broad pricing pressure across physical goods (including food and fuel)."
 
 def _interp_pce_svc(val, change):
-    if val is None: return "Core services PCE data unavailable."
-    if val <= 2.0: return f"Core services PCE at {val:.1f}% YoY — services inflation contained; significant for the Fed since services is the stickiest PCE component."
-    if val <= 3.5: return f"Core services PCE at {val:.1f}% YoY — services inflation elevated; shelter and non-housing services remain the primary obstacle to 2% overall PCE."
-    if val <= 5.0: return f"Core services PCE at {val:.1f}% YoY — services inflation high; labor-intensive sectors create wage-price spiral risk."
-    return f"Core services PCE at {val:.1f}% YoY — services inflation crisis-level; the Fed cannot cut rates in this environment."
+    if val is None: return "Supercore PCE data unavailable."
+    if val <= 2.0: return f"Supercore PCE at {val:.1f}% YoY — services inflation ex-housing contained; the Fed's stickiest gauge is near target."
+    if val <= 3.5: return f"Supercore PCE at {val:.1f}% YoY — elevated; wage-driven services inflation remains the main obstacle to 2% PCE."
+    if val <= 5.0: return f"Supercore PCE at {val:.1f}% YoY — high; labor-intensive services pricing points to wage-price pressure."
+    return f"Supercore PCE at {val:.1f}% YoY — very high; the Fed is unlikely to ease with supercore at this level."
 
 
 # ── ORIGINAL SERIES DEFINITIONS ───────────────────────────────
@@ -429,8 +429,8 @@ ECONOMY_SERIES = {
     "inflation": [
         {"id":"cpi",       "fred_id":"CPIAUCSL",          "label":"CPI YOY",         "description":"Consumer Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
         {"id":"pce",       "fred_id":"PCEPILFE",          "label":"CORE PCE YOY",    "description":"Core PCE Price Index YoY",     "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
-        {"id":"pce_goods", "fred_id":"DPCCRC1M027SBEA",   "label":"CORE GOODS PCE",  "description":"Core Goods PCE YoY",           "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
-        {"id":"pce_svc",   "fred_id":"DPCCRV1M027SBEA",   "label":"CORE SVCS PCE",   "description":"Core Services PCE YoY",        "suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"pce_goods", "fred_id":"DGDSRG3M086SBEA",   "label":"PCE GOODS PRICES","description":"PCE goods price index YoY (incl. food & energy)","suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
+        {"id":"pce_svc",   "fred_id":"IA001260M",         "label":"SUPERCORE PCE",   "description":"PCE services ex energy & housing YoY","suffix":"%","decimals":1,"limit":36, "calc":"yoy",    "category":"inflation","positive_is_good":False},
         {"id":"t5yie",     "fred_id":"T5YIE",             "label":"5Y BREAKEVEN",    "description":"5-Year Breakeven Inflation",   "suffix":"%","decimals":2,"limit":13, "calc":"latest", "category":"inflation","positive_is_good":None},
         {"id":"t10yie",    "fred_id":"T10YIE",            "label":"10Y BREAKEVEN",   "description":"10-Year Breakeven Inflation",  "suffix":"%","decimals":2,"limit":13, "calc":"latest", "category":"inflation","positive_is_good":None},
     ],
