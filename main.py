@@ -46,7 +46,7 @@ except ImportError:
         return {"error": "FedWatch module not loaded", "timestamp": datetime.utcnow().isoformat()}
 
 try:
-    from fred_data import get_macro, get_yields, get_economy, get_credit, get_economic_calendar, get_macro_history
+    from fred_data import get_macro, get_yields, get_economy, get_credit, get_macro_history
 except ImportError:
     def get_macro():
         return {"series": [], "timestamp": datetime.utcnow().isoformat(), "error": "FRED module not loaded"}
@@ -58,10 +58,14 @@ except ImportError:
     def get_credit():
         return {"spreads": [], "breakevens": [], "real_yields": [], "falsification_triggers": [],
                 "timestamp": datetime.utcnow().isoformat(), "error": "Credit module not loaded"}
-    def get_economic_calendar(days: int = 8) -> list:
-        return []
     def get_macro_history(series_id: str, n_obs: int) -> dict:
         return {"label": series_id, "unit": "", "data": [], "error": "FRED module not loaded"}
+
+try:
+    from econ_calendar import get_economic_calendar
+except ImportError:
+    def get_economic_calendar(days: int = 8) -> list:
+        return []
 
 try:
     from global_data import get_global_indicators, get_cot_positioning

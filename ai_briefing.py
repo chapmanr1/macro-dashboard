@@ -173,32 +173,29 @@ def _calculate_key_levels(tech):
     return levels
 
 
-def _build_economic_calendar():
-    """Return today's and tomorrow's known recurring economic events."""
-    now      = _now_et()
-    tomorrow = now + timedelta(days=1)
-    dow      = now.strftime("%A")
-    dom      = now.day
-    dow_tom  = tomorrow.strftime("%A")
+def _build_economic_calendar() -> dict:
+    """Today's, tomorrow's and this week's official scheduled releases (econ_calendar.py)."""
+    from econ_calendar import get_economic_calendar
 
-    def _events_for(d, weekday, mday):
-        events = []
-        if weekday == "Thursday":
-            events.append("8:30 AM ET — Initial Jobless Claims")
-        if weekday == "Friday" and mday <= 7:
-            events.append("8:30 AM ET — Nonfarm Payrolls (first Friday of month)")
-        if mday in (12, 13, 14, 15):
-            events.append("8:30 AM ET — CPI release (mid-month)")
-        if mday in (27, 28, 29, 30):
-            events.append("8:30 AM ET — Core PCE release (month-end)")
-        if weekday == "Wednesday" and 15 <= mday <= 21:
-            events.append("2:00 PM ET — Possible FOMC meeting (mid-month Wed)")
-        return events if events else ["No major scheduled releases"]
+    now = _now_et()
+    days = {block["date"]: block["events"] for block in get_economic_calendar(days=7)}
 
+    def _lines(d) -> list[str]:
+        out = []
+        for ev in days.get(d.strftime("%Y-%m-%d"), []):
+            line = f"{ev['time']} — {ev['event']} ({ev['note']})"
+            if ev.get("actual_str"):
+                line += f" — released: {ev['actual_str']}"
+            out.append(line)
+        return out or ["No major scheduled releases"]
+
+    week = [f"{datetime.strptime(d, '%Y-%m-%d').strftime('%a %b %d')}: "
+            + ", ".join(ev["event"] for ev in evs if ev["impact"] == "HIGH")
+            for d, evs in days.items() if any(ev["impact"] == "HIGH" for ev in evs)]
     return {
-        "today":     _events_for(now, dow, dom),
-        "tomorrow":  _events_for(tomorrow, dow_tom, tomorrow.day),
-        "this_week": "Thursday: Jobless Claims. Check Fed speakers calendar and earnings.",
+        "today":     _lines(now),
+        "tomorrow":  _lines(now + timedelta(days=1)),
+        "this_week": week or ["No high-impact releases scheduled"],
     }
 
 

@@ -91,9 +91,7 @@
     .cal-impact { font-family: var(--font-ui); font-size: 7px; font-weight: 700; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 3px; }
     .cal-impact.HIGH { background: rgba(239,68,68,0.18); color: #ef4444; }
     .cal-impact.MEDIUM { background: rgba(245,158,11,0.18); color: #f59e0b; }
-    .cal-surprise { font-family: var(--font-ui); font-size: 7px; font-weight: 700; letter-spacing: 0.08em; padding: 1px 5px; border-radius: 3px; }
-    .cal-surprise.BEAT { background: rgba(34,197,94,0.18); color: #22c55e; }
-    .cal-surprise.MISS { background: rgba(239,68,68,0.18); color: #ef4444; }
+    .cal-actual { font-family: var(--font-ui); font-size: 7px; font-weight: 700; letter-spacing: 0.08em; padding: 1px 5px; border-radius: 3px; color: var(--white); border: 1px solid var(--border2); }
     /* Week view */
     .cal-week-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
     .cal-week-col { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 4px; padding: 6px 4px; min-height: 80px; }
@@ -1437,7 +1435,7 @@
         <div class="cal-panel-hdr">
           <div class="cal-nav">
             <button class="cal-nav-btn" id="calPrev">&#9664;</button>
-            <span class="cal-title" id="calTitle">—</span>
+            <span class="cal-title" id="calTitle">—</span> <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'econ_calendar')" ontouchstart="event.stopPropagation();_showTooltip(this,'econ_calendar')">ⓘ</button>
             <button class="cal-nav-btn" id="calNext">&#9654;</button>
           </div>
           <div class="cal-view-tabs">
@@ -1985,9 +1983,9 @@
     </div>
 
     <div class="section-header">
-      <div class="section-title">ECONOMIC CALENDAR</div>
+      <div class="section-title">ECONOMIC CALENDAR <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'econ_calendar')" ontouchstart="event.stopPropagation();_showTooltip(this,'econ_calendar')">ⓘ</button></div>
       <div class="section-line"></div>
-      <div class="section-meta">NEXT 7 DAYS — APPROXIMATE</div>
+      <div class="section-meta">NEXT 7 DAYS — OFFICIAL SCHEDULES</div>
     </div>
     <div id="calendarContent">
       <div class="cal-day"><div class="cal-day-hdr"><div class="skel" style="height:9px;width:200px"></div></div><div class="cal-event"><div class="skel" style="height:9px;width:50px"></div><div class="skel" style="height:10px;width:150px"></div><div class="skel" style="height:16px;width:40px"></div></div></div>
@@ -2415,6 +2413,7 @@ function _srcLink(source) {
 // INDICATOR TOOLTIPS
 // ════════════════════════════════════════════════════════════
 const INDICATOR_TOOLTIPS = {
+  econ_calendar:  { title:'ECONOMIC CALENDAR', what:'Scheduled US data releases and Fed events, each read automatically from the agency that sets it: BLS, BEA, Census, DOL and UMich dates from FRED\'s release calendar; FOMC decisions and the Beige Book from federalreserve.gov; ISM from its stated rule (Manufacturing 1st business day, Services 3rd, 10:00 ET); Conference Board LEI and Consumer Confidence from conference-board.org ("last Tuesday" rule for later Consumer Confidence months). Times are Eastern.', read:'ACT appears only on the release day, after the release time, once FRED has posted the new number. "▲/▼ vs prior" compares it with the previous release — it is NOT a beat or miss against economist forecasts (no free official consensus source).', thresholds:'HIGH impact = typically moves rates and equities (CPI, jobs, PCE, GDP, FOMC). MEDIUM = sector or second-order signal. A source that cannot be read is left off the calendar rather than guessed.' },
   gdp:            { title:'GDP GROWTH', what:'Real Gross Domestic Product, quarter-over-quarter annualized rate. Measures the economy\'s total output growth pace.', read:'Positive = expansion. Negative = contraction. Two consecutive negative quarters = technical recession.', thresholds:'Strong >2.5% | Trend 1.5-2.5% | Slow 0-1.5% | Contraction <0%', thesis:'Stagflation requires weak growth alongside high inflation. GDP below 1.5% supports the base case. Above 2.5% for two consecutive quarters is the defined falsification trigger — it would shift probability toward the 20% goldilocks bull case.' },
   cpi:            { title:'CPI YoY', what:'Consumer Price Index, year-over-year change. Broadest measure of consumer inflation, including food and energy.', read:'Higher = more inflation. Fed target is ~2%. Above 4% = policy concern. Above 6% = crisis-level inflation.', thresholds:'Target ~2% | Elevated 3-4% | High 4-6% | Crisis >6%', thesis:'Elevated CPI (>3.5%) validates the stagflation regime. Watch for a sustained decline toward 2%: three prints below 3% while PCE also falls would signal the inflation half of stagflation is fading, challenging the base case.' },
   pce:            { title:'CORE PCE YoY', what:'Personal Consumption Expenditures price index, excluding food & energy. The Federal Reserve\'s preferred inflation gauge.', read:'Fed targets 2%. Stickier than CPI because PCE weights shift with spending behavior. Critical for rate path decisions.', thresholds:'Target 2% | Elevated 2.5-3.5% | High >3.5% | Falsification trigger: 3 months below 2.5%', thesis:'This is the primary falsification monitor. Thesis is INTACT while Core PCE stays above 2.5%. Three consecutive monthly readings below 2.5% is the defined trigger that would directly challenge the stagflation base case — signaling inflation is retreating toward the Fed\'s target.' },
@@ -5042,13 +5041,12 @@ function renderDriving(articles) {
   if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
 
-function _calSurpriseTag(ev) {
-  if (!ev.surprise_tag) return '';
-  const tag = ev.surprise_tag;
-  const color = tag === 'BEAT' ? 'var(--green)' : tag === 'MISS' ? 'var(--red)' : 'var(--muted)';
-  const border = tag === 'BEAT' ? 'var(--green-dim)' : tag === 'MISS' ? 'var(--red-dim)' : 'var(--border2)';
-  const valStr = ev.actual_str ? ` ${ev.actual_str}` : '';
-  return `<span style="font-size:7px;font-weight:700;letter-spacing:0.1em;color:${color};border:1px solid ${border};padding:1px 5px;margin-left:5px">${tag}${valStr}</span>`;
+// Released value, shown only after release (server decides). "vs prior" is a plain
+// comparison with the previous release — not a forecast beat/miss — so it stays neutral.
+function _calActualTag(ev) {
+  if (!ev.actual_str) return '';
+  const arrow = ev.vs_prior === 'UP' ? '▲ ' : ev.vs_prior === 'DOWN' ? '▼ ' : '';
+  return `<span class="cal-actual" style="margin-left:5px">ACT ${arrow}${ev.actual_str}</span>`;
 }
 
 function renderCalendar(events) {
@@ -5057,7 +5055,7 @@ function renderCalendar(events) {
     const evHTML = day.events.map(ev => `
       <div class="cal-event">
         <div class="cal-time">${ev.time||''}</div>
-        <div class="cal-name">${ev.event||''} ${_calSurpriseTag(ev)} ${ev.note ? `<span style="font-size:7px;color:var(--muted)">(${ev.note})</span>` : ''}</div>
+        <div class="cal-name">${ev.event||''} ${_calActualTag(ev)} ${ev.note ? `<span style="font-size:7px;color:var(--muted)">(${ev.note})</span>` : ''}</div>
         <div class="cal-impact ${ev.impact||'LOW'}">${ev.impact||''}</div>
       </div>`).join('');
     return `<div class="cal-day">
@@ -5174,8 +5172,7 @@ function _calRender() {
           ${ev.note?`<div class="cal-event-note">${ev.note}</div>`:''}
           <div class="cal-event-tags">
             <span class="cal-impact ${ev.impact||''}">${ev.impact||'LOW'}</span>
-            ${ev.surprise_tag?`<span class="cal-surprise ${ev.surprise_tag.includes('BEAT')||ev.surprise_tag.includes('+')&&!ev.surprise_tag.includes('MISS')?'BEAT':'MISS'}">${ev.surprise_tag}</span>`:''}
-            ${ev.actual_str?`<span style="font-family:var(--font-ui);font-size:8px;color:var(--muted);letter-spacing:0.04em">ACT: ${ev.actual_str}</span>`:''}
+            ${_calActualTag(ev)}
           </div>
         </div>
       </div>`).join('');

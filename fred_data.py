@@ -917,215 +917,81 @@ def get_thesis_data() -> dict:
 
 
 # ── MACRO SURPRISE ACTUALS ────────────────────────────────────
-# Maps calendar event names → (FRED series, calc_type, direction_pref)
-# direction_pref: "lower_better" (inflation/claims) or "higher_better" (jobs/growth/ISM)
+# Maps calendar event names (econ_calendar.RELEASES) → (FRED series, calc_type).
+# ISM isn't on FRED (removed 2016), so ISM events never show an actual.
 _SURPRISE_MAP = {
-    "CPI RELEASE":            ("CPIAUCSL", "yoy",     "lower_better"),
-    "CORE CPI":               ("CPILFESL", "yoy",     "lower_better"),
-    "NONFARM PAYROLLS":       ("PAYEMS",   "mom_k",   "higher_better"),
-    "UNEMPLOYMENT RATE":      ("UNRATE",   "latest",  "lower_better"),
-    "ISM MANUFACTURING":      ("MPMINDX",  "latest",  "higher_better"),
-    "ISM SERVICES":           ("NMFCI",    "latest",  "higher_better"),
-    "CORE PCE INFLATION":     ("PCEPILFE", "yoy",     "lower_better"),
-    "INITIAL JOBLESS CLAIMS": ("ICSA",     "latest",  "lower_better"),
-    "RETAIL SALES":           ("RSAFS",    "mom_pct", "higher_better"),
-    "PPI RELEASE":            ("PPIACO",   "yoy",     "lower_better"),
+    "CPI RELEASE":            ("CPIAUCSL", "yoy"),
+    "CORE CPI":               ("CPILFESL", "yoy"),
+    "NONFARM PAYROLLS":       ("PAYEMS", "mom_k"),
+    "UNEMPLOYMENT RATE":      ("UNRATE", "latest"),
+    "CORE PCE INFLATION":     ("PCEPILFE", "yoy"),
+    "INITIAL JOBLESS CLAIMS": ("ICSA", "latest"),
+    "RETAIL SALES":           ("RSAFS", "mom_pct"),
+    "PPI RELEASE":            ("PPIFIS", "yoy"),  # BLS headline: Final Demand
 }
 
 
+def _series_last_updated(series_id: str) -> str | None:
+    """Date (YYYY-MM-DD) FRED last updated a series, or None on failure."""
+    try:
+        resp = requests.get("https://api.stlouisfed.org/fred/series",
+                            params={"series_id": series_id, "api_key": FRED_API_KEY, "file_type": "json"},
+                            timeout=12)
+        resp.raise_for_status()
+        return (resp.json().get("seriess") or [{}])[0].get("last_updated", "")[:10] or None
+    except (requests.RequestException, ValueError, KeyError, IndexError) as e:
+        log.warning(f"FRED series info failed [{series_id}]: {e}")
+        return None
+
+
 def _fetch_surprise_data() -> dict:
-    """Fetch latest 2 observations for key calendar series. Returns {} on failure."""
+    """
+    Latest released value vs the prior period for key calendar series.
+    Returns {event: {"actual_str", "vs_prior": UP|DOWN|UNCH|None, "updated": YYYY-MM-DD}}.
+    "vs prior" is a plain comparison with the previous release — not a forecast surprise.
+    """
     if _cache_valid("surprises"):
         return _cache["surprises"]["data"]
 
     result: dict = {}
-    for event_name, (series_id, calc, direction) in _SURPRISE_MAP.items():
+    for event_name, (series_id, calc) in _SURPRISE_MAP.items():
         try:
-            obs = _fetch_series(series_id, limit=14)
-            if not obs:
+            obs = _fetch_series(series_id, limit=16)
+            if len(obs) < 3:
                 continue
-            current = _latest_val(obs)
+            v = [float(o["value"]) for o in obs[:3]]
             if calc == "yoy":
-                current_yoy, _ = _yoy_pct(obs)
-                prior_yoy = None
-                if len(obs) >= 2:
-                    prior_yoy, _ = _yoy_pct(obs[1:])
-                val_str  = f"{current_yoy:.1f}% YoY" if current_yoy is not None else None
-                val_curr = current_yoy
-                val_prev = prior_yoy
-            elif calc == "mom_k":
-                # Change in thousands (PAYEMS is in thousands)
-                prior = _prior_val(obs, offset=1)
-                if current is not None and prior is not None:
-                    chg   = current - prior
-                    val_str  = f"{int(chg):+,}K"
-                    val_curr = chg
-                    val_prev = None
-                else:
-                    val_str = val_curr = val_prev = None
+                curr, prev = _yoy_pct(obs)
+                fmt = lambda x: f"{x:.1f}% YoY"
+            elif calc == "mom_k":  # PAYEMS is in thousands
+                curr, prev = v[0] - v[1], v[1] - v[2]
+                fmt = lambda x: f"{int(round(x)):+,}K"
             elif calc == "mom_pct":
-                prior = _prior_val(obs, offset=1)
-                chg   = _safe_change(current, prior)
-                val_str  = f"{chg:+.1f}%" if chg is not None else None
-                val_curr = chg
-                val_prev = None
-            else:  # latest
-                prior    = _prior_val(obs, offset=1)
-                val_str  = f"{current:.1f}" if current is not None else None
-                if event_name == "UNEMPLOYMENT RATE" and current is not None:
-                    val_str = f"{current:.1f}%"
-                elif event_name == "INITIAL JOBLESS CLAIMS" and current is not None:
-                    val_str = f"{int(current):,}"
-                val_curr = current
-                val_prev = prior
-
-            if val_curr is None:
-                continue
-
-            # Compute surprise tag
-            if val_prev is not None and val_curr is not None:
-                delta = val_curr - val_prev
-                threshold = abs(val_curr) * 0.02 if val_curr != 0 else 0.1
-                if direction == "lower_better":
-                    tag = "BEAT" if delta < -threshold else "MISS" if delta > threshold else "INLINE"
+                curr = (v[0] - v[1]) / abs(v[1]) * 100 if v[1] else None
+                prev = (v[1] - v[2]) / abs(v[2]) * 100 if v[2] else None
+                fmt = lambda x: f"{x:+.1f}%"
+            else:  # latest level
+                curr, prev = v[0], v[1]
+                if event_name == "UNEMPLOYMENT RATE":
+                    fmt = lambda x: f"{x:.1f}%"
+                elif event_name == "INITIAL JOBLESS CLAIMS":
+                    fmt = lambda x: f"{int(x):,}"
                 else:
-                    tag = "BEAT" if delta > threshold else "MISS" if delta < -threshold else "INLINE"
-            else:
-                tag = None
-
-            result[event_name] = {"actual_str": val_str, "surprise_tag": tag}
-        except Exception as e:
-            log.debug(f"Surprise fetch failed for {event_name}: {e}")
+                    fmt = lambda x: f"{x:.1f}"
+            if curr is None:
+                continue
+            actual_str = fmt(curr) + (f" · prior {fmt(prev)}" if prev is not None else "")
+            vs_prior = None
+            if prev is not None:
+                a, b = fmt(curr), fmt(prev)  # compare at displayed precision
+                vs_prior = "UNCH" if a == b else ("UP" if curr > prev else "DOWN")
+            result[event_name] = {"actual_str": actual_str, "vs_prior": vs_prior,
+                                  "updated": _series_last_updated(series_id)}
+        except (requests.RequestException, ValueError, KeyError, RuntimeError) as e:
+            log.warning(f"Calendar actual failed for {event_name} [{series_id}]: {e}")
 
     _set_cache("surprises", result)
     return result
-
-
-# ── ECONOMIC CALENDAR ─────────────────────────────────────────
-def get_economic_calendar(days: int = 8) -> list:
-    """
-    Generate approximate economic calendar for the next N days.
-    Based on standard federal release patterns — dates are approximate.
-    Annotates events with latest FRED actuals where available.
-    """
-    today   = datetime.utcnow().date()
-    events  = []
-    surprises: dict = {}
-    try:
-        surprises = _fetch_surprise_data()
-    except Exception:
-        pass  # Calendar still works without surprise data
-
-    # Hardcoded 2026 Fed event dates — verify against federalreserve.gov annually
-    _BEIGE_BOOK_2026 = {
-        "2026-01-14", "2026-03-04", "2026-04-15", "2026-05-27",
-        "2026-07-15", "2026-09-02", "2026-10-14", "2026-11-25",
-    }
-    _FOMC_PRESSER_2026 = {
-        "2026-01-29", "2026-03-19", "2026-04-30", "2026-06-11",
-        "2026-07-30", "2026-09-17", "2026-11-05", "2026-12-10",
-    }
-    _HH_TESTIMONY_2026 = {
-        "2026-02-11", "2026-02-12", "2026-07-15", "2026-07-16",
-    }
-
-    # Confirmed BLS CPI release dates — verify against bls.gov/schedule/news_release/cpi.htm
-    # annually. Only months confirmed here suppress the "2nd Wednesday" approximation below;
-    # unlisted months (e.g. release lags after a data gap) still fall back to the guess.
-    _CPI_RELEASE_2026 = {
-        "2026-03-11", "2026-04-10", "2026-05-12", "2026-06-10",
-        "2026-07-14", "2026-08-12", "2026-09-11",
-    }
-    _CPI_CONFIRMED_MONTHS_2026 = {dt[:7] for dt in _CPI_RELEASE_2026}
-
-    for day_offset in range(max(1, days)):
-        d       = today + timedelta(days=day_offset)
-        weekday = d.weekday()  # 0=Mon, 6=Sun
-        day_ev  = []
-
-        if weekday >= 5:  # Skip weekends
-            continue
-
-        # Every Thursday: Initial Jobless Claims
-        if weekday == 3:
-            day_ev.append({"time": "8:30 ET", "event": "INITIAL JOBLESS CLAIMS", "impact": "HIGH",   "note": "Weekly"})
-
-        # First Friday of month: NFP
-        if weekday == 4 and 1 <= d.day <= 7:
-            day_ev.append({"time": "8:30 ET", "event": "NONFARM PAYROLLS",       "impact": "HIGH",   "note": "Monthly"})
-            day_ev.append({"time": "8:30 ET", "event": "UNEMPLOYMENT RATE",      "impact": "HIGH",   "note": "Monthly"})
-
-        # CPI: use the confirmed BLS date when we have one for this month;
-        # otherwise fall back to the "2nd Wednesday" approximation.
-        iso = d.isoformat()
-        if iso in _CPI_RELEASE_2026:
-            day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "BLS confirmed"})
-            day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "BLS confirmed"})
-        elif weekday == 2 and 8 <= d.day <= 14 and iso[:7] not in _CPI_CONFIRMED_MONTHS_2026:
-            day_ev.append({"time": "8:30 ET", "event": "CPI RELEASE",            "impact": "HIGH",   "note": "Approx"})
-            day_ev.append({"time": "8:30 ET", "event": "CORE CPI",               "impact": "HIGH",   "note": "Approx"})
-
-        # 2nd Thursday of month: PPI (approx)
-        if weekday == 3 and 8 <= d.day <= 14:
-            day_ev.append({"time": "8:30 ET", "event": "PPI RELEASE",            "impact": "MEDIUM", "note": "Approx"})
-
-        # 2nd-3rd Wednesday: Retail Sales (approx)
-        if weekday == 2 and 12 <= d.day <= 17:
-            day_ev.append({"time": "8:30 ET", "event": "RETAIL SALES",           "impact": "HIGH",   "note": "Approx"})
-
-        # 3rd Wednesday: Housing Starts (approx)
-        if weekday == 2 and 15 <= d.day <= 21:
-            day_ev.append({"time": "8:30 ET", "event": "HOUSING STARTS",         "impact": "MEDIUM", "note": "Approx"})
-
-        # First business day of month: ISM Manufacturing
-        if weekday < 5 and 1 <= d.day <= 3:
-            day_ev.append({"time": "10:00 ET","event": "ISM MANUFACTURING",      "impact": "HIGH",   "note": "Monthly"})
-
-        # 3rd business day of month: ISM Services (approx)
-        if weekday < 5 and 3 <= d.day <= 5:
-            day_ev.append({"time": "10:00 ET","event": "ISM SERVICES",           "impact": "HIGH",   "note": "Monthly"})
-
-        # 2nd Tuesday: JOLTS (approx)
-        if weekday == 1 and 8 <= d.day <= 14:
-            day_ev.append({"time": "10:00 ET","event": "JOLTS JOB OPENINGS",     "impact": "HIGH",   "note": "Approx"})
-
-        # Last Thursday: PCE (approx)
-        if weekday == 3 and d.day >= 26:
-            day_ev.append({"time": "8:30 ET", "event": "CORE PCE INFLATION",     "impact": "HIGH",   "note": "Approx"})
-            day_ev.append({"time": "8:30 ET", "event": "PERSONAL INCOME/SPEND",  "impact": "MEDIUM", "note": "Approx"})
-
-        # Last Friday: Univ Michigan Final Sentiment
-        if weekday == 4 and d.day >= 26:
-            day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT FINAL",  "impact": "MEDIUM", "note": "Monthly"})
-
-        # 2nd Friday: Univ Michigan Preliminary
-        if weekday == 4 and 8 <= d.day <= 14:
-            day_ev.append({"time": "10:00 ET","event": "UMICH SENTIMENT PRELIM", "impact": "MEDIUM", "note": "Monthly"})
-
-        d_iso = d.isoformat()
-        if d_iso in _BEIGE_BOOK_2026:
-            day_ev.append({"time": "2:00 ET",  "event": "BEIGE BOOK RELEASE",              "impact": "HIGH", "note": "Fed Regional Survey"})
-        if d_iso in _FOMC_PRESSER_2026:
-            day_ev.append({"time": "2:30 ET",  "event": "FED CHAIR PRESS CONFERENCE",       "impact": "HIGH", "note": "FOMC Decision Day"})
-        if d_iso in _HH_TESTIMONY_2026:
-            day_ev.append({"time": "10:00 ET", "event": "FED CHAIR CONGRESSIONAL TESTIMONY","impact": "HIGH", "note": "Semi-Annual Report"})
-
-        if day_ev:
-            # Annotate events with latest FRED actuals
-            for ev in day_ev:
-                ev_name = ev.get("event", "")
-                sur = surprises.get(ev_name)
-                if sur:
-                    ev["actual_str"]   = sur.get("actual_str")
-                    ev["surprise_tag"] = sur.get("surprise_tag")
-            events.append({
-                "date":        d.isoformat(),
-                "day_of_week": d.strftime("%A").upper(),
-                "day_display": d.strftime("%b %d").upper(),
-                "events":      day_ev,
-            })
-
-    return events
 
 
 # ── GET MACRO (existing) ──────────────────────────────────────
@@ -1829,4 +1695,5 @@ if __name__ == "__main__":
     print("\n=== CREDIT ===")
     print(json.dumps(get_credit(), indent=2))
     print("\n=== CALENDAR ===")
+    from econ_calendar import get_economic_calendar
     print(json.dumps(get_economic_calendar(), indent=2))
