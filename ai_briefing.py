@@ -441,7 +441,7 @@ This is the section the financial media won't write. Identify 2-3 cross-asset si
 - Equal-weight (RSP) underperforming cap-weight (SPY) by a meaningful margin — index concentration building
 - Copper/Gold ratio direction vs 10Y yield direction — if they're diverging, one market is mispriced
 - COT shows large speculators EXTREME LONG equities or EXTREME SHORT bonds — crowded trade, reversal risk (note: ~1 week lag, structural context not real-time)
-- Rate market (FedWatch) pricing cuts while the Fed is talking hikes (or vice versa) — someone is wrong, that's a trade
+- Rate path estimated from T-bill yields pricing cuts while the Fed is talking hikes (or vice versa) — someone is wrong, that's a trade
 - USD broad index rising while equities also rise — unusual, signals dollar demand from risk-off flows underneath
 Every signal must cite the actual number from the data. Do not include a signal if you don't have a specific number to support it.
 
@@ -467,7 +467,7 @@ Then list 3-5 specific levels that would change the picture if broken today. Inc
 One data point or market signal most inconsistent with the stagflation thesis right now. State the exact number. Then one sentence: noise or genuine threat?
 
 ═══ POSITIONING IMPLICATIONS ═══
-1-2 specific, actionable considerations based on the current regime and this morning's action. Not generic asset allocation — specific to what is actually happening today. If COT or FedWatch signals something actionable, include it here.
+1-2 specific, actionable considerations based on the current regime and this morning's action. Not generic asset allocation — specific to what is actually happening today. If COT or the estimated rate path signals something actionable, include it here.
 
 ═══ WATCHLIST ═══
 For each ticker in the watchlist data: current price, day's move, one sentence of macro context for that move. Skip tickers with no data. Omit section entirely if watchlist is empty.
@@ -692,6 +692,8 @@ HARD REQUIREMENTS:
             fw_signal = fw.get("signal", "N/A")
             fw_detail = fw.get("signal_detail", "")
             fw_ff     = fw.get("current_ff", "N/A")
+            fw_range  = (f"{fw['ff_lower']:.2f}–{fw['ff_upper']:.2f}%"
+                         if fw.get("ff_lower") is not None and fw.get("ff_upper") is not None else "N/A")
             path_lines = []
             for h in fw.get("implied_path", []):
                 lbl    = h.get("label", "?")
@@ -700,13 +702,14 @@ HARD REQUIREMENTS:
                 cuts_str = f"{cuts:+.1f} cuts" if cuts is not None else "N/A"
                 path_lines.append(f"  {lbl}: {cuts_str} ({dirn})")
             fw_block = (
-                f"Rate Market Expectations (CME-implied via FRED yields):\n"
-                f"  Current Fed Funds: {fw_ff}%\n"
+                f"Rate Path — ESTIMATED from Treasury bill yields (NOT CME FedWatch futures; "
+                f"bills often trade a little below fed funds, so this can overstate cuts):\n"
+                f"  Fed target range: {fw_range} (midpoint {fw_ff}% used for the estimate)\n"
                 f"  Market Signal: {fw_signal} — {fw_detail}\n"
                 + "\n".join(path_lines)
             )
         else:
-            fw_block = "FedWatch data unavailable."
+            fw_block = "Rate path estimate unavailable."
 
         # ── BUILD NEWS BLOCKS ─────────────────────────────────
         def _fmt_news(articles: list, max_summary: int = 300) -> str:
