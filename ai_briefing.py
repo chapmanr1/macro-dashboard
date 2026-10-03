@@ -75,10 +75,11 @@ def _calculate_technicals():
         if len(vbars) >= 2:
             vc_list = [b["value"] for b in vbars]
             vc  = vc_list[-1]
-            v30 = sum(vc_list) / len(vc_list)
+            last_month = vc_list[-21:]  # 21 trading days ≈ 1 calendar month
+            v1m = sum(last_month) / len(last_month)
             tech["vix_current"]  = round(vc, 2)
-            tech["vix_30d_avg"]  = round(v30, 2)
-            tech["vix_vs_avg"]   = round(vc - v30, 2)
+            tech["vix_1m_avg"]   = round(v1m, 2)
+            tech["vix_vs_avg"]   = round(vc - v1m, 2)
             if vc < 11:
                 tech["vix_signal"] = "COMPLACENT — elevated complacency, watch for reversal"
             elif vc < 14:
@@ -160,7 +161,7 @@ def _calculate_key_levels(tech):
         if vc:
             levels["vix"] = {
                 "current":    vc,
-                "30d_avg":    tech.get("vix_30d_avg"),
+                "1m_avg":     tech.get("vix_1m_avg"),
                 "complacent": 15,
                 "cautious":   20,
                 "stressed":   25,
@@ -454,7 +455,7 @@ Regime implication: One sentence on what this regime means for positioning right
 ═══ MARKET SNAPSHOT & KEY LEVELS ═══
 State the current condition across six indicators — specific numbers only, no vague commentary:
 1. S&P 500 — where it sits vs its 50DMA and 200DMA (state exact level of each moving average)
-2. VIX — current level vs its 30-day average; state what VIX÷16 implies about today's expected daily move and whether the actual market move is normal or unusual
+2. VIX — current level vs its 1-month (21 trading days) average; state what VIX÷16 implies about today's expected daily move and whether the actual market move is normal or unusual
 3. 10Y Treasury yield — current level and whether it's rising or falling recently
 4. Crude Oil — current price and whether it is above/below the key $80 and $100 thresholds; what that means for the inflation picture
 5. US Dollar (Fed broad dollar index, not ICE DXY) — current level and direction; one sentence on what that implies for global risk appetite and commodities
@@ -523,7 +524,7 @@ HARD REQUIREMENTS:
         if "vix_current" in tech_data:
             vix_block = f"""VIX:
   Current: {tech_data.get('vix_current', 'N/A')}
-  30d avg:  {tech_data.get('vix_30d_avg', 'N/A')}
+  1M avg (21 trading days): {tech_data.get('vix_1m_avg', 'N/A')}
   vs avg:   {_fp(tech_data.get('vix_vs_avg'))}
   Signal:   {tech_data.get('vix_signal', 'N/A')}"""
         else:
