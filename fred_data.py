@@ -8,6 +8,8 @@ import logging
 import requests
 from datetime import datetime, timedelta, timezone, date as date_type
 
+from yoy import yoy_at, yoy_series
+
 log = logging.getLogger(__name__)
 
 FRED_API_KEY = os.environ.get("FRED_API_KEY", "")
@@ -123,19 +125,10 @@ def _prior_val(obs, offset=1):
     if len(obs) <= offset: return None
     return float(obs[offset]["value"])
 
-def _yoy_pct(obs):
-    valid = [o for o in obs if o.get("value") not in (".", "", None)]
-    if len(valid) < 2: return None, None
-    current  = float(valid[0]["value"])
-    year_ago = float(valid[12]["value"]) if len(valid) >= 13 else float(valid[-1]["value"])
-    if year_ago == 0: return None, None
-    yoy = ((current - year_ago) / abs(year_ago)) * 100
-    prior_yoy = None
-    if len(valid) >= 14:
-        pc = float(valid[1]["value"])
-        py = float(valid[13]["value"])
-        if py != 0:
-            prior_yoy = ((pc - py) / abs(py)) * 100
+def _yoy_pct(obs: list[dict]) -> tuple[float | None, float | None]:
+    """(latest YoY %, prior-period YoY %), matched by calendar date — see yoy.py."""
+    yoy, prior_yoy = yoy_at(obs, 0), yoy_at(obs, 1)
+    if yoy is None: return None, None
     return round(yoy, 2), (round(prior_yoy, 2) if prior_yoy is not None else None)
 
 def _qoq_annualized(obs):
@@ -186,13 +179,7 @@ def _extract_sparkline_dated(obs: list, calc: str, scale: float = 1, n: int = 12
                                 "value": round(((curr - prev) / abs(prev)) * 100, 2)})
             return list(reversed(raw))
         elif calc == "yoy":
-            raw = []
-            for i in range(min(n, len(valid) - 12)):
-                curr, ya = float(valid[i]["value"]), float(valid[i + 12]["value"])
-                if ya != 0:
-                    raw.append({"date": valid[i]["date"],
-                                "value": round(((curr - ya) / abs(ya)) * 100, 2)})
-            return list(reversed(raw))
+            return yoy_series(valid, n)
         elif calc in ("qoq_annualized", "qoq"):
             raw = []
             for i in range(min(n, len(valid) - 1)):
@@ -223,13 +210,7 @@ def _extract_sparkline(obs: list, calc: str, scale: float = 1, n: int = 12) -> l
                     raw.append(round(((curr - prev) / abs(prev)) * 100, 2))
             vals = list(reversed(raw))
         elif calc == "yoy":
-            raw = []
-            for i in range(min(n, len(valid) - 12)):
-                curr = float(valid[i]["value"])
-                ya   = float(valid[i + 12]["value"])
-                if ya != 0:
-                    raw.append(round(((curr - ya) / abs(ya)) * 100, 2))
-            vals = list(reversed(raw))
+            vals = [p["value"] for p in yoy_series(valid, n)]
         elif calc in ("qoq_annualized", "qoq"):
             raw = []
             for i in range(min(n, len(valid) - 1)):
@@ -802,17 +783,15 @@ def _eval_falsification_triggers(prefetched: dict | None = None) -> list:
             required = trigger.get("sustained", 1)
             if required > 1 and calc == "yoy":
                 for i in range(required):
-                    if len(obs) >= i + 13:
-                        c = float(obs[i]["value"])
-                        ya = float(obs[i + 12]["value"])
-                        if ya != 0:
-                            v = ((c - ya) / abs(ya)) * 100
-                            if direction == "below" and v < threshold:
-                                sustained_count += 1
-                            elif direction == "above" and v > threshold:
-                                sustained_count += 1
-                            else:
-                                break
+                    v = yoy_at(obs, i)
+                    if v is None:
+                        break
+                    if direction == "below" and v < threshold:
+                        sustained_count += 1
+                    elif direction == "above" and v > threshold:
+                        sustained_count += 1
+                    else:
+                        break
             elif required > 1 and calc == "qoq":
                 for i in range(required):
                     if len(obs) >= i + 2:
@@ -866,13 +845,7 @@ def _compute_thesis_sparklines(prefetched: dict | None = None) -> dict:
                    else _fetch_series(sid, limit=limit))
             vals: list = []
             if calc == "yoy":
-                for i in range(7):
-                    if len(obs) >= i + 13:
-                        c  = float(obs[i]["value"])
-                        ya = float(obs[i + 12]["value"])
-                        if ya != 0:
-                            vals.append(round(((c - ya) / abs(ya)) * 100, 2))
-                vals.reverse()  # oldest-first for sparkline
+                vals = [p["value"] for p in yoy_series(obs, 7)]  # oldest-first for sparkline
             elif calc == "qoq":
                 for i in range(6):
                     if len(obs) >= i + 2:
@@ -1685,14 +1658,8 @@ def get_macro_history(series_id: str, n_obs: int) -> dict:
     raw = get_series_history(sid, fetch_n)
 
     try:
-        if calc == "yoy" and len(raw) >= 13:
-            data = []
-            for i in range(12, len(raw)):
-                curr, base = raw[i]["value"], raw[i - 12]["value"]
-                if base != 0:
-                    data.append({"date": raw[i]["date"],
-                                 "value": round((curr - base) / abs(base) * 100, 2)})
-            data = data[-n_obs:]
+        if calc == "yoy":
+            data = yoy_series(raw, n_obs)
         elif calc == "qoq" and len(raw) >= 2:
             data = []
             for i in range(1, len(raw)):

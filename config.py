@@ -9,6 +9,8 @@ import time
 import logging
 from datetime import datetime
 
+from yoy import yoy_series
+
 log = logging.getLogger(__name__)
 
 # ── API KEYS ──────────────────────────────────────────────────
@@ -62,7 +64,7 @@ def calibrate(fred_api_key):
 
     FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 
-    def _fetch(series_id, limit, frequency=None):
+    def _fetch(series_id, limit, frequency=None, with_dates=False):
         params = {
             "series_id":  series_id,
             "api_key":    fred_api_key,
@@ -78,16 +80,10 @@ def calibrate(fred_api_key):
         resp = requests.get(FRED_BASE, params=params, timeout=15)
         resp.raise_for_status()
         obs = resp.json().get("observations", [])
-        return [float(o["value"]) for o in obs if o.get("value") not in (".", "", None)]
-
-    def _yoy_pct_series(raw_monthly, n=36):
-        """Compute n YoY % change values from descending monthly raw index."""
-        result = []
-        for i in range(min(n, len(raw_monthly) - 12)):
-            ya = raw_monthly[i + 12]
-            if ya != 0:
-                result.append((raw_monthly[i] - ya) / abs(ya) * 100)
-        return result
+        valid = [o for o in obs if o.get("value") not in (".", "", None)]
+        if with_dates:
+            return valid
+        return [float(o["value"]) for o in valid]
 
     def _qoq_ann_series(raw_quarterly, n=16):
         """Compute n QoQ annualised growth values from descending quarterly raw."""
@@ -99,14 +95,14 @@ def calibrate(fred_api_key):
         return result
 
     # Fetch raw series
-    cpi_raw  = _fetch("CPIAUCSL", 50)           # monthly CPI index level
+    cpi_raw  = _fetch("CPIAUCSL", 50, with_dates=True)  # monthly CPI index level, dated
     gdp_raw  = _fetch("GDPC1",    20)           # quarterly real GDP level
     unemp    = _fetch("UNRATE",   40)           # monthly unemployment %
     ff       = _fetch("FEDFUNDS", 40)           # monthly fed funds %
     spread   = _fetch("T10Y2Y",   40, "m")      # monthly 10Y-2Y %
 
     # Derived series
-    cpi_yoy  = _yoy_pct_series(cpi_raw, 36)
+    cpi_yoy  = [p["value"] for p in yoy_series(cpi_raw, 36)]
     gdp_qoq  = _qoq_ann_series(gdp_raw, 16)
 
     def clamp(val, floor, ceiling=None):

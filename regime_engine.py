@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import time
 
+from yoy import yoy_at
 from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING, FALSIFICATION_TRIGGERS
 
 log = logging.getLogger(__name__)
@@ -71,19 +72,12 @@ def _latest(obs):
         return None
     return float(obs[0]["value"])
 
-def _yoy_change(obs):
+def _yoy_change(obs: list[dict]) -> float | None:
     """
-    Calculate year-over-year % change from monthly observations.
-    Requires at least 13 observations (current + 12 months ago).
+    Calculate year-over-year % change, matching the observation dated one
+    calendar year before the latest (see yoy.py). None if that month is missing.
     """
-    valid = [o for o in obs if o.get("value") not in (".", "", None)]
-    if len(valid) < 13:
-        return None
-    current = float(valid[0]["value"])
-    year_ago = float(valid[12]["value"])
-    if year_ago == 0:
-        return None
-    return ((current - year_ago) / abs(year_ago)) * 100
+    return yoy_at(obs, 0)
 
 def _qoq_annualized(obs):
     """
