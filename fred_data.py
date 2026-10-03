@@ -1375,7 +1375,7 @@ INDEX_SERIES = [
     {"id": "djia",   "fred_id": "DJIA",               "label": "DOW JONES", "symbol": "^DJI",            "abbr": "DJIA", "decimals": 2},
     {"id": "nasdaq", "fred_id": "NASDAQCOM",          "label": "NASDAQ",    "symbol": "^IXIC",           "abbr": "NDX",  "decimals": 2},
     {"id": "vix",    "fred_id": "VIXCLS",             "label": "VIX",       "symbol": "^VIX",            "abbr": "VIX",  "decimals": 2},
-    {"id": "dxy",    "fred_id": "DTWEXBGS",           "label": "DXY",       "symbol": "DTWEXBGS",        "abbr": "DXY",  "decimals": 2},
+    {"id": "dxy",    "fred_id": "DTWEXBGS",           "label": "USD BROAD INDEX (FED)", "symbol": "DTWEXBGS",        "abbr": "USD",  "decimals": 2},
     {"id": "crude",  "fred_id": "DCOILWTICO",         "label": "CRUDE OIL", "symbol": "DCOILWTICO",      "abbr": "WTI",  "decimals": 2},
     {"id": "gold",   "fred_id": "GOLDAMGBD228NLBM",   "label": "GOLD",      "symbol": "GOLDAMGBD228NLBM","abbr": "XAU",  "decimals": 2},
     {"id": "eurusd", "fred_id": "DEXUSEU",            "label": "EUR/USD",   "symbol": "DEXUSEU",         "abbr": "EUR",  "decimals": 4},
@@ -1474,7 +1474,7 @@ def _fetch_index_data() -> dict:
     }
     _cache["indices"]["data"] = result
     _cache["indices"]["ts"]   = time.time()
-    log.info(f"Indices: fetched {len(indices)} indices + VIX + DXY + WTI + Gold + EUR/USD from FRED.")
+    log.info(f"Indices: fetched {len(indices)} indices + VIX + USD broad + WTI + Gold + EUR/USD from FRED.")
     return result
 
 

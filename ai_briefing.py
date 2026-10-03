@@ -441,7 +441,7 @@ This is the section the financial media won't write. Identify 2-3 cross-asset si
 - Copper/Gold ratio direction vs 10Y yield direction — if they're diverging, one market is mispriced
 - COT shows large speculators EXTREME LONG equities or EXTREME SHORT bonds — crowded trade, reversal risk (note: ~1 week lag, structural context not real-time)
 - Rate market (FedWatch) pricing cuts while the Fed is talking hikes (or vice versa) — someone is wrong, that's a trade
-- DXY rising while equities also rise — unusual, signals dollar demand from risk-off flows underneath
+- USD broad index rising while equities also rise — unusual, signals dollar demand from risk-off flows underneath
 Every signal must cite the actual number from the data. Do not include a signal if you don't have a specific number to support it.
 
 ═══ REGIME STATUS ═══
@@ -457,7 +457,7 @@ State the current condition across six indicators — specific numbers only, no 
 2. VIX — current level vs its 30-day average; state what VIX÷16 implies about today's expected daily move and whether the actual market move is normal or unusual
 3. 10Y Treasury yield — current level and whether it's rising or falling recently
 4. Crude Oil — current price and whether it is above/below the key $80 and $100 thresholds; what that means for the inflation picture
-5. US Dollar (DXY) — current level and direction; one sentence on what that implies for global risk appetite and commodities
+5. US Dollar (Fed broad dollar index, not ICE DXY) — current level and direction; one sentence on what that implies for global risk appetite and commodities
 6. Market Breadth (RSP vs SPY) — the RSP−SPY differential and signal; whether the average stock is keeping up with the index or falling behind
 
 Then list 3-5 specific levels that would change the picture if broken today. Include levels across equities, yields, commodities, or spreads — not just SPX. For each: the exact level, what a breach means, and the catalyst or time if known. Format each as: "Instrument at Level — consequence — catalyst (if any)"
@@ -584,8 +584,8 @@ HARD REQUIREMENTS:
                 pct_str = f"{pct:+.2f}%" if pct is not None else ""
                 lines.append(f"  {lbl}: {px_str} {pct_str}")
             fx_block = "Currencies:\n" + "\n".join(lines) + (
-                "\nReference: DXY rising = global risk-off, commodity headwind, EM stress"
-                " | DXY falling = risk-on, commodity tailwind | EUR/USD below 1.05 = extreme USD strength"
+                "\nReference: USD broad index rising = global risk-off, commodity headwind, EM stress"
+                " | USD broad index falling = risk-on, commodity tailwind | EUR/USD below 1.05 = extreme USD strength"
             )
         else:
             fx_block = "FX data unavailable."

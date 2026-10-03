@@ -1,6 +1,6 @@
 # FILE: market_data.py
 # Bloomberg Macro Dashboard — Market Data
-# Indices + VIX + DXY + WTI + Gold + EUR/USD from FRED; sectors and breadth from Twelve Data.
+# Indices + VIX + USD broad index + WTI + Gold + EUR/USD from FRED; sectors and breadth from Twelve Data.
 
 import time
 import logging
@@ -32,7 +32,7 @@ def _cache_valid():
     return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
 
 # ── SYMBOL DEFINITIONS ────────────────────────────────────────
-# S&P 500, Dow, Nasdaq, VIX, DXY come from FRED (see fred_data.get_index_data).
+# S&P 500, Dow, Nasdaq, VIX, USD broad index come from FRED (see fred_data.get_index_data).
 # RUT and futures: pending replacement data source — shown as unavailable.
 RUT_INDEX = {"symbol": "^RUT", "label": "RUSSELL 2K", "abbr": "RUT"}
 
@@ -66,7 +66,7 @@ COMMODITIES = [
     {"symbol": "NG=F",             "label": "NAT GAS",   "suffix": "$/mmBtu","decimals": 3, "source": "pending"},
 ]
 
-# DXY and EUR/USD both from FRED — no TD currency calls needed.
+# USD broad index and EUR/USD both from FRED — no TD currency calls needed.
 CURRENCIES = [
     {"symbol": "DEXUSEU", "label": "EUR/USD", "description": "Euro / US Dollar", "decimals": 4, "source": "FRED", "fred_key": "eurusd"},
 ]
@@ -428,7 +428,7 @@ def _fetch_market_data() -> dict:
     cu_au_signal, cu_au_detail = _cu_au_signal(cu_au_ratio)
 
     # ── CURRENCIES ────────────────────────────────────────────
-    # DXY: FRED DTWEXBGS (Trade Weighted US Dollar Index).
+    # USD broad index: FRED DTWEXBGS (Fed Nominal Broad U.S. Dollar Index) — not ICE DXY.
     # EUR/USD: FRED DEXUSEU — moved from Twelve Data.
     currencies_out = []
     dxy_value = None
@@ -437,8 +437,8 @@ def _fetch_market_data() -> dict:
         dxy_value = fred_dxy.get("price")
         currencies_out.append({
             "symbol":      "DTWEXBGS",
-            "label":       "DXY",
-            "description": "Trade Weighted USD Index (FRED)",
+            "label":       "USD BROAD INDEX (FED)",
+            "description": "Fed nominal broad dollar index, 26 currencies (FRED DTWEXBGS)",
             "decimals":    2,
             "price":       round(dxy_value, 2) if dxy_value is not None else None,
             "change":      fred_dxy.get("change"),
@@ -449,8 +449,8 @@ def _fetch_market_data() -> dict:
         })
     else:
         currencies_out.append({
-            "symbol": "DTWEXBGS", "label": "DXY",
-            "description": "Trade Weighted USD Index (FRED)",
+            "symbol": "DTWEXBGS", "label": "USD BROAD INDEX (FED)",
+            "description": "Fed nominal broad dollar index, 26 currencies (FRED DTWEXBGS)",
             "decimals": 2, "price": None, "change": None,
             "pct_change": None, "direction": "FLAT",
         })
