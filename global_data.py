@@ -19,11 +19,14 @@ CACHE_TTL    = 14400  # 4 hours — monthly data rarely changes intraday
 
 _cache: dict = {"data": None, "ts": 0}
 
+# Amplitude-adjusted OECD CLIs — the series FRED still updates. The normalised
+# (…LOLITONOSTSAM) versions stopped in 2024, and the Euro Area / OECD-total
+# series in Nov 2022, so Germany and the G7 aggregate stand in for them.
 GLOBAL_CLI_SERIES = [
-    {"id": "china",    "fred_id": "CHNLOLITONOSTSAM",  "label": "CHINA",    "description": "OECD CLI — China"},
-    {"id": "eurozone", "fred_id": "EUALOLITONOSTSAM",   "label": "EUROZONE", "description": "OECD CLI — Euro Area"},
-    {"id": "oecd",     "fred_id": "OECDLOLITONOSTSAM",  "label": "OECD",     "description": "OECD CLI — Total"},
-    {"id": "japan",    "fred_id": "JPNLOLITONOSTSAM",   "label": "JAPAN",    "description": "OECD CLI — Japan"},
+    {"id": "china",    "fred_id": "CHNLOLITOAASTSAM",   "label": "CHINA",    "description": "OECD CLI — China"},
+    {"id": "germany",  "fred_id": "DEULOLITOAASTSAM",   "label": "GERMANY",  "description": "OECD CLI — Germany"},
+    {"id": "g7",       "fred_id": "G7LOLITOAASTSAM",    "label": "G7",       "description": "OECD CLI — G7"},
+    {"id": "japan",    "fred_id": "JPNLOLITOAASTSAM",   "label": "JAPAN",    "description": "OECD CLI — Japan"},
 ]
 
 

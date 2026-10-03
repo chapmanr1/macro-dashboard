@@ -70,10 +70,10 @@ _HISTORY_META: dict = {
     "DGS10":            {"label": "10Y Treasury",         "unit": "%",  "calc": "level"},
     "DGS30":            {"label": "30Y Treasury",         "unit": "%",  "calc": "level"},
     # OECD Composite Leading Indicators (normalized to 100 = long-run trend)
-    "CHNLOLITONOSTSAM": {"label": "China CLI",            "unit": "",   "calc": "level"},
-    "EUALOLITONOSTSAM": {"label": "Eurozone CLI",         "unit": "",   "calc": "level"},
-    "OECDLOLITONOSTSAM":{"label": "OECD CLI",             "unit": "",   "calc": "level"},
-    "JPNLOLITONOSTSAM": {"label": "Japan CLI",            "unit": "",   "calc": "level"},
+    "CHNLOLITOAASTSAM": {"label": "China CLI",            "unit": "",   "calc": "level"},
+    "DEULOLITOAASTSAM": {"label": "Germany CLI",          "unit": "",   "calc": "level"},
+    "G7LOLITOAASTSAM":  {"label": "G7 CLI",               "unit": "",   "calc": "level"},
+    "JPNLOLITOAASTSAM": {"label": "Japan CLI",            "unit": "",   "calc": "level"},
     # Time series chart series (not in other category groups above)
     "T10Y2Y":           {"label": "10Y-2Y Spread",        "unit": "%",  "calc": "level"},
     "A191RL1Q225SBEA":  {"label": "Real GDP Growth",      "unit": "%",  "calc": "level"},

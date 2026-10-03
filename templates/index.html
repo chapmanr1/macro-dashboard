@@ -2413,6 +2413,10 @@ function _srcLink(source) {
 // INDICATOR TOOLTIPS
 // ════════════════════════════════════════════════════════════
 const INDICATOR_TOOLTIPS = {
+  china:          { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
+  germany:        { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
+  g7:             { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
+  japan:          { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
   fed_rate_path:  { title:'FED RATE PATH (ESTIMATED)', what:'An estimate of how many 25bp cuts or hikes the market expects, made by comparing 3-month, 6-month and 1-year Treasury bill yields (FRED) with the midpoint of the Fed target range. It is NOT CME FedWatch, which uses fed funds futures — that data is not available free.', read:'Positive = cuts priced, negative = hikes priced. T-bills usually yield a little less than the fed funds rate (they are in heavy demand as safe collateral), so this method tends to show slightly more cuts than futures do. Treat a reading under ±0.5 as "no change expected".', thresholds:'≥3 cuts in 12M: dovish | 1.5-3: mildly dovish | ±0.3: on hold | ≤-1.5: hawkish' },
   econ_calendar:  { title:'ECONOMIC CALENDAR', what:'Scheduled US data releases and Fed events, each read automatically from the agency that sets it: BLS, BEA, Census, DOL and UMich dates from FRED\'s release calendar; FOMC decisions and the Beige Book from federalreserve.gov; ISM from its stated rule (Manufacturing 1st business day, Services 3rd, 10:00 ET); Conference Board LEI and Consumer Confidence from conference-board.org ("last Tuesday" rule for later Consumer Confidence months). Times are Eastern.', read:'ACT appears only on the release day, after the release time, once FRED has posted the new number. "▲/▼ vs prior" compares it with the previous release — it is NOT a beat or miss against economist forecasts (no free official consensus source).', thresholds:'HIGH impact = typically moves rates and equities (CPI, jobs, PCE, GDP, FOMC). MEDIUM = sector or second-order signal. A source that cannot be read is left off the calendar rather than guessed.' },
   gdp:            { title:'GDP GROWTH', what:'Real Gross Domestic Product, quarter-over-quarter annualized rate. Measures the economy\'s total output growth pace.', read:'Positive = expansion. Negative = contraction. Two consecutive negative quarters = technical recession.', thresholds:'Strong >2.5% | Trend 1.5-2.5% | Slow 0-1.5% | Contraction <0%', thesis:'Stagflation requires weak growth alongside high inflation. GDP below 1.5% supports the base case. Above 2.5% for two consecutive quarters is the defined falsification trigger — it would shift probability toward the 20% goldilocks bull case.' },
@@ -2532,10 +2536,10 @@ const MACRO_CHART_META = {
   dgs10:     {fredId:'DGS10',            label:'10Y Treasury Yield'},
   dgs30:     {fredId:'DGS30',            label:'30Y Treasury Yield'},
   // Global CLIs
-  china:     {fredId:'CHNLOLITONOSTSAM', label:'China OECD CLI'},
-  eurozone:  {fredId:'EUALOLITONOSTSAM', label:'Eurozone OECD CLI'},
-  oecd:      {fredId:'OECDLOLITONOSTSAM',label:'OECD Total CLI'},
-  japan:     {fredId:'JPNLOLITONOSTSAM', label:'Japan OECD CLI'},
+  china:     {fredId:'CHNLOLITOAASTSAM', label:'China OECD CLI'},
+  germany:   {fredId:'DEULOLITOAASTSAM', label:'Germany OECD CLI'},
+  g7:        {fredId:'G7LOLITOAASTSAM',  label:'G7 OECD CLI'},
+  japan:     {fredId:'JPNLOLITOAASTSAM', label:'Japan OECD CLI'},
 };
 
 // Pre-configured multi-series overlay views
@@ -4765,7 +4769,7 @@ function renderGlobal(economies) {
   el.innerHTML = economies.map(e => scorecardCell({
     id:               e.id,
     label:            e.label,
-    description:      'OECD Composite Leading Indicator',
+    description:      'OECD leading indicator' + (e.as_of ? ' · data for ' + e.as_of.slice(0, 7) : ''),
     current:          e.current,
     change:           e.change,
     suffix:           '',
