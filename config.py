@@ -4,6 +4,7 @@
 # Edit floors/ceilings or positioning here; never touch core logic.
 
 import os
+import re
 import json
 import time
 import logging
@@ -12,6 +13,25 @@ from datetime import datetime
 from yoy import yoy_series
 
 log = logging.getLogger(__name__)
+
+
+# ── LOG REDACTION ─────────────────────────────────────────────
+class RedactSecrets(logging.Filter):
+    """
+    Mask API keys in log output. requests puts the full URL — including
+    ?api_key=... — into its error text, so any logged exception can leak a key.
+    Attached to the root handlers in main.py, so it covers every module.
+    """
+    _PATTERN = re.compile(r"(api_?key|apikey|token)=[^&\s'\"]+", re.IGNORECASE)
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        redacted = self._PATTERN.sub(r"\1=***", msg)
+        if redacted != msg:
+            record.msg, record.args = redacted, None
+        if record.exc_info and not record.exc_text:
+            record.exc_text = self._PATTERN.sub(r"\1=***", logging.Formatter().formatException(record.exc_info))
+        return True
 
 # ── API KEYS ──────────────────────────────────────────────────
 TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY", "")

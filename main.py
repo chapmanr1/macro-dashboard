@@ -15,6 +15,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+from config import RedactSecrets
+for _h in logging.getLogger().handlers:
+    _h.addFilter(RedactSecrets())  # never log API keys from request URLs
 log = logging.getLogger(__name__)
 
 try:

@@ -42,8 +42,8 @@ def _fetch_series(series_id: str) -> Optional[float]:
         obs = resp.json().get("observations", [])
         valid = [o for o in obs if o.get("value") not in (".", "", None)]
         return float(valid[0]["value"]) if valid else None
-    except Exception as e:
-        log.debug(f"FedWatch _fetch_series {series_id}: {e}")
+    except (requests.RequestException, ValueError, KeyError, IndexError) as e:
+        log.warning(f"FedWatch fetch failed [{series_id}]: {e}")
         return None
 
 
