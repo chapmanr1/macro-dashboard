@@ -31,7 +31,6 @@ SERIES = {
     "gdp_growth":     "GDPC1",
     "fed_funds":      "FEDFUNDS",
     "t10y2y":         "T10Y2Y",
-    "ism_pmi":        "MPMINDX",
     "m2":             "M2SL",
 }
 

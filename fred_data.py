@@ -53,9 +53,6 @@ _HISTORY_META: dict = {
     "HOUST":            {"label": "Housing Starts",       "unit": "K",  "calc": "level"},
     "MANEMP":           {"label": "Mfg Employment",       "unit": "K",  "calc": "level"},
     # Business sentiment
-    "MPMINDX":          {"label": "ISM Mfg PMI",          "unit": "",   "calc": "level"},
-    "NMFCI":            {"label": "ISM Services PMI",     "unit": "",   "calc": "level"},
-    "NFIBOPTIM":        {"label": "NFIB Optimism",        "unit": "",   "calc": "level"},
     "NFCI":             {"label": "NFCI",                 "unit": "",   "calc": "level"},
     # Credit spreads (FRED stores OAS as decimal; ×100 = bp)
     "BAMLH0A0HYM2":     {"label": "HY OAS",               "unit": "bp", "calc": "level_bp"},
@@ -440,9 +437,9 @@ ECONOMY_SERIES = {
         {"id":"jolts",    "fred_id":"JTSJOL",        "label":"JOLTS OPENINGS", "description":"Job Openings (Thousands)",     "suffix":"K","decimals":0,"limit":13, "calc":"latest",        "category":"labor","positive_is_good":True},
     ],
     "business_sentiment": [
-        {"id":"ism_mfg", "fred_id":"MPMINDX",    "label":"ISM MFG PMI",     "description":"ISM Manufacturing PMI",         "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
-        {"id":"ism_svc", "fred_id":"NMFCI",      "label":"ISM SERVICES PMI","description":"ISM Non-Mfg Composite Index",   "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
-        {"id":"nfib",    "fred_id":"NFIBOPTIM",  "label":"NFIB OPTIMISM",   "description":"Small Business Optimism Index", "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True},
+        {"id":"ism_mfg", "fred_id":"MPMINDX",    "label":"ISM MFG PMI",     "description":"ISM Manufacturing PMI",         "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True, "no_source":True},
+        {"id":"ism_svc", "fred_id":"NMFCI",      "label":"ISM SERVICES PMI","description":"ISM Non-Mfg Composite Index",   "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True, "no_source":True},
+        {"id":"nfib",    "fred_id":"NFIBOPTIM",  "label":"NFIB OPTIMISM",   "description":"Small Business Optimism Index", "suffix":"","decimals":1,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":True, "no_source":True},
         {"id":"nfci",    "fred_id":"NFCI",       "label":"NFCI",            "description":"Chicago Fed Fin. Conditions",   "suffix":"","decimals":2,"limit":13, "calc":"latest", "category":"business_sentiment","positive_is_good":False},
     ],
     "consumer": [
@@ -1173,7 +1170,9 @@ def _fetch_economy():
     import concurrent.futures as _cf
 
     # Fetch all 22+ economy FRED series in parallel — avoids sequential round-trips
-    flat_series = [s for cat_series in ECONOMY_SERIES.values() for s in cat_series]
+    # "no_source" tiles: the series left FRED (ISM in 2016, NFIB later) — not fetched.
+    flat_series = [s for cat_series in ECONOMY_SERIES.values() for s in cat_series
+                   if not s.get("no_source")]
 
     def _fetch_one_econ(s: dict) -> tuple:
         try:
@@ -1210,6 +1209,10 @@ def _fetch_economy():
                 "current": None, "prior": None, "change": None,
                 "direction": "FLAT", "signal": "N/A", "interpretation": None, "as_of": None,
             }
+            if s.get("no_source"):
+                entry["display"] = "NO FREE SOURCE"
+                cat_items.append(entry)
+                continue
             obs, err = fetched.get(s["fred_id"], ([], None))
             if err:
                 log.warning(f"Economy fetch failed [{s['fred_id']}]: {err}")
@@ -1401,7 +1404,6 @@ INDEX_SERIES = [
     {"id": "vix",    "fred_id": "VIXCLS",             "label": "VIX",       "symbol": "^VIX",            "abbr": "VIX",  "decimals": 2},
     {"id": "dxy",    "fred_id": "DTWEXBGS",           "label": "USD BROAD INDEX (FED)", "symbol": "DTWEXBGS",        "abbr": "USD",  "decimals": 2},
     {"id": "crude",  "fred_id": "DCOILWTICO",         "label": "CRUDE OIL", "symbol": "DCOILWTICO",      "abbr": "WTI",  "decimals": 2},
-    {"id": "gold",   "fred_id": "GOLDAMGBD228NLBM",   "label": "GOLD",      "symbol": "GOLDAMGBD228NLBM","abbr": "XAU",  "decimals": 2},
     {"id": "eurusd", "fred_id": "DEXUSEU",            "label": "EUR/USD",   "symbol": "DEXUSEU",         "abbr": "EUR",  "decimals": 4},
 ]
 
@@ -1498,7 +1500,7 @@ def _fetch_index_data() -> dict:
     }
     _cache["indices"]["data"] = result
     _cache["indices"]["ts"]   = time.time()
-    log.info(f"Indices: fetched {len(indices)} indices + VIX + USD broad + WTI + Gold + EUR/USD from FRED.")
+    log.info(f"Indices: fetched {len(indices)} indices + VIX + USD broad + WTI + EUR/USD from FRED.")
     return result
 
 

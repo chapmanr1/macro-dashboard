@@ -1,6 +1,6 @@
 # FILE: market_data.py
 # Bloomberg Macro Dashboard — Market Data
-# Indices + VIX + USD broad index + WTI + Gold + EUR/USD from FRED; sectors and breadth from Twelve Data.
+# Indices + VIX + USD broad index + WTI + EUR/USD from FRED; sectors and breadth from Twelve Data.
 
 import time
 import logging
@@ -57,10 +57,11 @@ SECTORS = [
 ]
 
 COMMODITIES = [
-    # WTI and Gold now sourced from FRED (fred_key matches get_index_data() result key).
-    # Silver, Copper, Nat Gas: TD free plan does not support these; shown as pending.
+    # WTI from FRED (fred_key matches get_index_data() result key).
+    # Gold: FRED's LBMA series ended in 2022. Silver, Copper, Nat Gas: TD free plan
+    # does not cover them. All four show "SOURCE PENDING" until a provider is chosen.
     {"symbol": "DCOILWTICO",       "label": "CRUDE OIL", "suffix": "$/bbl",  "decimals": 2, "source": "FRED", "fred_key": "crude"},
-    {"symbol": "GOLDAMGBD228NLBM", "label": "GOLD",      "suffix": "$/oz",   "decimals": 2, "source": "FRED", "fred_key": "gold"},
+    {"symbol": "XAU",              "label": "GOLD",      "suffix": "$/oz",   "decimals": 2, "source": "pending"},
     {"symbol": "SI=F",             "label": "SILVER",    "suffix": "$/oz",   "decimals": 3, "source": "pending"},
     {"symbol": "HG=F",             "label": "COPPER",    "suffix": "$/lb",   "decimals": 3, "source": "pending"},
     {"symbol": "NG=F",             "label": "NAT GAS",   "suffix": "$/mmBtu","decimals": 3, "source": "pending"},
@@ -396,7 +397,7 @@ def _fetch_market_data() -> dict:
     breadth_out["detail"] = breadth_detail
 
     # ── COMMODITIES ───────────────────────────────────────────
-    # WTI and Gold from FRED index data. Silver/Copper/NatGas pending source.
+    # WTI from FRED index data. Gold/Silver/Copper/NatGas: source pending.
     commodities_out = []
     for com in COMMODITIES:
         entry = {k: v for k, v in com.items()}
@@ -421,7 +422,7 @@ def _fetch_market_data() -> dict:
     # ── COPPER / GOLD RATIO ───────────────────────────────────
     # Copper is still pending; ratio requires both prices.
     copper_entry = next((c for c in commodities_out if c["symbol"] == "HG=F"), None)
-    gold_entry   = next((c for c in commodities_out if c["symbol"] == "GOLDAMGBD228NLBM"), None)
+    gold_entry   = next((c for c in commodities_out if c["label"] == "GOLD"), None)
     cu_au_ratio  = None
     if copper_entry and gold_entry and copper_entry.get("price") and gold_entry.get("price"):
         cu_au_ratio = round(copper_entry["price"] / gold_entry["price"], 5)
