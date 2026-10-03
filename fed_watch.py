@@ -147,7 +147,7 @@ def _fetch_fed_watch() -> dict:
     signal, signal_detail = _build_signal(path)
 
     return {
-        "current_ff":    round(current_ff, 2) if current_ff is not None else None,
+        "current_ff":    round(current_ff, 2) if current_ff is not None else None,  # range midpoint, used for path math
         "ff_lower":      round(lower, 2) if lower is not None else None,
         "ff_upper":      round(upper, 2) if upper is not None else None,
         "implied_path":  path,

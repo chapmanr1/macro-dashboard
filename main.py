@@ -400,7 +400,9 @@ def api_journal_snapshot():
             "core_pce":     series.get("pce"),
             "gdp_growth":   series.get("gdp"),
             "unemployment": series.get("unemployment"),
-            "fed_funds":    series.get("fed_funds"),
+            # effective rate (as in earlier entries) — the macro tile now shows the target range
+            "fed_funds":    next((b.get("raw") for b in regime.get("indicator_breakdown", [])
+                                  if b.get("name", "").startswith("FED FUNDS")), None),
             "spread_10y2y": yields.get("t10y2y"),
         }
         trigger_snapshot = [

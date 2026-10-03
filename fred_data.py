@@ -403,7 +403,7 @@ MACRO_SERIES = [
     {"id":"cpi",          "fred_id":"CPIAUCSL", "label":"CPI YOY",        "description":"Consumer Price Index YoY",       "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":False},
     {"id":"pce",          "fred_id":"PCEPILFE", "label":"CORE PCE YOY",   "description":"Core PCE Price Index YoY",       "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":False},
     {"id":"unemployment", "fred_id":"UNRATE",   "label":"UNEMPLOYMENT",   "description":"Unemployment Rate",              "suffix":"%","decimals":1,"limit":13, "calc":"latest",        "positive_is_good":False},
-    {"id":"fed_funds",    "fred_id":"FEDFUNDS", "label":"FED FUNDS",      "description":"Effective Fed Funds Rate",       "suffix":"%","decimals":2,"limit":13, "calc":"latest",        "positive_is_good":None},
+    {"id":"fed_funds",    "fred_id":"DFEDTARU", "label":"FED TARGET RANGE","description":"FOMC target range (upper bound shown in history)","suffix":"%","decimals":2,"limit":400,"calc":"target_range",  "positive_is_good":None},
     {"id":"m2",           "fred_id":"M2SL",     "label":"M2 YOY",         "description":"M2 Money Supply YoY",            "suffix":"%","decimals":1,"limit":36, "calc":"yoy",           "positive_is_good":True},
 ]
 
@@ -1007,6 +1007,23 @@ def get_macro():
             return _cache["macro"]["data"]
         return {"series": [], "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
+def _target_range(upper_obs: list[dict]) -> tuple[list[dict], str | None]:
+    """
+    FOMC target range from daily DFEDTARU (passed in) + DFEDTARL (fetched).
+    Returns (one upper-bound observation per month, newest-first — so the tile's
+    prior/change/sparkline are month-over-month, not day-over-day; "3.75–4.00%").
+    """
+    monthly, seen = [], set()
+    for o in upper_obs:
+        if o["date"][:7] not in seen:
+            seen.add(o["date"][:7])
+            monthly.append(o)
+    lower = _fetch_series("DFEDTARL", limit=3)
+    if not upper_obs or not lower:
+        return monthly, None
+    return monthly, f"{float(lower[0]['value']):.2f}–{float(upper_obs[0]['value']):.2f}%"
+
+
 def _fetch_macro():
     log.info("Macro: fetching fresh FRED data...")
     ts     = datetime.utcnow().isoformat()
@@ -1016,13 +1033,19 @@ def _fetch_macro():
     for s in MACRO_SERIES:
         try:
             obs = _fetch_series(s["fred_id"], limit=s["limit"])
-            if s["calc"] == "yoy":
+            display = None
+            if s["calc"] == "target_range":
+                obs, display = _target_range(obs)
+                current = _latest_val(obs)
+                prior   = _prior_val(obs, offset=1)
+            elif s["calc"] == "yoy":
                 current, prior = _yoy_pct(obs)
             elif s["calc"] == "qoq_annualized":
                 current, prior = _qoq_annualized(obs)
             else:
                 current = _latest_val(obs)
                 prior   = _prior_val(obs, offset=1)
+            calc   = "latest" if s["calc"] == "target_range" else s["calc"]
             change = _safe_change(current, prior)
             series.append({
                 "id": s["id"], "label": s["label"], "description": s["description"],
@@ -1030,8 +1053,9 @@ def _fetch_macro():
                 "direction": _direction(change), "suffix": s["suffix"],
                 "decimals": s["decimals"], "positive_is_good": s["positive_is_good"],
                 "as_of": _obs_date(obs),
-                "sparkline": _extract_sparkline(obs, s["calc"]),
-                "sparkline_dated": _extract_sparkline_dated(obs, s["calc"]),
+                "sparkline": _extract_sparkline(obs, calc),
+                "sparkline_dated": _extract_sparkline_dated(obs, calc),
+                **({"display": display} if display else {}),
             })
         except Exception as e:
             log.warning(f"Macro fetch failed [{s['fred_id']}]: {e}")

@@ -2356,7 +2356,7 @@ function fetchTab(tabId) {
 const FRED_URLS = {
   gdp:'https://fred.stlouisfed.org/series/GDPC1',cpi:'https://fred.stlouisfed.org/series/CPIAUCSL',
   pce:'https://fred.stlouisfed.org/series/PCEPILFE',unemployment:'https://fred.stlouisfed.org/series/UNRATE',
-  fed_funds:'https://fred.stlouisfed.org/series/FEDFUNDS',m2:'https://fred.stlouisfed.org/series/M2SL',
+  fed_funds:'https://fred.stlouisfed.org/series/DFEDTARU',m2:'https://fred.stlouisfed.org/series/M2SL',
   hy_oas:'https://fred.stlouisfed.org/series/BAMLH0A0HYM2',ig_oas:'https://fred.stlouisfed.org/series/BAMLC0A0CM',
   t5yie:'https://fred.stlouisfed.org/series/T5YIE',t10yie:'https://fred.stlouisfed.org/series/T10YIE',
   icsa:'https://fred.stlouisfed.org/series/ICSA',retail:'https://fred.stlouisfed.org/series/RSXFS',
@@ -2418,7 +2418,7 @@ const INDICATOR_TOOLTIPS = {
   cpi:            { title:'CPI YoY', what:'Consumer Price Index, year-over-year change. Broadest measure of consumer inflation, including food and energy.', read:'Higher = more inflation. Fed target is ~2%. Above 4% = policy concern. Above 6% = crisis-level inflation.', thresholds:'Target ~2% | Elevated 3-4% | High 4-6% | Crisis >6%', thesis:'Elevated CPI (>3.5%) validates the stagflation regime. Watch for a sustained decline toward 2%: three prints below 3% while PCE also falls would signal the inflation half of stagflation is fading, challenging the base case.' },
   pce:            { title:'CORE PCE YoY', what:'Personal Consumption Expenditures price index, excluding food & energy. The Federal Reserve\'s preferred inflation gauge.', read:'Fed targets 2%. Stickier than CPI because PCE weights shift with spending behavior. Critical for rate path decisions.', thresholds:'Target 2% | Elevated 2.5-3.5% | High >3.5% | Falsification trigger: 3 months below 2.5%', thesis:'This is the primary falsification monitor. Thesis is INTACT while Core PCE stays above 2.5%. Three consecutive monthly readings below 2.5% is the defined trigger that would directly challenge the stagflation base case — signaling inflation is retreating toward the Fed\'s target.' },
   unemployment:   { title:'UNEMPLOYMENT RATE', what:'Percentage of the labor force that is jobless and actively seeking work (U-3 measure).', read:'Lower = stronger labor market. "Full employment" is ~4%. Rising unemployment at an accelerating pace is a recession signal.', thresholds:'Full employment <4% | Softening 4-5% | Weak 5-6% | Recession risk >6%', thesis:'Low unemployment (<4%) alongside high inflation is a classic stagflation mix, supporting the base case. A rapid rise above 5% would shift the regime toward contraction and weaken the stagflation narrative — but also supports the 30% bear case if driven by credit conditions tightening.' },
-  fed_funds:      { title:'FED FUNDS RATE', what:'Overnight lending rate set by the Federal Reserve. The primary monetary policy lever for controlling inflation and employment.', read:'Higher = tighter financial conditions, slowing inflation but also growth. Rate direction (hiking/cutting) matters as much as level.', thresholds:'Neutral ~2.5-3% | Restrictive >4% | Emergency stimulus <1%', thesis:'High rates (>4.5%) without breaking inflation is the stagflation hallmark. Premature Fed cuts while inflation stays above 3% would be a regime inflection — goldilocks probability rises if the market believes inflation is solved. Rate path is the single most important variable separating the three scenarios.' },
+  fed_funds:      { title:'FED TARGET RANGE', what:'The range the FOMC sets for the overnight federal funds rate (FRED DFEDTARL / DFEDTARU). It is the Fed\'s primary policy lever. The effective rate banks actually pay trades inside this range, usually near the middle; the regime engine scores on that effective rate. The sparkline shows the upper bound at each month.', read:'Higher = tighter financial conditions, slowing inflation but also growth. Rate direction (hiking/cutting) matters as much as level.', thresholds:'Neutral ~2.5-3% | Restrictive >4% | Emergency stimulus <1%', thesis:'High rates (>4.5%) without breaking inflation is the stagflation hallmark. Premature Fed cuts while inflation stays above 3% would be a regime inflection — goldilocks probability rises if the market believes inflation is solved. Rate path is the single most important variable separating the three scenarios.' },
   m2:             { title:'M2 MONEY SUPPLY YoY', what:'Broad money supply growth including cash, checking, savings, and money market accounts.', read:'Rapid M2 growth historically leads inflation by 12-18 months. Declining M2 can signal deflationary pressure or credit contraction.', thresholds:'Historical avg ~6% | Inflationary >10% | Deflation risk <0%', thesis:'Contracting M2 historically precedes recession or deflation by 12-18 months — a lagging signal that supports the contraction side of the bear case. Re-acceleration above 8% would suggest renewed fiscal or credit stimulus, potentially re-igniting inflation and validating stagflation persistence.' },
   hy_oas:         { title:'HY OAS — HIGH YIELD SPREAD', what:'Option-Adjusted Spread of US high-yield bonds over Treasuries, in basis points (bp). Measures the credit risk premium demanded for junk bonds.', read:'Tight spreads = risk-on, credit complacency. Widening spreads = default risk rising, credit stress. A leading recession indicator.', thresholds:'Tight <300bp | Normal 300-450bp | Wide 450-600bp | Crisis >600bp', thesis:'This is a direct monitor for the 30% bear case (private credit cascade). Sustained widening above 500bp would validate rising systemic credit stress. The falsification trigger runs the other way: sustained compression below 300bp means the credit market is pricing out the bear case — weakening the 30% probability.' },
   ig_oas:         { title:'IG OAS — INVESTMENT GRADE SPREAD', what:'Option-Adjusted Spread of US investment-grade bonds over Treasuries. Measures corporate credit health for higher-quality issuers.', read:'IG spreads are tighter than HY but widen for the same reasons. Rising IG spreads signal systemic credit tightening.', thresholds:'Tight <80bp | Normal 80-130bp | Wide 130-200bp | Crisis >200bp', thesis:'IG spreads widening alongside HY widening signals systemic credit tightening — supportive of the bear case. IG widening in isolation (while HY stays tight) can signal sector-specific stress. Above 150bp would represent significant investment-grade market stress, increasing the 30% bear case probability.' },
@@ -2483,7 +2483,7 @@ const INDICATOR_TOOLTIPS = {
 
 const REGIME_IND_TIP_IDS = {
   'CPI YOY':'cpi', 'CORE PCE YOY':'pce', 'GDP ANNUALIZED':'gdp',
-  'UNEMPLOYMENT':'unemployment', 'FED FUNDS':'fed_funds',
+  'UNEMPLOYMENT':'unemployment', 'FED FUNDS':'fed_funds', 'FED FUNDS (EFFECTIVE)':'fed_funds',
   '10Y-2Y SPREAD':'t10y2y', 'M2 YOY':'m2',
 };
 const INDEX_TIP_IDS = {
@@ -2505,7 +2505,7 @@ const MACRO_CHART_META = {
   pce_goods: {fredId:'DPCCRC1M027SBEA',  label:'Core Goods PCE YoY %'},
   pce_svc:   {fredId:'DPCCRV1M027SBEA',  label:'Core Svcs PCE YoY %'},
   unemployment:{fredId:'UNRATE',         label:'Unemployment Rate'},
-  fed_funds: {fredId:'FEDFUNDS',         label:'Federal Funds Rate'},
+  fed_funds: {fredId:'FEDFUNDS',         label:'Fed Funds Effective Rate (monthly avg)'},
   m2:        {fredId:'M2SL',             label:'M2 Money Supply YoY %'},
   icsa:      {fredId:'ICSA',             label:'Initial Jobless Claims'},
   jolts:     {fredId:'JTSJOL',           label:'JOLTS Job Openings'},
@@ -3182,7 +3182,7 @@ function renderMacro(data) {
     const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
     return `<div class="macro-cell" data-sl-id="${s.id}" data-widget-id="${s.id}" draggable="true">
       <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
-      <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
+      <div class="macro-cell-value ${cls}">${s.display ?? (s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--')}</div>
       ${_sparkline(s.sparkline, s.positive_is_good)}
       <div class="macro-cell-sub">${s.description||''}</div>
       ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
@@ -3400,9 +3400,10 @@ function renderFedWatch(data) {
                     : sigKey.includes('hawkish') || sigKey.includes('tightening') ? 'hawkish'
                     : sigKey.includes('hold') ? 'hold' : '';
   const path  = data.implied_path || [];
-  const ffStr = data.current_ff != null ? fmt(data.current_ff, 2) + '%' : '--';
-  const bands = data.ff_lower != null && data.ff_upper != null
-    ? ` (${fmt(data.ff_lower,2)}–${fmt(data.ff_upper,2)})` : '';
+  const ffStr = data.ff_lower != null && data.ff_upper != null
+    ? `${fmt(data.ff_lower,2)}–${fmt(data.ff_upper,2)}%`
+    : data.current_ff != null ? fmt(data.current_ff, 2) + '%' : '--';
+  const bands = data.current_ff != null ? ` · MIDPOINT ${fmt(data.current_ff,2)}% USED FOR PATH` : '';
 
   const horizonHTML = path.map(p => {
     const yldStr = p.yield != null ? fmt(p.yield, 2) + '%' : '--';
@@ -3425,7 +3426,7 @@ function renderFedWatch(data) {
       <div class="fedwatch-header">
         <div>
           <div class="fedwatch-ff">${ffStr}</div>
-          <div class="fedwatch-ff-label">CURRENT FED FUNDS TARGET${bands}</div>
+          <div class="fedwatch-ff-label">FED TARGET RANGE${bands}</div>
         </div>
         <div class="fedwatch-signal-badge ${sigBadgeCls}">${sig}</div>
       </div>
@@ -3459,7 +3460,7 @@ function renderRegimeHistory(data) {
     pce_yoy:      'Core PCE YoY',
     gdp_growth:   'GDP Growth',
     unemployment: 'Unemployment',
-    fed_funds:    'Fed Funds',
+    fed_funds:    'Fed Funds (eff.)',
     t10y2y:       '10Y–2Y Spread',
     hy_spread:    'HY Spread',
   };
@@ -4726,7 +4727,7 @@ function scorecardCell(s) {
   const cls = (pig === true)  ? colorClass(s.change, true)
             : (pig === false) ? colorClass(s.change, false)
             : 'c-muted';
-  const valStr = s.current != null ? fmt(s.current, s.decimals??2) + (s.suffix||'') : '--';
+  const valStr = s.display ?? (s.current != null ? fmt(s.current, s.decimals??2) + (s.suffix||'') : '--');
   const arrow = s.change != null ? dirArrow(s.change) : '';
   const sigCls = signalColor(s.signal);
   return `<div class="scorecard-cell" data-sl-id="${s.id}">

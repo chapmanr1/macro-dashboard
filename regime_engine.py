@@ -333,7 +333,7 @@ def _build_breakdown(ind, scores):
 
     ff = ind.get("fed_funds")
     breakdown.append({
-        "name":   "FED FUNDS",
+        "name":   "FED FUNDS (EFFECTIVE)",
         "value":  f"{ff:.2f}%" if ff is not None else "N/A",
         "signal": "BEARISH" if (ff or 0) >= T["fed_funds_high"]
                   else "NEUTRAL",
