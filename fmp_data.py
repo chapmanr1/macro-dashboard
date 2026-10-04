@@ -7,6 +7,7 @@
 import logging
 import time
 import requests
+from source_status import timed_get
 from config import FMP_API_KEY
 
 log = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def get_fundamentals(symbol: str) -> dict:
 
 
 def _fetch(endpoint: str, symbol: str) -> dict:
-    r = requests.get(
+    r = timed_get("fmp",
         f"{_BASE}/{endpoint}",
         params={"symbol": symbol, "apikey": FMP_API_KEY},
         timeout=15,

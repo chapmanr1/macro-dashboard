@@ -446,6 +446,13 @@ def api_cot():
         log.error(f"COT positioning error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "positions": []}), 500
 
+@app.route("/api/status")
+def api_status():
+    """Per-source health for the header status dots. Reads recorded outcomes only —
+    makes no outbound calls, so it answers instantly even when a source is slow."""
+    from source_status import snapshot
+    return jsonify(snapshot())
+
 @app.route("/api/health")
 def api_health():
     health = {"status": "ok", "timestamp": datetime.utcnow().isoformat(), "modules": {}}

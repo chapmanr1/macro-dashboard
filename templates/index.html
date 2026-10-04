@@ -14,10 +14,23 @@
 </head>
 <body>
 <!-- FIXED TOP BAR -->
-<div class="topbar">
+<header class="topbar">
   <div class="topbar-left">
+    <a class="brand" href="/" aria-label="Macro Dashboard — home">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="5"/><polyline points="5,15 9.5,10.5 13,13.5 19,7"/></svg>
+      <span class="brand-title">Macro Dashboard</span>
+    </a>
+  </div>
+  <div class="topbar-right">
+    <div class="src-status" id="srcStatus" role="group" aria-label="Data source status"></div>
+    <div class="asof" id="asOf" title="Next automatic refresh">
+      <svg class="refresh-ring" id="refreshRing" viewBox="0 0 20 20" aria-hidden="true"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" id="refreshRingProgress" cx="10" cy="10" r="8"/></svg>
+      <span id="asOfLabel">Data as of --:-- ET</span>
+    </div>
+    <span id="clock" class="hdr-clock" aria-label="Current time, Eastern">--:--:--</span>
+    <div class="hdr-actions">
     <div class="notif-wrap" id="notifWrap">
-      <button class="notif-bell" id="notifBell" title="Notifications">
+      <button class="hdr-btn hdr-icon notif-bell" id="notifBell" title="Notifications" aria-label="Notifications" aria-haspopup="true">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-badge" id="notifBadge" style="display:none">0</span>
       </button>
@@ -31,15 +44,15 @@
       </div>
     </div>
     <div class="cal-wrap" id="calWrap">
-      <button class="cal-btn" id="calBtn" title="Economic Calendar">
+      <button class="hdr-btn hdr-icon cal-btn" id="calBtn" title="Economic calendar" aria-label="Economic calendar" aria-haspopup="true">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       </button>
       <div class="cal-panel" id="calPanel" style="display:none">
         <div class="cal-panel-hdr">
           <div class="cal-nav">
-            <button class="cal-nav-btn" id="calPrev">&#9664;</button>
-            <span class="cal-title" id="calTitle">—</span> <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'econ_calendar')" ontouchstart="event.stopPropagation();_showTooltip(this,'econ_calendar')">ⓘ</button>
-            <button class="cal-nav-btn" id="calNext">&#9654;</button>
+            <button class="cal-nav-btn" id="calPrev" aria-label="Previous period">&#9664;</button>
+            <span class="cal-title" id="calTitle">—</span> <button class="info-btn" aria-label="About the economic calendar" onclick="event.stopPropagation();_showTooltip(this,'econ_calendar')" ontouchstart="event.stopPropagation();_showTooltip(this,'econ_calendar')">ⓘ</button>
+            <button class="cal-nav-btn" id="calNext" aria-label="Next period">&#9654;</button>
           </div>
           <div class="cal-view-tabs">
             <button class="cal-view-btn" data-view="day">DAY</button>
@@ -51,32 +64,28 @@
         <div class="cal-body" id="calBody"></div>
       </div>
     </div>
+      <button class="hdr-btn" id="prepExportBtn" title="Export daily prep summary">Prep</button>
+      <button class="hdr-btn" id="researchBtn" title="Research (⌘K then type)" aria-label="Research"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="btn-label">Research</span></button>
+      <button class="hdr-btn hdr-kbd" id="paletteBtn" title="Command palette" aria-label="Open command palette"><kbd>⌘K</kbd></button>
+      <button class="hdr-btn hdr-icon settings-gear" id="settingsGear" title="Settings" aria-label="Settings"><svg class="hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
   </div>
-  <div class="topbar-brand">MACRO DASHBOARD</div>
-  <div class="topbar-right">
-    <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
-    <span id="clock">--:--:--</span>
-    <span id="refreshLabel" style="color:var(--text-muted)">REFRESH 120s</span>
-    <button class="prep-export-btn" id="prepExportBtn" title="Export daily prep summary">PREP</button>
-    <button class="research-btn" id="researchBtn" title="Research"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="btn-label">RESEARCH</span></button>
-    <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
-  </div>
-</div>
-<!-- FIXED TAB NAV -->
-<div class="tab-nav">
-  <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
-  <button class="tab-btn" data-tab="markets">MARKETS</button>
-  <button class="tab-btn" data-tab="economy">ECONOMY</button>
-  <button class="tab-btn" data-tab="credit">CREDIT</button>
-  <button class="tab-btn" data-tab="news">NEWS</button>
-  <button class="tab-btn" data-tab="journal">JOURNAL</button>
-</div>
+</header>
+<!-- FIXED TAB NAV — keys 1–6 or ←/→ switch tabs -->
+<nav class="tab-nav" role="tablist" aria-label="Dashboard sections">
+  <button class="tab-btn active" data-tab="overview" role="tab" id="tabbtn-overview" aria-controls="tab-overview" aria-selected="true" tabindex="0">Overview<kbd class="tab-key">1</kbd></button>
+  <button class="tab-btn" data-tab="markets" role="tab" id="tabbtn-markets" aria-controls="tab-markets" aria-selected="false" tabindex="-1">Markets<kbd class="tab-key">2</kbd></button>
+  <button class="tab-btn" data-tab="economy" role="tab" id="tabbtn-economy" aria-controls="tab-economy" aria-selected="false" tabindex="-1">Economy<kbd class="tab-key">3</kbd></button>
+  <button class="tab-btn" data-tab="credit" role="tab" id="tabbtn-credit" aria-controls="tab-credit" aria-selected="false" tabindex="-1">Credit<kbd class="tab-key">4</kbd></button>
+  <button class="tab-btn" data-tab="news" role="tab" id="tabbtn-news" aria-controls="tab-news" aria-selected="false" tabindex="-1">News<kbd class="tab-key">5</kbd></button>
+  <button class="tab-btn" data-tab="journal" role="tab" id="tabbtn-journal" aria-controls="tab-journal" aria-selected="false" tabindex="-1">Journal<kbd class="tab-key">6</kbd></button>
+</nav>
 <div class="terminal">
 
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- OVERVIEW TAB                                          -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel active" id="tab-overview">
+  <div class="tab-panel active" id="tab-overview" role="tabpanel" aria-labelledby="tabbtn-overview">
 
     <!-- AI MORNING BRIEFING -->
     <section id="ai-briefing-section" class="briefing-section section-wrap" data-widget-id="briefing" draggable="true">
@@ -281,7 +290,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- MARKETS TAB                                           -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel" id="tab-markets">
+  <div class="tab-panel" id="tab-markets" role="tabpanel" aria-labelledby="tabbtn-markets">
 
     <div class="section-header">
       <div class="section-title">PRE-MARKET FUTURES</div>
@@ -418,7 +427,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- ECONOMY TAB                                           -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel" id="tab-economy">
+  <div class="tab-panel" id="tab-economy" role="tabpanel" aria-labelledby="tabbtn-economy">
 
     <div id="sec-eco-scorecard">
     <div class="section-header">
@@ -503,7 +512,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- CREDIT TAB                                            -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel" id="tab-credit">
+  <div class="tab-panel" id="tab-credit" role="tabpanel" aria-labelledby="tabbtn-credit">
 
     <div class="section-header">
       <div class="section-title">CREDIT SPREAD DASHBOARD</div>
@@ -573,7 +582,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- NEWS TAB                                              -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel" id="tab-news">
+  <div class="tab-panel" id="tab-news" role="tabpanel" aria-labelledby="tabbtn-news">
 
     <div class="section-header">
       <div class="section-title" style="color:var(--neg)">⬥ MARKET DRIVING</div>
@@ -609,7 +618,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- JOURNAL TAB                                           -->
   <!-- ══════════════════════════════════════════════════════ -->
-  <div class="tab-panel" id="tab-journal">
+  <div class="tab-panel" id="tab-journal" role="tabpanel" aria-labelledby="tabbtn-journal">
 
     <div class="section-header">
       <div class="section-title" style="color:var(--warn)">&#11045; THESIS JOURNAL</div>
@@ -877,15 +886,39 @@ updateClock();
 // ════════════════════════════════════════════════════════════
 // STATUS & REFRESH BAR
 // ════════════════════════════════════════════════════════════
+// Overall load state is shown by the refresh ring (spinning while loading) and the
+// "Data as of" time; which source failed is shown by the per-source dots (status.js).
+let _dataAsOf = null;
 function setStatus(state) {
-  const dot  = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  dot.className = 'status-dot' + (state === 'ok' ? '' : ' ' + state);
-  text.textContent = state === 'ok' ? 'LIVE' : state === 'loading' ? 'LOADING' : 'ERROR';
-  text.style.color = state === 'error' ? 'var(--neg)' : '';
+  const box = document.getElementById('asOf');
+  if (box) box.dataset.state = state;
+  if (state === 'ok' || state === 'error') {
+    if (state === 'ok') _dataAsOf = new Date();
+    _renderAsOf();
+    if (typeof refreshSourceStatus === 'function') refreshSourceStatus();
+  }
+}
+function _renderAsOf() {
+  const el = document.getElementById('asOfLabel');
+  if (!el) return;
+  const t = _dataAsOf
+    ? _dataAsOf.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit' })
+    : '--:--';
+  el.textContent = `Data as of ${t} ET`;
 }
 
-function startRefreshCountdown() {}
+// Countdown ring: drains over one refresh interval, restarts on every auto-refresh.
+function startRefreshCountdown() {
+  const ring = document.getElementById('refreshRingProgress');
+  const box  = document.getElementById('asOf');
+  if (!ring || !box) return;
+  const manual = !(REFRESH_INTERVAL > 0);
+  box.classList.toggle('manual', manual);
+  box.title = manual ? 'Automatic refresh is off (Settings)' : `Refreshes every ${REFRESH_INTERVAL}s`;
+  ring.style.animation = 'none';
+  void ring.getBoundingClientRect();          // restart the CSS animation
+  if (!manual) ring.style.animation = `ring-drain ${REFRESH_INTERVAL}s linear forwards`;
+}
 
 // ════════════════════════════════════════════════════════════
 // UTILS
@@ -963,7 +996,12 @@ async function apiFetch(endpoint, timeoutMs=15000) {
 // ════════════════════════════════════════════════════════════
 function switchTab(tabId) {
   state.currentTab = tabId;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const on = b.dataset.tab === tabId;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    b.tabIndex = on ? 0 : -1;
+  });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
   if (!state.tabLoaded[tabId]) {
     state.tabLoaded[tabId] = true;
@@ -4017,6 +4055,7 @@ autoRefreshInterval = setInterval(() => {
   fetchTab(state.currentTab);
   startRefreshCountdown();
 }, REFRESH_INTERVAL * 1000);
+startRefreshCountdown();
 
 // Load overview on start
 state.tabLoaded['overview'] = true;
@@ -4125,17 +4164,15 @@ function applyAppSettings() {
   h.setAttribute('data-density',  d.density  || 'normal');
   h.setAttribute('data-client',   d.clientMode ? 'true' : 'false');
 
-  const rate = +d.refreshRate || 60;
+  const rate = (d.refreshRate === undefined || d.refreshRate === null) ? 120 : +d.refreshRate;   // 0 = manual
   if (_appRefreshInt) { clearInterval(_appRefreshInt); _appRefreshInt = null; }
   if (autoRefreshInterval) { clearInterval(autoRefreshInterval); autoRefreshInterval = null; }
   REFRESH_INTERVAL = rate;
   if (rate > 0) {
     _appRefreshInt = setInterval(()=>{ fetchTab(state.currentTab); startRefreshCountdown(); }, rate*1000);
     autoRefreshInterval = _appRefreshInt;
-    document.getElementById('refreshLabel').textContent = 'REFRESH '+rate+'s';
-  } else {
-    document.getElementById('refreshLabel').textContent = 'MANUAL';
   }
+  startRefreshCountdown();
 
   const wls = document.getElementById('watchlistStrip');
   if (wls) wls.style.display = (d.watchlist && d.watchlist.length) ? '' : 'none';
@@ -4298,7 +4335,7 @@ function _s1(d){
     _sf('Theme',_ss('stTheme',[['dark','DARK (DEFAULT)'],['light','LIGHT']],d.theme === 'light' ? 'light' : 'dark'))+
     _sf('Font Size',_ss('stFontSize',[['compact','CONDENSED'],['normal','STANDARD'],['large','LARGE TEXT']],d.fontSize))+
     _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
-    _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
+    _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['120','2 MINUTES (DEFAULT)'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
     _sf('Number Format',_ss('stNumFormat',[['abbreviated','ABBREVIATED'],['full','FULL']],d.numFormat))+
     _sf('Decimal Places',_ss('stDecimals',[['0','0'],['1','1'],['2','2']],String(d.decimals)))+
     _se;
@@ -5917,8 +5954,10 @@ function _updateModalStats(data) {
 // ── Modal event listeners ────────────────────────────────────
 document.getElementById('modal-close').addEventListener('click', closeChartModal);
 document.querySelector('.chart-modal-overlay').addEventListener('click', closeChartModal);
-document.getElementById('regime-explain-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('regime-explain-modal')) closeRegimeExplain();
+// The regime modal's markup comes after this script, so listen at the document level.
+// (Attaching directly threw on a null element and silently stopped every init call below.)
+document.addEventListener('click', e => {
+  if (e.target && e.target.id === 'regime-explain-modal') closeRegimeExplain();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('chart-modal').style.display === 'flex') closeChartModal();
@@ -6078,5 +6117,7 @@ fetchBDC();
 <script>
 _makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementById('thesisFloatHdr'));
 </script>
+<script src="{{ url_for('static', filename='js/status.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/palette.js') }}?v={{ build_id }}"></script>
 </body>
 </html>

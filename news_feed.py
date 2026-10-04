@@ -6,6 +6,7 @@
 import time
 import logging
 import requests
+from source_status import timed_get
 from datetime import datetime, timezone
 from xml.etree import ElementTree as ET
 from email.utils import parsedate_to_datetime
@@ -224,7 +225,7 @@ def _fetch_rss(feed):
         "Accept":     "application/rss+xml, application/xml, text/xml",
     }
 
-    resp = requests.get(feed["url"], headers=headers, timeout=REQUEST_TIMEOUT)
+    resp = timed_get("rss", feed["url"], headers=headers, timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
 
     root    = ET.fromstring(resp.content)

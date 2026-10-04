@@ -102,7 +102,8 @@ def calibrate(fred_api_key):
         }
         if frequency:
             params["frequency"] = frequency
-        resp = requests.get(FRED_BASE, params=params, timeout=15)
+        from source_status import timed_get
+        resp = timed_get("fred", FRED_BASE, params=params, timeout=15)
         resp.raise_for_status()
         obs = resp.json().get("observations", [])
         valid = [o for o in obs if o.get("value") not in (".", "", None)]

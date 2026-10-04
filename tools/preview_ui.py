@@ -49,7 +49,8 @@ def _status_payload() -> dict:
         "fmp":         src("FMP", True, 55, 380),
         "rss":         src("News RSS", "news" not in FAIL, 9, 450),
         "anthropic":   src("Anthropic", True, 120, 41000),
-        "fed_web":     src("Fed / Conf. Board pages", True, 300, 320),
+        "fed_web":     src("Fed / Conference Board pages", True, 300, 320),
+        "cftc":        src("CFTC (COT)", True, 600, 900),
     }, "timestamp": now.isoformat()}
 
 

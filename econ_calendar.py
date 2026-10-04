@@ -22,6 +22,7 @@ import pytz
 import requests
 
 from fred_data import FRED_API_KEY, _fetch_surprise_data
+from source_status import timed_get
 
 log = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ _MONTHS = {m: i for i, m in enumerate(
 
 def _get_page(url: str) -> str | None:
     try:
-        resp = requests.get(url, headers=_HEADERS, timeout=15, allow_redirects=True)
+        resp = timed_get("fed_web", url, headers=_HEADERS, timeout=15, allow_redirects=True)
         resp.raise_for_status()
         return resp.text
     except requests.RequestException as e:
@@ -106,7 +107,7 @@ def _fetch_release_dates(release_id: int, start: date) -> list[date] | None:
     }
     for attempt in range(3):
         try:
-            resp = requests.get(FRED_RELEASE_DATES, params=params, timeout=12)
+            resp = timed_get("fred", FRED_RELEASE_DATES, params=params, timeout=12)
             if resp.status_code == 429:
                 time.sleep(2 ** attempt)
                 continue
