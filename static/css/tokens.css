@@ -1,0 +1,132 @@
+/* FILE: static/css/tokens.css
+   Design tokens — the ONLY place colors, type sizes and spacing are defined.
+   Components (app.css, inline JS templates) must use these variables.
+   Dark is the default theme; [data-theme="light"] overrides the color tokens.
+   See UI_NOTES.md for usage. */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Surfaces: page → card → raised (hover, popover, active) ── */
+  --bg:             #0a111d;
+  --surface:        #101a2a;
+  --surface-raised: #16233a;
+  --overlay:        rgb(4 8 15 / 0.72);      /* modal backdrop */
+
+  /* ── Lines: hairlines instead of heavy outlines ── */
+  --border:         rgb(255 255 255 / 0.07);
+  --border-strong:  rgb(255 255 255 / 0.12);
+
+  /* ── Text (all ≥ 4.5:1 on --bg, --surface and --surface-raised) ── */
+  --text:           #e7edf6;
+  --text-muted:     #a3b1c6;
+  --text-faint:     #8796ad;
+  --text-on-accent: #ffffff;
+
+  /* ── One accent ── */
+  --accent:         #5b9cf6;
+  --accent-strong:  #3b82f6;
+  --accent-soft:    rgb(91 156 246 / 0.14);
+
+  /* ── Semantic: green/red = direction ONLY; amber = warning / stale ── */
+  --pos:            #34c77b;
+  --pos-soft:       rgb(52 199 123 / 0.14);
+  --neg:            #ef7b7b;            /* toned-down red */
+  --neg-soft:       rgb(239 123 123 / 0.12);
+  --warn:           #f0b54a;
+  --warn-soft:      rgb(240 181 74 / 0.14);
+  --neutral-soft:   rgb(163 177 198 / 0.12);
+
+  /* ── Regime states: one fixed color each, used everywhere a regime appears ── */
+  --regime-strong-growth:    #34d399;
+  --regime-reflation:        #38bdf8;
+  --regime-overheating:      #fb923c;
+  --regime-stagflation-risk: #fbbf24;
+  --regime-stagflation:      #f87171;
+  --regime-contraction:      #c4a5fd;
+  --regime-unknown:          #8796ad;
+
+  /* ── Charts (hand-built SVG) ── */
+  --chart-grid:     rgb(255 255 255 / 0.06);
+  --chart-axis:     #8796ad;
+  --chart-line:     #5b9cf6;
+  --chart-line-2:   #c4a5fd;
+  --chart-line-3:   #f0b54a;
+  --chart-line-4:   #34d399;
+  --chart-fill:     rgb(91 156 246 / 0.12);
+
+  /* ── Shadows ── */
+  --shadow-pop:     0 8px 28px rgb(0 0 0 / 0.45);
+  --shadow-card:    0 1px 2px rgb(0 0 0 / 0.25);
+
+  /* ── Typography: sans for words, mono for numbers ── */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-11: 11px;   /* tiny labels, badges, footnotes (all-caps allowed) */
+  --fs-12: 12px;   /* body, table rows */
+  --fs-14: 14px;   /* card titles, emphasized body */
+  --fs-20: 20px;   /* card headline numbers */
+  --fs-32: 32px;   /* hero numbers */
+  --lh-tight: 1.2;
+  --lh-body:  1.5;
+  --tracking-label: 0.06em;   /* all-caps tiny labels */
+  --tracking-title: 0.02em;
+
+  /* ── Spacing (4px scale) and shape ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+  --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-lg: 10px;
+  --control-h: 30px;            /* every header button */
+  --tabbar-h:  40px;
+  --container: 1600px;
+  --gutter:    var(--sp-5);
+
+  /* ── Motion ── */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur:  180ms;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg:             #f3f5f9;
+  --surface:        #ffffff;
+  --surface-raised: #eaeff6;
+  --overlay:        rgb(15 23 42 / 0.45);
+  --border:         rgb(15 23 42 / 0.09);
+  --border-strong:  rgb(15 23 42 / 0.16);
+  --text:           #0f1a2b;
+  --text-muted:     #475569;
+  --text-faint:     #576579;
+  --accent:         #1d5bd8;
+  --accent-strong:  #1749b3;
+  --accent-soft:    rgb(29 91 216 / 0.10);
+  --pos:            #157538;
+  --pos-soft:       rgb(23 128 61 / 0.10);
+  --neg:            #b42318;
+  --neg-soft:       rgb(180 35 24 / 0.08);
+  --warn:           #955405;
+  --warn-soft:      rgb(161 92 7 / 0.10);
+  --neutral-soft:   rgb(71 85 105 / 0.08);
+  --regime-strong-growth:    #047857;
+  --regime-reflation:        #0369a1;
+  --regime-overheating:      #b83d0b;
+  --regime-stagflation-risk: #8f5706;
+  --regime-stagflation:      #b91c1c;
+  --regime-contraction:      #6d28d9;
+  --regime-unknown:          #576579;
+  --chart-grid:     rgb(15 23 42 / 0.07);
+  --chart-axis:     #576579;
+  --chart-line:     #1d5bd8;
+  --chart-line-2:   #6d28d9;
+  --chart-line-3:   #a15c07;
+  --chart-line-4:   #047857;
+  --chart-fill:     rgb(29 91 216 / 0.10);
+  --shadow-pop:     0 8px 28px rgb(15 23 42 / 0.14);
+  --shadow-card:    0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+}

@@ -33,6 +33,11 @@ class RedactSecrets(logging.Filter):
             record.exc_text = self._PATTERN.sub(r"\1=***", logging.Formatter().formatException(record.exc_info))
         return True
 
+# ── BUILD ID ──────────────────────────────────────────────────
+# Shown in the footer and appended to static asset URLs for cache-busting.
+# Render sets RENDER_GIT_COMMIT automatically; locally it falls back to start time.
+BUILD_ID = os.environ.get("RENDER_GIT_COMMIT", "")[:7] or datetime.utcnow().strftime("%Y%m%d%H%M")
+
 # ── API KEYS ──────────────────────────────────────────────────
 TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY", "")
 FMP_API_KEY         = os.environ.get("FMP_API_KEY", "")

@@ -112,7 +112,8 @@ app = Flask(__name__)
 # ── ROUTES ────────────────────────────────────────────────────
 @app.route("/")
 def index():
-    return render_template("index.html")
+    from config import BUILD_ID
+    return render_template("index.html", build_id=BUILD_ID)
 
 @app.route("/ping")
 def ping():
