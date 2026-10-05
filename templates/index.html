@@ -594,15 +594,6 @@
     </div>
 
     <div class="section-header">
-      <div class="section-title">ECONOMIC CALENDAR <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'econ_calendar')" ontouchstart="event.stopPropagation();_showTooltip(this,'econ_calendar')">ⓘ</button></div>
-      <div class="section-line"></div>
-      <div class="section-meta">NEXT 7 DAYS — OFFICIAL SCHEDULES</div>
-    </div>
-    <div id="calendarContent">
-      <div class="cal-day"><div class="cal-day-hdr"><div class="skel" style="height:9px;width:200px"></div></div><div class="cal-event"><div class="skel" style="height:9px;width:50px"></div><div class="skel" style="height:10px;width:150px"></div><div class="skel" style="height:16px;width:40px"></div></div></div>
-    </div>
-
-    <div class="section-header">
       <div class="section-title">NEWS FEED</div>
       <div class="section-line"></div>
       <div class="section-meta" id="newsTimestamp">--</div>
@@ -3720,26 +3711,6 @@ function _calActualTag(ev) {
   return `<span class="cal-actual" style="margin-left:5px">ACT ${arrow}${ev.actual_str}</span>`;
 }
 
-function renderCalendar(events) {
-  if (!events || !events.length) { setEl('calendarContent','<div style="padding:14px;font-size:var(--fs-11);color:var(--text-muted)">NO UPCOMING EVENTS IN NEXT 7 DAYS</div>'); return; }
-  const html = events.map(day => {
-    const evHTML = day.events.map(ev => `
-      <div class="cal-event">
-        <div class="cal-time">${ev.time||''}</div>
-        <div class="cal-name">${ev.event||''} ${_calActualTag(ev)} ${ev.note ? `<span style="font-size:var(--fs-11);color:var(--text-muted)">(${ev.note})</span>` : ''}</div>
-        <div class="cal-impact ${ev.impact||'LOW'}">${ev.impact||''}</div>
-      </div>`).join('');
-    return `<div class="cal-day">
-      <div class="cal-day-hdr">
-        <div class="cal-day-name">${day.day_of_week||''}</div>
-        <div class="cal-day-date">${day.day_display||day.date||''}</div>
-      </div>
-      ${evHTML}
-    </div>`;
-  }).join('');
-  setEl('calendarContent', html);
-}
-
 function renderNewsFeed(data) {
   const rawArticles = data.articles || [];
   _lastHeadlines = rawArticles.slice(0, 10);
@@ -3769,9 +3740,6 @@ async function fetchNews() {
       renderError('drivingContent','NEWS UNAVAILABLE — '+e.message);
       renderError('newsContent','NEWS UNAVAILABLE — '+e.message);
       anyError = true;
-    }),
-    apiFetch('/api/calendar').then(d => renderCalendar(d.events||[])).catch(() => {
-      setEl('calendarContent','<div style="padding:14px;font-size:var(--fs-11);color:var(--text-muted)">CALENDAR UNAVAILABLE</div>');
     }),
   ]);
   setStatus(anyError ? 'error' : 'ok');
@@ -4157,7 +4125,6 @@ const SEC_DEFS = [
   {id:'crd-triggers', tab:'credit',  title:'Thesis Monitor',     els:['sec-crd-triggers'],                      pw:true},
   {id:'crd-bdc',      tab:'credit',  title:'BDC Monitor',        els:['sec-bdc'],                               pw:true},
   {id:'news-driving', tab:'news',    title:'Market Driving',     els:['drivingContent'],                        pw:false},
-  {id:'news-calendar',tab:'news',    title:'Econ Calendar',      els:['calendarContent'],                       pw:false},
   {id:'news-feed',    tab:'news',    title:'News Feed',          els:['newsContent'],                           pw:false},
 ];
 
