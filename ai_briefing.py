@@ -30,8 +30,37 @@ EASTERN     = pytz.timezone("America/New_York")
 # context on every generation (each ~50MB on first init).
 _anthropic_client: Optional[_Anthropic] = None
 
-# Prevents concurrent requests from each triggering a separate Anthropic API call
+# Held for the whole time a briefing is being generated (in a background thread).
+# Generation takes 3-5 minutes, so it must never run inside a web request: Render's
+# single gunicorn worker kills any request over 180s, which used to lose the briefing.
 _generation_lock = threading.Lock()
+_last_generation_error: Optional[str] = None
+
+
+def _start_background_generation() -> bool:
+    """Start generating a briefing in a daemon thread. Returns False if one is already running."""
+    if not _generation_lock.acquire(blocking=False):
+        return False
+
+    def _run() -> None:
+        global _last_generation_error
+        try:
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
+            result = _generate_briefing(api_key)
+            if result.get("status") == "success":
+                _last_generation_error = None
+                log.info("Briefing generated in background.")
+            else:
+                _last_generation_error = result.get("message") or result.get("status")
+                log.warning(f"Background briefing generation returned status={result.get('status')!r}")
+        except Exception as e:  # thread boundary: never let a failure kill the thread silently
+            _last_generation_error = f"{type(e).__name__}: {e}"
+            log.error(f"Background briefing generation failed: {e}\n{traceback.format_exc()}")
+        finally:
+            _generation_lock.release()
+
+    threading.Thread(target=_run, name="briefing-generation", daemon=True).start()
+    return True
 
 
 def _now_et():
@@ -261,6 +290,7 @@ def get_briefing():
             ],
         }
 
+    # Always answers immediately. Generation only ever happens in a background thread.
     cached = _load_cache()
     if cached and _cache_valid(cached):
         return {
@@ -270,26 +300,21 @@ def get_briefing():
             "from_cache":   True,
         }
 
-    # Non-blocking acquire — if the background pre-warm already holds the lock,
-    # return immediately rather than freezing the gunicorn worker for 2-3 minutes.
-    acquired = _generation_lock.acquire(blocking=False)
-    if not acquired:
+    _start_background_generation()   # no-op if one is already running
+    if cached and cached.get("briefing"):
+        # Expired: keep showing the last briefing while a new one is built.
         return {
-            "status":  "generating",
-            "message": "Morning briefing is being generated. Check back in a minute.",
+            "status":       "success",
+            "briefing":     cached["briefing"],
+            "generated_at": cached["generated_at"],
+            "from_cache":   True,
+            "refreshing":   True,
         }
-    try:
-        cached = _load_cache()
-        if cached and _cache_valid(cached):
-            return {
-                "status":       "success",
-                "briefing":     cached["briefing"],
-                "generated_at": cached["generated_at"],
-                "from_cache":   True,
-            }
-        return _generate_briefing(api_key)
-    finally:
-        _generation_lock.release()
+    return {
+        "status":     "generating",
+        "message":    "Generating the morning briefing — this takes 3–5 minutes after a restart.",
+        "last_error": _last_generation_error,
+    }
 
 
 def _generate_briefing(api_key: str) -> dict:
@@ -844,6 +869,8 @@ Generate the briefing now. Use specific numbers from the data above. Do not fabr
 
 def force_regenerate() -> dict:
     """Force regeneration ignoring cache, with 15-minute rate limit."""
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return get_briefing()   # returns the setup instructions
     cached = _load_cache()
     if cached and "generated_at" in cached:
         cached_time = datetime.fromisoformat(cached["generated_at"])
@@ -858,32 +885,38 @@ def force_regenerate() -> dict:
                 "message":      f"Briefing refreshed recently — next manual refresh available in {remaining} minutes.",
                 "generated_at": cached["generated_at"],
             }
-    try:
-        os.remove(CACHE_FILE)
-    except FileNotFoundError:
-        pass
-    return get_briefing()
+    # Keep the current briefing on screen; the new one replaces it when ready.
+    started = _start_background_generation()
+    return {
+        "status":       "generating",
+        "message":      "Regenerating the briefing — the new one appears in 3–5 minutes."
+                        if started else "A briefing is already being generated.",
+        "generated_at": cached.get("generated_at") if cached else None,
+    }
 
 
 def _prewarm_briefing() -> None:
     """Background startup task: generate briefing cache so it's ready on first page load.
-    Retries up to 3 times with 30s waits to survive cold FRED/Anthropic slow starts."""
+    Retries up to 3 times, 30s apart, to survive cold FRED/Anthropic starts."""
     import time as _time
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return
     _time.sleep(20)  # Let other startup tasks (FRED, market data) initialize first
     for attempt in range(1, 4):
-        try:
-            cached = _load_cache()
-            if cached and _cache_valid(cached):
-                log.info("Briefing pre-warm skipped — valid cache already exists.")
-                return
-            log.info(f"Briefing pre-warm: generating (attempt {attempt}/3)...")
-            result = get_briefing()
-            if result.get("status") == "success":
-                log.info("Briefing pre-warm complete.")
-                return
-            log.warning(f"Briefing pre-warm attempt {attempt} returned status={result.get('status')!r}")
-        except Exception as e:
-            log.warning(f"Briefing pre-warm attempt {attempt} failed: {e}")
+        cached = _load_cache()
+        if cached and _cache_valid(cached):
+            log.info("Briefing pre-warm: valid cache present.")
+            return
+        log.info(f"Briefing pre-warm: generating (attempt {attempt}/3)...")
+        _start_background_generation()          # or join one already running
+        _time.sleep(1)
+        while _generation_lock.locked():        # wait for whichever generation is running
+            _time.sleep(5)
+        cached = _load_cache()
+        if cached and _cache_valid(cached):
+            log.info("Briefing pre-warm complete.")
+            return
+        log.warning(f"Briefing pre-warm attempt {attempt} did not produce a briefing: {_last_generation_error}")
         if attempt < 3:
             _time.sleep(30)
 

@@ -5577,13 +5577,35 @@ function _formatBriefingText(text) {
     .replace(/^([A-Z][A-Z\s\/\-]{4,}):?$/gm, (_, h) => `<span class="briefing-hdr-strong">${h.replace(/:$/, '')}</span>`);
 }
 
-async function loadBriefing() {
+// The server never generates inside a request: it answers at once with the cached
+// briefing, "refreshing" (old briefing shown while a new one is built) or "generating"
+// (no briefing yet — e.g. the 3–5 minutes after a deploy). The page polls patiently.
+const _BRIEF_POLL_MS = 30000, _BRIEF_MAX_POLLS = 16;   // ~8 minutes
+let _briefingPoll = null, _briefingShownAt = null;
+
+function _renderBriefing(data, updating) {
+  const content = document.getElementById('briefing-content');
+  const timestamp = document.getElementById('briefing-timestamp');
+  content.innerHTML = `<div class="briefing-content">${_formatBriefingText(data.briefing)}</div>`;
+  const t = new Date(data.generated_at);
+  const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+  timestamp.textContent = `GENERATED ${timeStr}${updating ? ' · UPDATING…' : (data.from_cache ? ' (CACHED)' : '')}`;
+  _briefingShownAt = data.generated_at;
+}
+
+async function loadBriefing(opts = {}) {
   const content   = document.getElementById('briefing-content');
   const timestamp = document.getElementById('briefing-timestamp');
   if (!content || !timestamp) return;
+  clearTimeout(_briefingPoll);
+  const attempt = opts.attempt || 0;
+  const waitingFor = opts.newerThan || null;          // generated_at we want replaced
+  const again = (extra = {}) => {
+    _briefingPoll = setTimeout(() => loadBriefing({ attempt: attempt + 1, newerThan: waitingFor, ...extra }), _BRIEF_POLL_MS);
+  };
 
   try {
-    const data = await apiFetch('/api/briefing', 90000);
+    const data = await apiFetch('/api/briefing', 30000);
 
     if (data.status === 'no_api_key') {
       content.innerHTML = `<div class="briefing-setup">
@@ -5605,79 +5627,53 @@ async function loadBriefing() {
     }
 
     if (data.status === 'success') {
-      content.innerHTML = `<div class="briefing-content">${_formatBriefingText(data.briefing)}</div>`;
-      const t = new Date(data.generated_at);
-      const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
-      timestamp.textContent = `GENERATED ${timeStr}${data.from_cache ? ' (CACHED)' : ''}`;
+      const stillOld = (waitingFor && data.generated_at === waitingFor) || data.refreshing;
+      _renderBriefing(data, stillOld && attempt < _BRIEF_MAX_POLLS);
+      if (stillOld && attempt < _BRIEF_MAX_POLLS) again({ newerThan: waitingFor || data.generated_at });
       return;
     }
 
-    // data_error or api_error — backend may still be warming up after a restart.
-    // Retry up to 2 more times (60s apart) before giving up.
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      timestamp.textContent = `RETRYING IN 60s (${attempt}/2)...`;
-      content.innerHTML = `<div class="briefing-loading">BRIEFING GENERATING — RETRYING IN 60 SECONDS...</div>`;
-      await new Promise(r => setTimeout(r, 60000));
-      try {
-        const retry = await apiFetch('/api/briefing', 90000);
-        if (retry.status === 'success') {
-          content.innerHTML = `<div class="briefing-content">${_formatBriefingText(retry.briefing)}</div>`;
-          const t = new Date(retry.generated_at);
-          const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
-          timestamp.textContent = `GENERATED ${timeStr}${retry.from_cache ? ' (CACHED)' : ''}`;
-          return;
-        }
-      } catch (_) { /* continue to next attempt */ }
+    if (data.status === 'generating' && attempt < _BRIEF_MAX_POLLS) {
+      if (!_briefingShownAt) {
+        content.innerHTML = `<div class="briefing-loading">${data.message || 'Generating the morning briefing…'} Checking again every 30 seconds.</div>`;
+      }
+      timestamp.textContent = _briefingShownAt ? 'UPDATING…' : 'GENERATING…';
+      again();
+      return;
     }
-    content.innerHTML = `<div class="briefing-error">&#9888; ${data.message || 'Briefing unavailable. Tap &#8635; to retry.'}</div>`;
-    timestamp.textContent = 'ERROR';
 
+    const why = data.last_error || data.message || 'Briefing unavailable.';
+    if (!_briefingShownAt) content.innerHTML = `<div class="briefing-error">&#9888; ${_xe(why)} Tap &#8635; to retry.</div>`;
+    timestamp.textContent = _briefingShownAt ? 'UPDATE FAILED — SHOWING LAST' : 'ERROR';
   } catch (err) {
-    // On mobile, iOS Safari kills fetch requests when the app is backgrounded.
-    // Retry once after 4 seconds before showing the error state.
-    if (err.name === 'AbortError' || err.message?.includes('abort') || err.message?.includes('network')) {
-      timestamp.textContent = 'RETRYING...';
-      await new Promise(r => setTimeout(r, 4000));
-      try {
-        const retry = await apiFetch('/api/briefing', 90000);
-        if (retry.status === 'success') {
-          content.innerHTML = `<div class="briefing-content">${_formatBriefingText(retry.briefing)}</div>`;
-          const t = new Date(retry.generated_at);
-          const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
-          timestamp.textContent = `GENERATED ${timeStr}${retry.from_cache ? ' (CACHED)' : ''}`;
-          return;
-        }
-      } catch (_) { /* fall through to error */ }
-    }
-    content.innerHTML = `<div class="briefing-error">&#9888; Failed to load briefing. Tap &#8635; to retry.</div>`;
+    // Network hiccup (e.g. iOS Safari backgrounding the tab) — keep trying quietly.
+    if (attempt < _BRIEF_MAX_POLLS) { timestamp.textContent = 'RETRYING…'; again(); return; }
+    if (!_briefingShownAt) content.innerHTML = `<div class="briefing-error">&#9888; Failed to load briefing. Tap &#8635; to retry.</div>`;
     timestamp.textContent = 'ERROR';
   }
 }
 
 async function refreshBriefing() {
   const btn       = document.getElementById('briefing-refresh');
-  const content   = document.getElementById('briefing-content');
   const timestamp = document.getElementById('briefing-timestamp');
-  if (!btn || !content || !timestamp) return;
-
+  if (!btn || !timestamp) return;
   btn.disabled = true;
-  content.innerHTML = '<div class="briefing-loading">REGENERATING BRIEFING...</div>';
-  timestamp.textContent = 'GENERATING...';
-
   try {
     const res  = await fetch('/api/briefing/refresh', { method: 'POST' });
     const data = await res.json();
-
     if (data.status === 'rate_limited') {
-      content.innerHTML = `<div class="briefing-error">&#9888; ${data.message}</div>`;
       timestamp.textContent = 'RATE LIMITED';
+      timestamp.title = data.message || '';
       return;
     }
-
-    await loadBriefing();
+    if (data.status === 'generating') {
+      timestamp.textContent = 'REGENERATING…';
+      loadBriefing({ newerThan: data.generated_at || _briefingShownAt });   // current briefing stays visible
+      return;
+    }
+    loadBriefing();
   } catch (err) {
-    content.innerHTML = `<div class="briefing-error">&#9888; Refresh failed: ${err.message}</div>`;
-    timestamp.textContent = 'ERROR';
+    timestamp.textContent = 'REFRESH FAILED';
   } finally {
     btn.disabled = false;
   }
