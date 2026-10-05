@@ -33,6 +33,11 @@ class RedactSecrets(logging.Filter):
             record.exc_text = self._PATTERN.sub(r"\1=***", logging.Formatter().formatException(record.exc_info))
         return True
 
+# ── BUILD ID ──────────────────────────────────────────────────
+# Shown in the footer and appended to static asset URLs for cache-busting.
+# Render sets RENDER_GIT_COMMIT automatically; locally it falls back to start time.
+BUILD_ID = os.environ.get("RENDER_GIT_COMMIT", "")[:7] or datetime.utcnow().strftime("%Y%m%d%H%M")
+
 # ── API KEYS ──────────────────────────────────────────────────
 TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY", "")
 FMP_API_KEY         = os.environ.get("FMP_API_KEY", "")
@@ -97,7 +102,8 @@ def calibrate(fred_api_key):
         }
         if frequency:
             params["frequency"] = frequency
-        resp = requests.get(FRED_BASE, params=params, timeout=15)
+        from source_status import timed_get
+        resp = timed_get("fred", FRED_BASE, params=params, timeout=15)
         resp.raise_for_status()
         obs = resp.json().get("observations", [])
         valid = [o for o in obs if o.get("value") not in (".", "", None)]

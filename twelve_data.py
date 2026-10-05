@@ -6,6 +6,7 @@ import time
 import logging
 import threading
 import requests
+from source_status import timed_get
 from collections import deque
 from config import TWELVE_DATA_API_KEY
 
@@ -71,7 +72,7 @@ def _get(endpoint: str, params: dict, credits: int = 1) -> dict:
         raise RuntimeError("TWELVE_DATA_API_KEY not set")
     _rate_limit(credits)
     params = {**params, "apikey": TWELVE_DATA_API_KEY}
-    resp = requests.get(f"{BASE_URL}/{endpoint}", params=params, timeout=15)
+    resp = timed_get("twelvedata", f"{BASE_URL}/{endpoint}", params=params, timeout=15)
     resp.raise_for_status()
     data = resp.json()
     if isinstance(data, dict) and data.get("status") == "error":

@@ -9,6 +9,7 @@ import requests
 from datetime import datetime, timedelta, timezone, date as date_type
 
 from yoy import yoy_at, yoy_series
+from source_status import timed_get
 
 log = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ def _fetch_series(series_id, limit=36):
         "limit":      limit,
     }
     for attempt in range(3):
-        resp = requests.get(FRED_BASE, params=params, timeout=12)
+        resp = timed_get("fred", FRED_BASE, params=params, timeout=12)
         if resp.status_code == 429:
             wait = 2 ** attempt  # 1s, 2s, 4s
             log.warning(f"FRED rate limit on {series_id} (attempt {attempt+1}), retrying in {wait}s")
@@ -931,7 +932,7 @@ _SURPRISE_MAP = {
 def _series_last_updated(series_id: str) -> str | None:
     """Date (YYYY-MM-DD) FRED last updated a series, or None on failure."""
     try:
-        resp = requests.get("https://api.stlouisfed.org/fred/series",
+        resp = timed_get("fred", "https://api.stlouisfed.org/fred/series",
                             params={"series_id": series_id, "api_key": FRED_API_KEY, "file_type": "json"},
                             timeout=12)
         resp.raise_for_status()

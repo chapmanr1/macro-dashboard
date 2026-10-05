@@ -6,11 +6,13 @@ import json
 import logging
 import pytz
 import threading
+import time
 import traceback
 from typing import Optional
 from datetime import datetime, timedelta
 from twelve_data import get_quotes
 from fred_data import get_series_history
+from source_status import record as record_status
 
 # Import at module level so pydantic-core + httpx + SSL certs load at gunicorn
 # boot (~175MB headroom) rather than mid-generation (~350MB headroom). Lazy
@@ -803,6 +805,7 @@ VIX:
 {wl_block}
 Generate the briefing now. Use specific numbers from the data above. Do not fabricate any figures."""
 
+        _t0 = time.perf_counter()
         message = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=3500,
@@ -817,6 +820,7 @@ Generate the briefing now. Use specific numbers from the data above. Do not fabr
             messages=[{"role": "user", "content": user_message}],
         )
 
+        record_status("anthropic", True, (time.perf_counter() - _t0) * 1000)
         briefing_text = next(block.text for block in message.content if block.type == "text")
         _save_cache(briefing_text)
 
@@ -828,6 +832,8 @@ Generate the briefing now. Use specific numbers from the data above. Do not fabr
         }
 
     except Exception as e:
+        if type(e).__module__.startswith("anthropic"):
+            record_status("anthropic", False, error=type(e).__name__)
         log.error(f"AI briefing error [{type(e).__name__}]: {e}\n{traceback.format_exc()}")
         return {
             "status":   "api_error",

@@ -14,6 +14,7 @@ from pathlib import Path
 import time
 
 from yoy import yoy_at
+from source_status import timed_get
 from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING, FALSIFICATION_TRIGGERS
 
 log = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def _fetch_series(series_id, limit=13):
         "observation_start": (datetime.utcnow() - timedelta(days=730)).strftime("%Y-%m-%d"),
     }
     for attempt in range(3):
-        resp = requests.get(FRED_BASE, params=params, timeout=10)
+        resp = timed_get("fred", FRED_BASE, params=params, timeout=10)
         if resp.status_code == 429:
             wait = 2 ** attempt  # 1s, 2s, 4s
             log.warning(f"FRED rate limit on {series_id} (attempt {attempt+1}), retrying in {wait}s")

@@ -8,6 +8,7 @@ import time
 import logging
 import zipfile
 import requests
+from source_status import timed_get
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -33,7 +34,7 @@ GLOBAL_CLI_SERIES = [
 def _fetch_obs(series_id: str, limit: int = 14) -> list:
     if not FRED_API_KEY:
         raise ValueError("FRED_API_KEY not configured.")
-    resp = requests.get(FRED_BASE, params={
+    resp = timed_get("fred", FRED_BASE, params={
         "series_id": series_id,
         "api_key":   FRED_API_KEY,
         "file_type": "json",
@@ -180,7 +181,7 @@ def _fetch_cot_year(year: int) -> list:
     """Download CFTC COT zip and return only rows for COT_INSTRUMENTS.
     Streams and filters during CSV parsing — avoids loading all 13,000+ rows into memory."""
     url = f"https://www.cftc.gov/files/dea/history/deacot{year}.zip"
-    resp = requests.get(url, timeout=30)
+    resp = timed_get("cftc", url, timeout=30)
     resp.raise_for_status()
     name_keys = {inst["name_key"].upper() for inst in COT_INSTRUMENTS}
     matched: list = []

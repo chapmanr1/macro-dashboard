@@ -8,6 +8,7 @@ import os
 import time
 import logging
 import requests
+from source_status import timed_get
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -37,7 +38,7 @@ def _fetch_series(series_id: str) -> Optional[float]:
         "observation_start": (datetime.utcnow() - timedelta(days=60)).strftime("%Y-%m-%d"),
     }
     try:
-        resp = requests.get(FRED_BASE, params=params, timeout=6)
+        resp = timed_get("fred", FRED_BASE, params=params, timeout=6)
         resp.raise_for_status()
         obs = resp.json().get("observations", [])
         valid = [o for o in obs if o.get("value") not in (".", "", None)]

@@ -112,7 +112,8 @@ app = Flask(__name__)
 # ── ROUTES ────────────────────────────────────────────────────
 @app.route("/")
 def index():
-    return render_template("index.html")
+    from config import BUILD_ID
+    return render_template("index.html", build_id=BUILD_ID)
 
 @app.route("/ping")
 def ping():
@@ -444,6 +445,13 @@ def api_cot():
     except Exception as e:
         log.error(f"COT positioning error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "positions": []}), 500
+
+@app.route("/api/status")
+def api_status():
+    """Per-source health for the header status dots. Reads recorded outcomes only —
+    makes no outbound calls, so it answers instantly even when a source is slow."""
+    from source_status import snapshot
+    return jsonify(snapshot())
 
 @app.route("/api/health")
 def api_health():
