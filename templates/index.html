@@ -7294,8 +7294,10 @@ function _updateModalStats(data) {
 // ── Modal event listeners ────────────────────────────────────
 document.getElementById('modal-close').addEventListener('click', closeChartModal);
 document.querySelector('.chart-modal-overlay').addEventListener('click', closeChartModal);
-document.getElementById('regime-explain-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('regime-explain-modal')) closeRegimeExplain();
+// The regime modal's markup comes after this script, so listen at the document level.
+// (Attaching directly threw on a null element and silently stopped every init call below.)
+document.addEventListener('click', e => {
+  if (e.target && e.target.id === 'regime-explain-modal') closeRegimeExplain();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('chart-modal').style.display === 'flex') closeChartModal();
