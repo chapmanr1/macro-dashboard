@@ -686,14 +686,19 @@
 <!-- SETTINGS OVERLAY + DRAWER -->
 <div class="settings-overlay" id="settingsOverlay"></div>
 <div class="settings-drawer" id="settingsDrawer">
-  <div class="settings-hdr" id="settingsHdr">
-    <div class="settings-title-lbl">⠿ SETTINGS</div>
-    <button class="settings-close" id="settingsClose">✕</button>
+  <div class="settings-hdr" id="settingsHdr" title="Drag to move">
+    <div class="settings-title-lbl">Settings</div>
+    <button class="hdr-btn hdr-icon settings-close" id="settingsClose" aria-label="Close settings"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg></button>
+  </div>
+  <div class="settings-searchbar">
+    <svg class="field-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+    <input type="search" id="settingsSearch" class="field-input" placeholder="Search settings…" aria-label="Search settings" autocomplete="off" spellcheck="false">
   </div>
   <div class="settings-body" id="settingsBody"></div>
+  <div class="settings-nomatch" id="settingsNoMatch" hidden>No settings match your search.</div>
   <div class="settings-footer">
-    <button class="settings-reset" id="settingsReset">↺ RESET SETTINGS TO DEFAULT</button>
-    <button class="settings-reset" onclick="resetWidgetLayouts()" style="margin-top:6px;border-color:var(--border)">&#8617; RESET WIDGET LAYOUT</button>
+    <button class="hdr-btn" id="settingsReset">Reset settings</button>
+    <button class="hdr-btn" onclick="resetWidgetLayouts()">Reset layout</button>
   </div>
 </div>
 
@@ -701,27 +706,34 @@
 <div class="research-overlay" id="researchOverlay"></div>
 <div class="research-panel" id="researchPanel">
   <div class="research-hdr">
-    <div class="research-title-lbl"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:-1px;margin-right:5px"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>RESEARCH</div>
-    <button class="research-close" id="researchClose">&#10005;</button>
+    <div class="research-title-lbl">Research</div>
+    <button class="hdr-btn hdr-icon research-close" id="researchClose" aria-label="Close research"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg></button>
   </div>
   <div class="research-body">
 
     <!-- SEARCH -->
     <div class="research-search-wrap" id="researchSearchWrap">
-      <input type="text" id="researchSearchInput" class="research-search-input" placeholder="TICKER OR COMPANY NAME..." autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
-      <div id="researchSearchResults" class="research-search-results" style="display:none"></div>
+      <div class="field-wrap">
+        <svg class="field-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
+        <input type="text" id="researchSearchInput" class="field-input research-search-input" placeholder="Ticker, company, FRED series or news…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               role="combobox" aria-expanded="false" aria-controls="researchSearchResults" aria-autocomplete="list" aria-label="Search tickers, companies, FRED series and news">
+        <button type="button" class="field-clear" id="researchSearchClear" aria-label="Clear search" hidden>&#10005;</button>
+      </div>
+      <div id="researchSearchResults" class="research-search-results" role="listbox" aria-label="Search results" style="display:none"></div>
     </div>
 
     <!-- WATCHLIST -->
-    <div class="research-sec-hdr"><div class="research-sec-title">WATCHLIST</div></div>
+    <div class="research-sec-hdr"><div class="research-sec-title">Watchlist <span class="research-count" id="rwlCount"></span></div></div>
     <div class="research-wl-add">
-      <input type="text" id="rwlAddInput" class="research-wl-input" placeholder="ADD TICKER" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters">
-      <button id="rwlAddBtn" class="research-wl-add-btn">+ ADD</button>
+      <div class="field-group">
+        <input type="text" id="rwlAddInput" class="field-input research-wl-input" placeholder="Add ticker" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters" aria-label="Add ticker to watchlist">
+        <button id="rwlAddBtn" class="research-wl-add-btn" aria-label="Add ticker">+ Add</button>
+      </div>
     </div>
     <div id="researchWLList"></div>
 
     <!-- ANALYSIS -->
-    <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">COMPANY ANALYSIS</div></div>
+    <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">Company analysis</div></div>
     <div id="researchAnalysisCard" style="display:none"></div>
 
   </div>
@@ -4314,12 +4326,12 @@ function _saveTabOrder(tab,parent) {
 }
 
 // ════════════════════════════════════════════════════════════
-// SETTINGS DRAWER — 12 SECTIONS
+// SETTINGS WINDOW — 12 SECTIONS
 // ════════════════════════════════════════════════════════════
 let _drSrc=null;
 const TAB_NAMES={overview:'OVERVIEW',markets:'MARKETS',economy:'ECONOMY',credit:'CREDIT',news:'NEWS'};
 
-function _sh(num,title,open){return `<details class="sset-section"${open?' open':''}><summary><span class="sset-num">${num}</span><span class="sset-title">${title}</span><span class="sset-chevron">▸</span></summary><div class="sset-body">`;}
+function _sh(num,title,open){return `<details class="sset-section"${open?' open':''}><summary><span class="sset-title">${title}</span><svg class="sset-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6,3 11,8 6,13"/></svg></summary><div class="sset-body">`;}
 const _se=`</div></details>`;
 function _sf(label,ctrl){return `<div class="sset-field"><span class="sset-label">${label}</span>${ctrl}</div>`;}
 function _ss(id,opts,val){return `<select class="sset-select" id="${id}">${opts.map(([v,t])=>`<option value="${v}"${v==val?' selected':''}>${t}</option>`).join('')}</select>`;}
@@ -4330,7 +4342,7 @@ function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 
 // ── S12: Data Sources (status rows filled by static/js/status.js) ──
 function _s12(){
-  return _sh('12','DATA SOURCES',false)+
+  return _sh('12','Data sources',false)+
     `<div class="src-list" id="srcStatus" role="list" aria-label="Data source status"><div class="src-empty">Checking…</div></div>
      <div class="src-legend"><span><i data-level="ok"></i>Working</span><span><i data-level="warn"></i>Last call failed or data aging</span><span><i data-level="error"></i>Failing</span><span><i data-level="idle"></i>Not used yet</span></div>`+
     _se;
@@ -4338,7 +4350,7 @@ function _s12(){
 
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
-  return _sh('01','DISPLAY &amp; APPEARANCE',true)+
+  return _sh('01','Display &amp; appearance',true)+
     _sf('Theme',_ss('stTheme',[['dark','DARK (DEFAULT)'],['light','LIGHT']],d.theme === 'light' ? 'light' : 'dark'))+
     _sf('Font Size',_ss('stFontSize',[['compact','CONDENSED'],['normal','STANDARD'],['large','LARGE TEXT']],d.fontSize))+
     _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
@@ -4354,15 +4366,15 @@ function _s2(d){
   const lbls=d.regimeLabels||{};
   const sum=(+d.bullProb||0)+(+d.baseProb||0)+(+d.bearProb||0);
   const scls=sum===100?'c-green':'c-red';
-  return _sh('02','REGIME ENGINE',false)+
-    `<div class="sset-subtitle">SCENARIO PROBABILITIES</div>`+
+  return _sh('02','Regime engine',false)+
+    `<div class="sset-subtitle">Scenario probabilities</div>`+
     _sf('Bull',_sl('stBullProb',0,100,1,d.bullProb,'%'))+
     _sf('Base',_sl('stBaseProb',0,100,1,d.baseProb,'%'))+
     _sf('Bear',_sl('stBearProb',0,100,1,d.bearProb,'%'))+
     `<div class="sset-prob-sum">SUM: <span class="${scls}">${sum}%</span></div>`+
-    `<div class="sset-subtitle">REGIME LABELS</div>`+
+    `<div class="sset-subtitle">Regime labels</div>`+
     RKEYS.map(k=>`<div class="sset-regime-row"><span class="sset-regime-name">${k}</span><input type="text" class="sset-regime-input" data-regime="${k}" value="${_xe(lbls[k]||k)}"></div>`).join('')+
-    `<div class="sset-subtitle">GROWTH &amp; INFLATION THRESHOLDS</div>`+
+    `<div class="sset-subtitle">Growth &amp; inflation thresholds</div>`+
     _sf('Inflation (%)',_sl('stInflThresh',1,8,0.1,d.inflationThreshold,'%'))+
     _sf('Growth (%)',_sl('stGrowthThresh',0,5,0.1,d.growthThreshold,'%'))+
     _se;
@@ -4370,7 +4382,7 @@ function _s2(d){
 
 // ── S3: Thesis Thresholds ─────────────────────────────────────
 function _s3(d){
-  return _sh('03','THESIS THRESHOLDS',false)+
+  return _sh('03','Thesis thresholds',false)+
     _sf('PCE Target (%)',_sn('stTPCE',d.thresholdPCE,0,10,0.1))+
     _sf('GDP Floor (%)',_sn('stTGDP',d.thresholdGDP,0,10,0.1))+
     _sf('HY Spread (bps)',_sn('stTHY',d.thresholdHY,0,1000,10))+
@@ -4383,7 +4395,7 @@ function _s3(d){
 // ── S4: Thesis Journal ────────────────────────────────────────
 function _s4(d){
   const count = (d.journalEntries||[]).filter(e=>e.created_at).length;
-  return _sh('04','THESIS JOURNAL',false)+
+  return _sh('04','Thesis journal',false)+
     `<div style="font-size:var(--fs-11);color:var(--text-muted);line-height:1.7;padding:4px 0 8px">
       The full journal has moved to the <strong style="color:var(--text)">JOURNAL</strong> tab.<br>
       ${count>0?`<span style="color:var(--warn)">${count} ${count===1?'entry':'entries'}</span> saved.`:'No entries yet.'}
@@ -4398,9 +4410,9 @@ function _s5(d){
   const srcHtml=['Reuters','WSJ','Financial Times','CNBC','CNBC Economy','MarketWatch'].map(s=>
     `<div class="sset-src-row"><span class="sset-src-lbl">${s.toUpperCase()}</span><label class="tog"><input type="checkbox" class="st-src-cb" data-src="${s}"${srcs[s]!==false?' checked':''}><span class="tog-track"></span></label></div>`
   ).join('');
-  return _sh('05','NEWS FEED',false)+
-    `<div class="sset-subtitle">SOURCES</div>${srcHtml}`+
-    `<div class="sset-subtitle">FILTERS</div>`+
+  return _sh('05','News feed',false)+
+    `<div class="sset-subtitle">Sources</div>${srcHtml}`+
+    `<div class="sset-subtitle">Filters</div>`+
     _sf('Min Relevance',_sl('stNewsScore',1,20,1,d.newsMinScore,''))+
     _sf('Max Articles',_sl('stNewsMax',5,50,5,d.newsMaxArticles,''))+
     _sf('Max Age (hrs)',_sl('stNewsAge',6,168,6,d.newsMaxAge,'h'))+
@@ -4415,8 +4427,8 @@ function _s6(d){
   const idxHtml=idxList.map(x=>
     `<div class="sset-src-row"><span class="sset-src-lbl">${x.l}</span><label class="tog"><input type="checkbox" class="st-idx-cb" data-sym="${x.s}"${si[x.s]!==false?' checked':''}><span class="tog-track"></span></label></div>`
   ).join('');
-  return _sh('06','MARKET DATA',false)+
-    `<div class="sset-subtitle">EQUITY INDICES</div>${idxHtml}`+
+  return _sh('06','Market data',false)+
+    `<div class="sset-subtitle">Equity indices</div>${idxHtml}`+
     _sf('Custom Ticker',_si('stCustomTicker',d.customTicker||'','AAPL, BRK-B'))+
     _se;
 }
@@ -4427,7 +4439,7 @@ function _s7(d){
   const rows=tickers.length
     ?tickers.map((t,i)=>`<div class="wl-ticker-row"><span class="wl-ticker-sym">${_xe(t)}</span><button class="wl-ticker-del" data-idx="${i}">✕</button></div>`).join('')
     :'<div style="font-size:var(--fs-11);color:var(--text-muted);padding:6px 0">No tickers added.</div>';
-  return _sh('07','WATCHLIST',false)+
+  return _sh('07','Watchlist',false)+
     `<div class="wl-add-row"><input type="text" id="wlAddInput" class="wl-add-input" placeholder="TICKER" maxlength="10"><button id="wlAddBtn" class="wl-add-btn">+ ADD</button></div>
     <div class="wl-ticker-list" id="wlTickerList">${rows}</div>`+
     _sf('BDC Monitor (Credit)',`<label class="tog"><input type="checkbox" id="stShowBDC"${d.showBDC?' checked':''}><span class="tog-track"></span></label>`)+
@@ -4446,16 +4458,16 @@ function _s8(ld,sd){
     }).join('');
     return `<div class="settings-group-hdr">${TAB_NAMES[tab]}</div><div class="stab-rows" data-tab="${tab}">${rows}</div>`;
   }).join('');
-  return _sh('08','LAYOUT',false)+
+  return _sh('08','Layout',false)+
     _sf('Default Tab',_ss('stDefaultTab',[['overview','OVERVIEW'],['markets','MARKETS'],['economy','ECONOMY'],['credit','CREDIT'],['news','NEWS']],sd.defaultTab||'overview'))+
-    `<div class="sset-subtitle">SECTION VISIBILITY &amp; ORDER</div><div>${groups}</div>`+
+    `<div class="sset-subtitle">Section visibility &amp; order</div><div>${groups}</div>`+
     `<div style="padding:8px 0"><button id="stResetLayout" style="width:100%;background:none;border:1px solid var(--border-strong);color:var(--text-muted);font-family:var(--font-mono);font-size:var(--fs-11);letter-spacing:var(--tracking-label);padding:5px;cursor:pointer">↺ RESET LAYOUT</button></div>`+
     _se;
 }
 
 // ── S9: Client Mode ───────────────────────────────────────────
 function _s9(d){
-  return _sh('09','CLIENT MODE',false)+
+  return _sh('09','Client mode',false)+
     `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:var(--fs-11);font-weight:700;letter-spacing:var(--tracking-label);flex:1">ENABLE CLIENT MODE</span>
       <label class="tog" style="width:42px;height:22px"><input type="checkbox" id="stClientMode"${d.clientMode?' checked':''}><span class="tog-track"></span></label>
@@ -4467,7 +4479,7 @@ function _s9(d){
 
 // ── S10: Alerts ───────────────────────────────────────────────
 function _s10(d){
-  return _sh('10','ALERTS',false)+
+  return _sh('10','Alerts',false)+
     _sf('VIX Alert Above',_sl('stAlertVIX',10,80,1,d.alertVIX,''))+
     _sf('HY Spread (bps)',_sl('stAlertHY',200,1000,25,d.alertHY,''))+
     _sf('S&amp;P Move (%)',_sl('stAlertSP',0.5,10,0.5,d.alertSP,'%'))+
@@ -4478,7 +4490,7 @@ function _s10(d){
 
 // ── S11: Export ───────────────────────────────────────────────
 function _s11(){
-  return _sh('11','EXPORT',false)+
+  return _sh('11','Export',false)+
     `<button class="sset-export-btn" id="exportIndicators">⬇ MACRO INDICATORS — CSV</button>
     <button class="sset-export-btn" id="exportJournal">⬇ THESIS JOURNAL — TXT</button>
     <button class="sset-export-btn" id="exportRegime">⬇ REGIME SETTINGS — JSON</button>`+
@@ -4491,7 +4503,37 @@ function renderDrawer(){
   document.getElementById('settingsBody').innerHTML=[_s1(d),_s2(d),_s3(d),_s4(d),_s5(d),_s6(d),_s7(d),_s8(ld,d),_s9(d),_s10(d),_s11(),_s12()].join('');
   _bindDrawer();
   if (typeof refreshSourceStatus === 'function') refreshSourceStatus();
+  const q = document.getElementById('settingsSearch');
+  if (q) { q.value = ''; _filterSettings(''); }
 }
+
+// ── Settings search: show only rows whose label matches; open their sections ──
+const _SETTING_ROWS = '.sset-field, .sset-src-row, .settings-row, .sset-regime-row, .sset-export-btn';
+function _filterSettings(query) {
+  const q = query.trim().toLowerCase();
+  let anyMatch = false;
+  document.querySelectorAll('#settingsBody .sset-section').forEach(sec => {
+    if (sec.dataset.wasOpen === undefined) sec.dataset.wasOpen = sec.open ? '1' : '0';
+    const titleHit = q && sec.querySelector('.sset-title').textContent.toLowerCase().includes(q);
+    let hits = 0;
+    sec.querySelectorAll(_SETTING_ROWS).forEach(row => {
+      const show = !q || titleHit || row.textContent.toLowerCase().includes(q);
+      row.hidden = !show;
+      if (show) hits++;
+    });
+    sec.querySelectorAll('.sset-subtitle, .settings-group-hdr').forEach(h => { h.hidden = !!q && !titleHit; });
+    sec.hidden = !!q && !hits && !titleHit;
+    if (q) sec.open = hits > 0 || titleHit;
+    else { sec.open = sec.dataset.wasOpen === '1'; delete sec.dataset.wasOpen; }
+    if (!sec.hidden) anyMatch = true;
+  });
+  const none = document.getElementById('settingsNoMatch');
+  if (none) none.hidden = !q || anyMatch;
+}
+document.getElementById('settingsSearch')?.addEventListener('input', e => _filterSettings(e.target.value));
+document.getElementById('settingsSearch')?.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && e.target.value) { e.stopPropagation(); e.target.value = ''; _filterSettings(''); }
+});
 
 // ── Bind all drawer controls ──────────────────────────────────
 function _bindDrawer(){
@@ -4742,41 +4784,6 @@ function _restoreSectionCollapseStates() {
 }
 
 // ── Section move buttons (▲▼) ─────────────────────────────────
-function _moveSectionUp(btn) {
-  const section = btn.closest('.section-wrap');
-  if (!section) return;
-  const siblings = [...section.parentNode.querySelectorAll(':scope > .section-wrap')];
-  const idx = siblings.indexOf(section);
-  if (idx > 0) {
-    section.parentNode.insertBefore(section, siblings[idx - 1]);
-    _saveTabOrder(section.dataset.tab, section.parentNode);
-  }
-}
-
-function _moveSectionDown(btn) {
-  const section = btn.closest('.section-wrap');
-  if (!section) return;
-  const siblings = [...section.parentNode.querySelectorAll(':scope > .section-wrap')];
-  const idx = siblings.indexOf(section);
-  if (idx < siblings.length - 1) {
-    section.parentNode.insertBefore(siblings[idx + 1], section);
-    _saveTabOrder(section.dataset.tab, section.parentNode);
-  }
-}
-
-function _addMoveButtons() {
-  document.querySelectorAll('.section-wrap').forEach(wrap => {
-    const header = wrap.querySelector('.section-header');
-    if (!header || header.querySelector('.widget-move-btns')) return;
-    const btns = document.createElement('div');
-    btns.className = 'widget-move-btns';
-    btns.innerHTML =
-      `<button class="widget-move-btn" onclick="event.stopPropagation();_moveSectionUp(this)" title="Move section up">▲</button>` +
-      `<button class="widget-move-btn" onclick="event.stopPropagation();_moveSectionDown(this)" title="Move section down">▼</button>`;
-    header.appendChild(btns);
-  });
-}
-
 function _makeDraggable(panel, handle) {
   if (!panel || !handle) return;
   let active = false, ox = 0, oy = 0;
@@ -4796,10 +4803,11 @@ function _makeDraggable(panel, handle) {
     panel.style.top  = Math.min(Math.max(0, cy - oy), maxY) + 'px';
   }
   function end() { active = false; }
-  handle.addEventListener('mousedown',   e => { start(e.clientX, e.clientY); e.preventDefault(); });
+  const onControl = e => e.target.closest && e.target.closest('button, input, select, textarea, a');
+  handle.addEventListener('mousedown',   e => { if (onControl(e)) return; start(e.clientX, e.clientY); e.preventDefault(); });
   document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
   document.addEventListener('mouseup',   end);
-  handle.addEventListener('touchstart',  e => { start(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+  handle.addEventListener('touchstart',  e => { if (onControl(e)) return; start(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
   document.addEventListener('touchmove', e => { if(active){ e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
   document.addEventListener('touchend',  end);
 }
@@ -5057,19 +5065,48 @@ document.getElementById('researchClose').addEventListener('click', closeResearch
 const _srchInput = document.getElementById('researchSearchInput');
 const _srchResults = document.getElementById('researchSearchResults');
 
+const _srchClear = document.getElementById('researchSearchClear');
+let _srchActive = -1;   // keyboard-highlighted result
+
 _srchInput.addEventListener('input', () => {
   clearTimeout(_searchDebounce);
   const q = _srchInput.value.trim();
+  if (_srchClear) _srchClear.hidden = !_srchInput.value;
   if (!q) { clearResearchSearch(); return; }
   _searchDebounce = setTimeout(() => doResearchSearch(q), 300);
 });
 
+function _srchItems() {   // visible results, in order (skips collapsed groups)
+  return [..._srchResults.querySelectorAll('.research-result-item')].filter(el => !el.closest('[style*="display:none"]'));
+}
+function _srchHighlight(i) {
+  const items = _srchItems();
+  items.forEach(el => { el.classList.remove('kb-active'); el.setAttribute('aria-selected', 'false'); });
+  _srchActive = items.length ? (i + items.length) % items.length : -1;
+  if (_srchActive >= 0) {
+    const el = items[_srchActive];
+    el.classList.add('kb-active'); el.setAttribute('aria-selected', 'true');
+    el.scrollIntoView({ block: 'nearest' });
+  }
+}
+
 _srchInput.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { clearResearchSearch(); _srchInput.blur(); }
+  const open = _srchResults.style.display !== 'none';
+  if (e.key === 'ArrowDown' && open) { e.preventDefault(); _srchHighlight(_srchActive + 1); return; }
+  if (e.key === 'ArrowUp' && open)   { e.preventDefault(); _srchHighlight(_srchActive - 1); return; }
+  if (e.key === 'Escape') {
+    if (open) { clearResearchSearch(); } else { _srchInput.value = ''; if (_srchClear) _srchClear.hidden = true; _srchInput.blur(); }
+    return;
+  }
   if (e.key === 'Enter') {
+    const items = _srchItems();
+    if (open && _srchActive >= 0 && items[_srchActive]) { e.preventDefault(); items[_srchActive].click(); return; }
     const q = _srchInput.value.trim().toUpperCase().replace(/[^A-Z0-9.^=\-]/g,'');
     if (q) analyzeResearchTicker(q);
   }
+});
+_srchClear?.addEventListener('click', () => {
+  _srchInput.value = ''; _srchClear.hidden = true; clearResearchSearch(); _srchInput.focus();
 });
 
 document.addEventListener('click', e => {
@@ -5079,6 +5116,8 @@ document.addEventListener('click', e => {
 function clearResearchSearch() {
   _srchResults.style.display = 'none';
   _srchResults.innerHTML = '';
+  _srchActive = -1;
+  _srchInput.setAttribute('aria-expanded', 'false');
 }
 
 function _srchCatHdr(id, label, count) {
@@ -5086,7 +5125,7 @@ function _srchCatHdr(id, label, count) {
   return `<div class="rsrch-cat-hdr" onclick="toggleSearchCat('${id}')" data-catid="${id}">
     <span class="rsrch-cat-lbl">${label}</span>
     <span class="rsrch-cat-count">${count}</span>
-    <span class="rsrch-cat-arrow">${col ? '▶' : '▼'}</span>
+    <span class="rsrch-cat-arrow" aria-hidden="true">${col ? '▸' : '▾'}</span>
   </div>`;
 }
 
@@ -5095,12 +5134,15 @@ function toggleSearchCat(id) {
   const body = document.getElementById('rsrch-cat-' + id);
   if (body) body.style.display = _catCollapsed[id] ? 'none' : '';
   const hdr = _srchResults.querySelector('[data-catid="' + id + '"]');
-  if (hdr) { const arr = hdr.querySelector('.rsrch-cat-arrow'); if (arr) arr.textContent = _catCollapsed[id] ? '▶' : '▼'; }
+  if (hdr) { const arr = hdr.querySelector('.rsrch-cat-arrow'); if (arr) arr.textContent = _catCollapsed[id] ? '▸' : '▾'; }
 }
 
 async function doResearchSearch(q) {
   _srchResults.style.display = 'block';
-  _srchResults.innerHTML = '<div class="research-loading">SEARCHING...</div>';
+  _srchInput.setAttribute('aria-expanded', 'true');
+  _srchActive = -1;
+  _srchResults.innerHTML = '<div class="research-loading">Searching…</div>' +
+    '<div class="research-result-skel"><span class="skel"></span><span class="skel"></span></div>'.repeat(3);
   const newsMatches = (_lastNewsRaw || [])
     .filter(a => (a.title||'').toLowerCase().includes(q.toLowerCase()))
     .slice(0, 5);
@@ -5110,14 +5152,14 @@ async function doResearchSearch(q) {
     const fred    = data.fred    || [];
     const sec     = data.sec_filings || [];
     const total   = tickers.length + newsMatches.length + fred.length + sec.length;
-    if (!total) { _srchResults.innerHTML = '<div class="research-loading">NO RESULTS</div>'; return; }
+    if (!total) { _srchResults.innerHTML = `<div class="research-loading">No matches for “${_xe(q)}”. Press Enter to analyze it as a ticker.</div>`; return; }
     let html = '';
     if (tickers.length) {
-      html += _srchCatHdr('tickers','TICKERS', tickers.length);
+      html += _srchCatHdr('tickers','Tickers', tickers.length);
       html += `<div id="rsrch-cat-tickers" style="${_catCollapsed.tickers?'display:none':''}">`;
       tickers.forEach(r => {
         const sym = r.symbol.replace(/'/g,'');
-        html += `<div class="research-result-item" onclick="analyzeResearchTicker('${sym}')">
+        html += `<div class="research-result-item" role="option" aria-selected="false" onclick="analyzeResearchTicker('${sym}')">
           <span class="research-result-sym search-result-ticker" data-ticker="${sym}" title="Double-tap for full chart">${r.symbol}</span>
           <span class="research-result-name">${r.name||''}</span>
           <span class="research-result-type">${(r.type||'').toUpperCase()}</span>
@@ -5126,23 +5168,23 @@ async function doResearchSearch(q) {
       html += '</div>';
     }
     if (newsMatches.length) {
-      html += _srchCatHdr('news','NEWS', newsMatches.length);
+      html += _srchCatHdr('news','News', newsMatches.length);
       html += `<div id="rsrch-cat-news" style="${_catCollapsed.news?'display:none':''}">`;
       newsMatches.forEach(a => {
         const src = (a.source||'NEWS').toUpperCase().slice(0,10);
-        html += `<a class="research-result-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
-          <span class="research-result-sym" style="color:var(--accent);min-width:50px;font-size:var(--fs-11)">${src}</span>
+        html += `<a class="research-result-item" role="option" aria-selected="false" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym research-result-src">${src}</span>
           <span class="research-result-name">${a.title||''}</span>
         </a>`;
       });
       html += '</div>';
     }
     if (fred.length) {
-      html += _srchCatHdr('fred','FRED DATA', fred.length);
+      html += _srchCatHdr('fred','FRED data', fred.length);
       html += `<div id="rsrch-cat-fred" style="${_catCollapsed.fred?'display:none':''}">`;
       fred.forEach(f => {
-        html += `<a class="research-result-item" href="${f.url}" target="_blank" rel="noopener noreferrer">
-          <span class="research-result-sym" style="color:var(--accent);font-size:var(--fs-11);min-width:72px">${f.series_id}</span>
+        html += `<a class="research-result-item" role="option" aria-selected="false" href="${f.url}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym">${f.series_id}</span>
           <span class="research-result-name">${f.name}</span>
           <span class="research-result-type">FRED</span>
         </a>`;
@@ -5150,11 +5192,11 @@ async function doResearchSearch(q) {
       html += '</div>';
     }
     if (sec.length) {
-      html += _srchCatHdr('sec','SEC FILINGS', sec.length);
+      html += _srchCatHdr('sec','SEC filings', sec.length);
       html += `<div id="rsrch-cat-sec" style="${_catCollapsed.sec?'display:none':''}">`;
       sec.forEach(f => {
-        html += `<a class="research-result-item" href="${f.url||'#'}" target="_blank" rel="noopener noreferrer">
-          <span class="research-result-sym" style="color:var(--text-faint);font-size:var(--fs-11);min-width:38px">${f.form_type||'SEC'}</span>
+        html += `<a class="research-result-item" role="option" aria-selected="false" href="${f.url||'#'}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym research-result-form">${f.form_type||'SEC'}</span>
           <span class="research-result-name">${f.company||''}</span>
           <span class="research-result-type">${(f.date||'').slice(0,10)}</span>
         </a>`;
@@ -5163,7 +5205,7 @@ async function doResearchSearch(q) {
     }
     _srchResults.innerHTML = html;
   } catch(e) {
-    _srchResults.innerHTML = '<div class="research-error">SEARCH UNAVAILABLE</div>';
+    _srchResults.innerHTML = '<div class="research-error">Search is unavailable right now — try again in a moment.</div>';
   }
 }
 
@@ -5171,8 +5213,10 @@ async function doResearchSearch(q) {
 function renderResearchWL() {
   const el = document.getElementById('researchWLList');
   if (!el) return;
+  const cnt = document.getElementById('rwlCount');
+  if (cnt) cnt.textContent = _researchWL.length ? String(_researchWL.length) : '';
   if (!_researchWL.length) {
-    el.innerHTML = '<div class="research-wl-empty">No tickers added. Search above or type a symbol.</div>';
+    el.innerHTML = '<div class="research-wl-empty">No tickers yet. Search above or add a symbol.</div>';
     return;
   }
   el.innerHTML = _researchWL.map(t => {
@@ -5180,9 +5224,9 @@ function renderResearchWL() {
     return `<div class="research-wl-row">
       <span class="research-wl-sym watchlist-ticker-symbol" data-ticker="${safe}" title="Double-tap for full chart">${t}</span>
       <span class="research-wl-price c-muted" id="rwlp-${t}">--</span>
-      <span class="research-wl-pct c-muted" id="rwlpct-${t}">--</span>
-      <span class="research-wl-analyze" onclick="analyzeResearchTicker('${safe}')">ANALYZE</span>
-      <button class="research-wl-del" onclick="removeResearchWL('${safe}')">&#10005;</button>
+      <span class="research-wl-pct" id="rwlpct-${t}">--</span>
+      <button class="research-wl-analyze" onclick="analyzeResearchTicker('${safe}')">Analyze</button>
+      <button class="research-wl-del" onclick="removeResearchWL('${safe}')" aria-label="Remove ${safe} from watchlist">&#10005;</button>
     </div>`;
   }).join('');
 }
@@ -5220,7 +5264,7 @@ async function refreshResearchPrices() {
       const arrow = it.direction === 'UP' ? '▲' : it.direction === 'DOWN' ? '▼' : '→';
       pe.className = 'research-wl-price ' + cls;
       pe.textContent = fmtN(it.price, 2);
-      pc.className = 'research-wl-pct ' + cls;
+      pc.className = 'research-wl-pct ' + (it.direction === 'UP' ? 'is-up' : it.direction === 'DOWN' ? 'is-down' : 'is-flat');
       pc.textContent = it.pct_change != null ? arrow + ' ' + Math.abs(it.pct_change).toFixed(2) + '%' : '--';
     });
   } catch(e) {}
@@ -6031,7 +6075,6 @@ initWrappers();
 applySettings();
 initDashDnD();
 _initDragAutoScroll();
-_addMoveButtons();
 _restoreSectionCollapseStates();
 fetchWatchlist();
 fetchBDC();
