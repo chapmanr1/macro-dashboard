@@ -1528,3 +1528,33 @@ html[data-client="true"] .kshape-interp,html[data-client="true"] .currency-signa
   .research-panel { width: 100%; right: -100%; }
   .research-hdr { padding-top: calc(var(--sp-3) + env(safe-area-inset-top, 0px)); }
 }
+
+/* ── Alerts + calendar pop-ups on phones ──────────────────────────────────
+   The buttons sit mid-header on small screens, so a pop-up anchored to the
+   button ran off the left edge. On phones both open as full-width sheets
+   pinned under the header, scrolling inside themselves. */
+@media (max-width: 640px) {
+  .notif-panel, .cal-panel {
+    position: fixed; top: calc(56px + env(safe-area-inset-top, 0px)); left: var(--sp-2); right: var(--sp-2);
+    width: auto; max-width: none; max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
+    overflow-y: auto; overscroll-behavior: contain; border-radius: var(--radius-lg);
+    border-color: var(--border-strong); box-shadow: var(--shadow-pop);
+  }
+  .notif-panel::before, .cal-panel::before { display: none; }
+  .notif-list, .cal-body { max-height: none; }
+  .notif-item { font-size: var(--fs-12); letter-spacing: 0; padding: var(--sp-3); }
+  .cal-title { font-size: var(--fs-14); letter-spacing: 0; }
+  .cal-nav-btn { min-width: 40px; min-height: 36px; font-size: var(--fs-14); }
+  .cal-view-btn { flex: 1; min-height: 32px; }
+  .cal-event-name { font-size: var(--fs-12); letter-spacing: 0; }
+  /* Week view: one day per row — date on the left, events on the right */
+  .cal-week-grid { grid-template-columns: 1fr; gap: var(--sp-2); }
+  .cal-week-col {
+    display: grid; grid-template-columns: 48px 1fr; grid-auto-flow: row dense;
+    column-gap: var(--sp-3); align-items: start; min-height: 0; padding: var(--sp-2) var(--sp-3);
+  }
+  .cal-week-dname, .cal-week-dnum { grid-column: 1; text-align: left; margin: 0; }
+  .cal-week-col > :not(.cal-week-dname):not(.cal-week-dnum) { grid-column: 2; }
+  .cal-week-chip { font-size: var(--fs-12); letter-spacing: 0; padding: var(--sp-1) var(--sp-2); }
+  .cal-week-empty { text-align: left; padding-top: 0; }
+}
