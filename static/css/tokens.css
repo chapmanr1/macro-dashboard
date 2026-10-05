@@ -90,28 +90,28 @@
 
 html[data-theme="light"] {
   color-scheme: light;
-  --bg:             #f3f5f9;
-  --surface:        #ffffff;
-  --surface-raised: #eaeff6;
+  --bg:             #dde2e9;   /* light gray page so cards stand apart */
+  --surface:        #f6f7f9;   /* off-white cards, softer than pure white */
+  --surface-raised: #e9ecf1;
   --overlay:        rgb(15 23 42 / 0.45);
-  --border:         rgb(15 23 42 / 0.09);
-  --border-strong:  rgb(15 23 42 / 0.16);
+  --border:         rgb(15 23 42 / 0.11);
+  --border-strong:  rgb(15 23 42 / 0.19);
   --text:           #0f1a2b;
   --text-muted:     #475569;
   --text-faint:     #576579;
   --accent:         #1d5bd8;
   --accent-strong:  #1749b3;
   --accent-soft:    rgb(29 91 216 / 0.10);
-  --pos:            #157538;
+  --pos:            #126a32;
   --pos-soft:       rgb(23 128 61 / 0.10);
   --neg:            #b42318;
   --neg-soft:       rgb(180 35 24 / 0.08);
   --warn:           #955405;
   --warn-soft:      rgb(161 92 7 / 0.10);
   --neutral-soft:   rgb(71 85 105 / 0.08);
-  --regime-strong-growth:    #047857;
+  --regime-strong-growth:    #03684b;
   --regime-reflation:        #0369a1;
-  --regime-overheating:      #b83d0b;
+  --regime-overheating:      #a5360a;
   --regime-stagflation-risk: #8f5706;
   --regime-stagflation:      #b91c1c;
   --regime-contraction:      #6d28d9;
@@ -121,7 +121,7 @@ html[data-theme="light"] {
   --chart-line:     #1d5bd8;
   --chart-line-2:   #6d28d9;
   --chart-line-3:   #a15c07;
-  --chart-line-4:   #047857;
+  --chart-line-4:   #03684b;
   --chart-fill:     rgb(29 91 216 / 0.10);
   --shadow-pop:     0 8px 28px rgb(15 23 42 / 0.14);
   --shadow-card:    0 1px 2px rgb(15 23 42 / 0.06);

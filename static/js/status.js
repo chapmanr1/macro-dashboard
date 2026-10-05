@@ -1,13 +1,13 @@
 // FILE: static/js/status.js
-// Header status dots — one per data source, from GET /api/status (which only
-// reads recorded request outcomes; it never calls the sources itself).
+// Data-source status — listed in Settings → Data Sources, with a small dot on the
+// header gear when a source needs attention. From GET /api/status, which only
+// reads recorded request outcomes; it never calls the sources itself.
 //   green = latest request succeeded recently
 //   amber = latest request failed but a recent success exists, or data is getting old
 //   red   = failing with no recent success
 //   grey  = not used yet in this server session
 (function () {
   const ORDER = ['fred', 'twelvedata', 'fmp', 'rss', 'anthropic', 'fed_web', 'cftc'];
-  const SHORT = { fred: 'FRED', twelvedata: 'TD', fmp: 'FMP', rss: 'RSS', anthropic: 'AI', fed_web: 'FED', cftc: 'COT' };
   // How old a last success can be before the dot turns amber (minutes).
   const STALE_MIN = { fred: 120, twelvedata: 30, fmp: 24 * 60, rss: 60, anthropic: 24 * 60, fed_web: 26 * 60, cftc: 26 * 60 };
 
@@ -38,16 +38,30 @@
     return parts.join(' · ');
   }
 
+  let last = null;
   function render(data) {
+    if (!data || !data.sources) return;
+    last = data;
+    const rows = ORDER.filter(k => data.sources[k]).map(k => {
+      const s = data.sources[k];
+      return { k, s, lvl: level(k, s) };
+    });
+    // Settings → Data Sources (present only while the drawer is rendered)
     const box = document.getElementById('srcStatus');
-    if (!box || !data || !data.sources) return;
-    box.innerHTML = ORDER.filter(k => data.sources[k]).map(k => {
-      const s = data.sources[k], lvl = level(k, s), tip = esc(describe(k, s, lvl));
-      return `<span class="src-dot" data-level="${lvl}" tabindex="0" role="img" aria-label="${tip}" data-tip="${tip}">` +
-             `<i aria-hidden="true"></i><span class="src-name">${SHORT[k] || k}</span></span>`;
-    }).join('');
-    const worst = ['error', 'warn'].find(l => box.querySelector(`[data-level="${l}"]`));
-    box.dataset.worst = worst || 'ok';
+    if (box) {
+      box.innerHTML = rows.map(({ k, s, lvl }) =>
+        `<div class="src-row" role="listitem" data-level="${lvl}">` +
+          `<i aria-hidden="true"></i><span class="src-label">${esc(s.label)}</span>` +
+          `<span class="src-detail">${esc(describe(k, s, lvl).split(' · ').slice(1).join(' · '))}</span>` +
+        `</div>`).join('');
+    }
+    // Header: a small dot on the gear only when something needs attention
+    const worst = rows.some(r => r.lvl === 'error') ? 'error' : rows.some(r => r.lvl === 'warn') ? 'warn' : null;
+    const badge = document.getElementById('gearAlert');
+    const gear = document.getElementById('settingsGear');
+    if (badge) { badge.hidden = !worst; badge.dataset.level = worst || ''; }
+    if (gear) gear.setAttribute('aria-label', worst ? 'Settings — a data source needs attention' : 'Settings');
+    if (gear) gear.title = worst ? 'Settings — a data source needs attention (see Data Sources)' : 'Settings';
   }
 
   async function refreshSourceStatus() {

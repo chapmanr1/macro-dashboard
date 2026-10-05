@@ -22,7 +22,6 @@
     </a>
   </div>
   <div class="topbar-right">
-    <div class="src-status" id="srcStatus" role="group" aria-label="Data source status"></div>
     <div class="asof" id="asOf" title="Next automatic refresh">
       <svg class="refresh-ring" id="refreshRing" viewBox="0 0 20 20" aria-hidden="true"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" id="refreshRingProgress" cx="10" cy="10" r="8"/></svg>
       <span id="asOfLabel">Data as of --:-- ET</span>
@@ -67,7 +66,7 @@
       <button class="hdr-btn" id="prepExportBtn" title="Export daily prep summary">Prep</button>
       <button class="hdr-btn" id="researchBtn" title="Research (⌘K then type)" aria-label="Research"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="btn-label">Research</span></button>
       <button class="hdr-btn hdr-kbd" id="paletteBtn" title="Command palette" aria-label="Open command palette"><kbd>⌘K</kbd></button>
-      <button class="hdr-btn hdr-icon settings-gear" id="settingsGear" title="Settings" aria-label="Settings"><svg class="hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="hdr-btn hdr-icon settings-gear" id="settingsGear" title="Settings" aria-label="Settings"><span class="gear-alert" id="gearAlert" hidden></span><svg class="hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
 </header>
@@ -4315,7 +4314,7 @@ function _saveTabOrder(tab,parent) {
 }
 
 // ════════════════════════════════════════════════════════════
-// SETTINGS DRAWER — 11 SECTIONS
+// SETTINGS DRAWER — 12 SECTIONS
 // ════════════════════════════════════════════════════════════
 let _drSrc=null;
 const TAB_NAMES={overview:'OVERVIEW',markets:'MARKETS',economy:'ECONOMY',credit:'CREDIT',news:'NEWS'};
@@ -4328,6 +4327,14 @@ function _sl(id,min,max,step,val,unit=''){return `<div class="sset-slider-wrap">
 function _si(id,val,ph=''){return `<input type="text" class="sset-input" id="${id}" value="${_xe(val)}" placeholder="${ph}">`;}
 function _sn(id,val,min,max,step){return `<input type="number" class="sset-input" id="${id}" value="${val}" min="${min}" max="${max}" step="${step}">`;}
 function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── S12: Data Sources (status rows filled by static/js/status.js) ──
+function _s12(){
+  return _sh('12','DATA SOURCES',false)+
+    `<div class="src-list" id="srcStatus" role="list" aria-label="Data source status"><div class="src-empty">Checking…</div></div>
+     <div class="src-legend"><span><i data-level="ok"></i>Working</span><span><i data-level="warn"></i>Last call failed or data aging</span><span><i data-level="error"></i>Failing</span><span><i data-level="idle"></i>Not used yet</span></div>`+
+    _se;
+}
 
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
@@ -4481,8 +4488,9 @@ function _s11(){
 // ── Render drawer ─────────────────────────────────────────────
 function renderDrawer(){
   const d=stLoad(); const ld=sLoad();
-  document.getElementById('settingsBody').innerHTML=[_s1(d),_s2(d),_s3(d),_s4(d),_s5(d),_s6(d),_s7(d),_s8(ld,d),_s9(d),_s10(d),_s11()].join('');
+  document.getElementById('settingsBody').innerHTML=[_s1(d),_s2(d),_s3(d),_s4(d),_s5(d),_s6(d),_s7(d),_s8(ld,d),_s9(d),_s10(d),_s11(),_s12()].join('');
   _bindDrawer();
+  if (typeof refreshSourceStatus === 'function') refreshSourceStatus();
 }
 
 // ── Bind all drawer controls ──────────────────────────────────
