@@ -1720,7 +1720,7 @@ button:focus-visible, .btn:focus-visible, .hdr-btn:focus-visible, [role="button"
 
 /* Shared panel content */
 .panel-note { padding: 10px 12px; color: var(--text-muted); font-size: var(--fs-12); line-height: 1.5; margin: 0; }
-.panel-body > .panel-note { padding: 0; }
+.panel-body:not(.flush) > .panel-note { padding: 0; }
 .panel-stamp.stamp-regime { font-weight: 600; }
 .panel-hdr .info-btn { color: var(--text-faint); padding: 0 2px; }
 .tbl .info-btn { color: var(--text-faint); padding: 0 0 0 4px; }
@@ -1801,3 +1801,36 @@ button:focus-visible, .btn:focus-visible, .hdr-btn:focus-visible, [role="button"
 .panel-lead .brief-body.expanded, .panel.panel-open .brief-body { max-height: none; }
 .brief-more { margin: 4px 0 10px; padding: 6px 10px; color: var(--accent); font-size: var(--fs-12); }
 .panel.panel-open .brief-more { display: none; }
+
+/* ════════ MARKETS WORKSPACE ════════ */
+.sig-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+.sig-word { font-size: var(--fs-12); font-weight: 600; color: var(--text-strong); }
+.sig-detail { font-size: var(--fs-11); color: var(--text-muted); line-height: 1.4; }
+.panel-foot { padding: 7px 12px; font-size: var(--fs-11); color: var(--text-faint); border-top: 1px solid var(--border-faint); }
+.sec-link { color: var(--text); text-decoration: none; }
+.sec-link:hover { color: var(--accent); }
+
+/* Sector bars: diverging from the centre, length proportional to the move */
+.tbl-bars .bar-cell { width: 45%; }
+.hbar { position: relative; height: 8px; background: var(--row-group-bg); border-radius: 2px; }
+.hbar-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-strong); }
+.hbar-fill { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.hbar-fill.up { background: var(--pos); } .hbar-fill.dn { background: var(--neg); } .hbar-fill.flat { background: var(--text-faint); }
+
+/* VIX gauge: bands, ticks and word all from config.VIX_LEVELS */
+.vg-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.vg-val { font-size: var(--fs-20); font-weight: 600; color: var(--text-strong); }
+.vg-word { margin-left: auto; font-size: var(--fs-12); font-weight: 600; }
+.vg-track { position: relative; display: flex; height: 8px; border-radius: 4px; overflow: visible; }
+.vg-seg { height: 100%; opacity: 0.55; }
+.vg-seg:first-child { border-radius: 4px 0 0 4px; } .vg-seg:last-of-type { border-radius: 0 4px 4px 0; }
+.vg-marker { position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1px; border-radius: 1px; background: var(--text-strong); }
+.vg-ticks { position: relative; height: 14px; font-size: var(--fs-11); color: var(--text-faint); }
+.vg-tick { position: absolute; transform: translateX(-50%); top: 2px; }
+.vg-names { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 6px; font-size: var(--fs-11); color: var(--text-muted); }
+.vg-desc { padding: 8px 0; }
+#vixContent .tbl, #vixTermContent .tbl { margin: 0 -12px; width: calc(100% + 24px); }
+
+/* COT rows inside a 300px rail */
+.ws-col .cot-wrap { padding: 0; }
+.ws-col .cot-row { grid-template-columns: minmax(0, 1fr) 72px 56px; gap: 8px; }

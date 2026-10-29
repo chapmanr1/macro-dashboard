@@ -212,137 +212,58 @@
   <!-- MARKETS TAB                                           -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel" id="tab-markets" role="tabpanel" aria-labelledby="tabbtn-markets">
-
-    <div class="section-header">
-      <div class="section-title">PRE-MARKET FUTURES</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'equity_futures')" ontouchstart="event.stopPropagation();_showTooltip(this,'equity_futures')">ⓘ</button>
-      <div class="section-meta" id="marketsTimestamp">--</div>
-    </div>
-    <div id="futuresContent">
-      <div class="futures-strip">
-        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
-        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
-        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
+    <div class="ws ws-3">
+      <div class="ws-col" data-col="mk-left">
+      <section class="panel" id="mk-indices" data-widget-id="mk-indices">
+        <div class="panel-hdr"><span class="panel-title">US Equity Indices</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'spx')" ontouchstart="event.stopPropagation();_showTooltip(this,'spx')">ⓘ</button><span class="panel-stamp" id="marketsTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open US Equity Indices" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="indicesContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-futures" data-widget-id="mk-futures">
+        <div class="panel-hdr"><span class="panel-title">Pre-Market Futures</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'equity_futures')" ontouchstart="event.stopPropagation();_showTooltip(this,'equity_futures')">ⓘ</button><span class="panel-stamp"></span><button class="panel-ctl" data-expand aria-label="Open Pre-Market Futures" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="futuresContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-currency" data-widget-id="mk-currency">
+        <div class="panel-hdr"><span class="panel-title">Currencies</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'dxy')" ontouchstart="event.stopPropagation();_showTooltip(this,'dxy')">ⓘ</button><span class="panel-stamp" id="currencyStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Currencies" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="currencyContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-cuau" data-widget-id="mk-cuau">
+        <div class="panel-hdr"><span class="panel-title">CU/AU Ratio</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'cu_au_ratio')" ontouchstart="event.stopPropagation();_showTooltip(this,'cu_au_ratio')">ⓘ</button><span class="panel-stamp"></span><button class="panel-ctl" data-expand aria-label="Open CU/AU Ratio" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="cuAuContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
       </div>
-      <div class="signal-bar"><div class="skel" style="height:22px;width:100px"></div><div class="skel" style="height:12px;width:250px;margin-left:8px"></div></div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">US EQUITY INDICES</div>
-      <div class="section-line"></div>
-    </div>
-    <div id="indicesContent" class="indices-grid">
-      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
-      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
-      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
-      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">SECTOR ROTATION</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'sector_rotation')" ontouchstart="event.stopPropagation();_showTooltip(this,'sector_rotation')">ⓘ</button>
-    </div>
-    <div id="sectorSignalBar" class="signal-bar"><div class="skel" style="height:22px;width:160px"></div><div class="skel" style="height:12px;width:300px;margin-left:8px"></div></div>
-    <div id="sectorContent" class="sector-grid">
-      <div class="sector-cell" style="background:var(--surface-raised)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
-      <div class="sector-cell" style="background:var(--surface-raised)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
-      <div class="sector-cell" style="background:var(--surface-raised)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
-      <div class="sector-cell" style="background:var(--surface-raised)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
-    </div>
-
-    <div class="section-header" id="breadth-header">
-      <div class="section-title">MARKET BREADTH</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'market_breadth')" ontouchstart="event.stopPropagation();_showTooltip(this,'market_breadth')">ⓘ</button>
-    </div>
-    <div id="breadthContent">
-      <div class="breadth-wrap">
-        <div class="breadth-grid">
-          <div class="skel" style="height:60px"></div>
-          <div class="skel" style="height:60px"></div>
-          <div class="skel" style="height:60px"></div>
-        </div>
+      <div class="ws-col ws-first" data-col="mk-center">
+      <section class="panel" id="mk-ratio" data-widget-id="mk-ratio">
+        <div class="panel-hdr"><span class="panel-title">RSP/SPX Ratio — Breadth Trend</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')" ontouchstart="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')">ⓘ</button><span class="panel-stamp" id="ratioStamp">—</span><button class="panel-ctl" data-expand aria-label="Open RSP/SPX Ratio — Breadth Trend" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="breadthRatioContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-sector" data-widget-id="mk-sector">
+        <div class="panel-hdr"><span class="panel-title">Sector Rotation</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'sector_rotation')" ontouchstart="event.stopPropagation();_showTooltip(this,'sector_rotation')">ⓘ</button><span class="panel-stamp" id="sectorStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Sector Rotation" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="sectorContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      </div>
+      <div class="ws-col" data-col="mk-right">
+      <section class="panel" id="mk-vixterm" data-widget-id="mk-vixterm">
+        <div class="panel-hdr"><span class="panel-title">VIX Term Structure</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'vix_term')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix_term')">ⓘ</button><span class="panel-stamp"></span><button class="panel-ctl" data-expand aria-label="Open VIX Term Structure" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="vixTermContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-breadth" data-widget-id="mk-breadth">
+        <div class="panel-hdr"><span class="panel-title">Market Breadth</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'market_breadth')" ontouchstart="event.stopPropagation();_showTooltip(this,'market_breadth')">ⓘ</button><span class="panel-stamp" id="breadthStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Market Breadth" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="breadthContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-vix" data-widget-id="mk-vix">
+        <div class="panel-hdr"><span class="panel-title">VIX Fear Gauge</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'vix')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix')">ⓘ</button><span class="panel-stamp" id="vixStamp">—</span><button class="panel-ctl" data-expand aria-label="Open VIX Fear Gauge" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="vixContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-commod" data-widget-id="mk-commod">
+        <div class="panel-hdr"><span class="panel-title">Commodities</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'crude_oil')" ontouchstart="event.stopPropagation();_showTooltip(this,'crude_oil')">ⓘ</button><span class="panel-stamp" id="commodStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Commodities" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="commodContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="mk-cot" data-widget-id="mk-cot">
+        <div class="panel-hdr"><span class="panel-title">COT Positioning</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'cot')" ontouchstart="event.stopPropagation();_showTooltip(this,'cot')">ⓘ</button><span class="panel-stamp" id="cotTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open COT Positioning" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="cotContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
       </div>
     </div>
-
-    <div class="section-header">
-      <div class="section-title">VIX FEAR GAUGE</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'vix')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix')">ⓘ</button>
-    </div>
-    <div id="vixContent">
-      <div class="vix-wrap">
-        <div class="skel" style="height:32px;width:120px;margin-bottom:10px"></div>
-        <div class="skel" style="height:14px;margin-bottom:8px"></div>
-        <div class="skel" style="height:12px;width:90%"></div>
-      </div>
-    </div>
-
-    <div class="section-header" id="breadth-ratio-header">
-      <div class="section-title">RSP/SPX RATIO — BREADTH TREND</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')" ontouchstart="event.stopPropagation();_showTooltip(this,'rsp_spx_ratio')">ⓘ</button>
-    </div>
-    <div id="breadthRatioContent">
-      <div style="padding:14px 14px 8px">
-        <div class="skel" style="height:160px;border-radius:4px"></div>
-      </div>
-    </div>
-
-    <div class="section-header" id="vix-term-header">
-      <div class="section-title">VIX TERM STRUCTURE</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'vix_term')" ontouchstart="event.stopPropagation();_showTooltip(this,'vix_term')">ⓘ</button>
-    </div>
-    <div id="vixTermContent">
-      <div class="vix-term-wrap">
-        <div class="vix-term-bars">
-          <div class="skel" style="height:60px"></div>
-          <div class="skel" style="height:60px"></div>
-          <div class="skel" style="height:60px"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">COMMODITIES</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'crude_oil')" ontouchstart="event.stopPropagation();_showTooltip(this,'crude_oil')" title="Tap individual commodities for specific definitions">ⓘ</button>
-    </div>
-    <div id="commodContent" class="commod-grid">
-      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-    </div>
-
-    <div id="cuAuContent"></div>
-
-    <div class="section-header">
-      <div class="section-title">CURRENCIES</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'dxy')" ontouchstart="event.stopPropagation();_showTooltip(this,'dxy')" title="Tap individual currencies for specific definitions">ⓘ</button>
-    </div>
-    <div id="currencyContent" class="currency-grid">
-      <div class="currency-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:30px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:10px;width:70px;margin-bottom:8px"></div><div class="skel" style="height:9px;width:200px"></div></div>
-      <div class="currency-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:30px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:10px;width:70px"></div></div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">COT POSITIONING</div>
-      <div class="section-line"></div>
-      <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'cot')" ontouchstart="event.stopPropagation();_showTooltip(this,'cot')">ⓘ</button>
-      <div class="section-meta" id="cotTimestamp">--</div>
-    </div>
-    <div id="cotContent" class="cot-wrap">
-      <div class="skel" style="height:12px;margin-bottom:14px"></div>
-      <div class="skel" style="height:12px;margin-bottom:14px"></div>
-      <div class="skel" style="height:12px;margin-bottom:14px"></div>
-      <div class="skel" style="height:12px;margin-bottom:14px"></div>
-      <div class="skel" style="height:12px"></div>
-    </div>
-
   </div><!-- /tab-markets -->
 
   <!-- ══════════════════════════════════════════════════════ -->
@@ -1648,7 +1569,7 @@ function renderRegimeBar() {
 }
 function _titleCase(t) {
   return String(t || '').toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase())
-    .replace(/\b(Gdp|Cpi|Pce|Ppi|Fomc|Ism|Jolts|Nfib|Umich|Ecb|Boj|Sep|Us|Tips|Reits?|Ig|Hy|Em|Usd|Bdc|M2)\b/g, w => w.toUpperCase())
+    .replace(/\b(Gdp|Cpi|Pce|Ppi|Fomc|Ism|Jolts|Nfib|Umich|Ecb|Boj|Sep|Us|Tips|Reits?|Ig|Hy|Em|Usd|Bdc|M2|Vix|Wti|Eur|Spy|Rsp|Oas)\b/g, w => w.toUpperCase())
     .replace(/\bReits\b/gi, 'REITs').replace(/\bYoy\b/g, 'YoY').replace(/\bMom\b/g, 'MoM');
 }
 
@@ -2982,258 +2903,136 @@ function sectorFgColor(pct) {
   return 'var(--neg)';
 }
 
+// Note line for panels whose series have no data source (never drawn as empty tiles).
+function _notConnected(what) {
+  return `<p class="panel-note">Not connected — ${what} has no data source yet. See Not Connected on Overview.</p>`;
+}
+function _asOfStamp(id, ymd, prefix = 'Prior close') {
+  const el = document.getElementById(id);
+  if (el) el.textContent = ymd ? `${prefix} · ${_ymdLabel(ymd, { month: 'short', day: 'numeric' })}` : prefix;
+}
+
 function renderMarkets(data) {
-  setTimestamp('marketsTimestamp', data.timestamp);
+  const lead = ((data.indices || []).find(i => i.symbol === '^GSPC') || {}).as_of;
 
-  // Futures
-  const futures = data.futures || [];
-  const futuresCells = futures.map(f => {
-    const cls = colorClass(f.pct_change, true);
-    const arrow = f.direction === 'UP' ? '▲' : f.direction === 'DOWN' ? '▼' : '→';
-    const url = YAHOO_URLS[f.symbol] || '';
-    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${tag} class="futures-cell"${attrs}>
-      <div class="futures-label">${f.label||''}</div>
-      <div class="futures-price ${cls}">${f.price != null ? fmtN(f.price,2) : '--'}</div>
-      <div class="futures-change ${cls}">${arrow} ${f.change != null ? fmt(Math.abs(f.change),2) : '--'} (${f.pct_change != null ? fmt(f.pct_change,2) : '--'}%)</div>
-    </${tag}>`;
-  }).join('');
+  // ── US Equity Indices: level, day change, YTD. Series without a source are left out. ──
+  const idx = (data.indices || []).filter(i => !i.pending_source && i.price != null);
+  const hasYtd = idx.some(i => i.ytd_pct != null);   // FRED closes carry no YTD; show the column only when there is data
+  setEl('indicesContent', idx.length ? `<table class="tbl"><thead><tr><th>Index</th><th>Level</th><th>Day</th>${hasYtd ? '<th>YTD</th>' : ''}</tr></thead><tbody>${
+    idx.map(i => `<tr>${_lblCell(_xe(_titleCase(i.label || i.abbr || '')), INDEX_TIP_IDS[i.symbol] || '', i.as_of, lead)}
+      <td class="val">${_num(i.price, 2)}</td><td>${_chg(i.pct_change, 2, '%')}</td>${hasYtd ? `<td>${_chg(i.ytd_pct, 2, '%')}</td>` : ''}</tr>`).join('')
+  }</tbody></table>` : '<div class="panel-note">No index data.</div>');
+  _asOfStamp('marketsTimestamp', lead);
 
-  const fsig = data.futures_signal || 'NEUTRAL';
-  const fsigCls = signalBadgeClass(fsig);
-  setEl('futuresContent', `
-    <div class="futures-strip">${futuresCells}</div>
-    <div class="signal-bar">
-      <div class="signal-badge ${fsigCls}">${fsig}</div>
-      <div class="signal-detail">${data.futures_detail||''}</div>
-    </div>`);
+  // ── Pre-Market Futures ──
+  const fut = (data.futures || []).filter(f => !f.pending_source && f.price != null);
+  setEl('futuresContent', fut.length
+    ? `<table class="tbl">${fut.map(f => `<tr><td class="lbl">${_xe(f.label || '')}</td><td class="val">${_num(f.price, 2)}</td><td>${_chg(f.pct_change, 2, '%')}</td></tr>`).join('')}</table>`
+    : _notConnected('S&amp;P, Nasdaq and Dow futures'));
 
-  // Indices
-  const indices = data.indices || [];
-  const indexCells = indices.map(idx => {
-    const dayCls = colorClass(idx.pct_change, true);
-    const ytdCls = colorClass(idx.ytd_pct, true);
-    const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '→';
-    const url = YAHOO_URLS[idx.symbol] || '';
-    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${tag} class="index-cell"${attrs}>
-      <div class="index-abbr" style="display:flex;align-items:center;justify-content:space-between">${idx.abbr||''}${_tipBtn(INDEX_TIP_IDS[idx.symbol]||'')}</div>
-      <div class="index-label">${idx.label||''}</div>
-      <div class="index-price ${dayCls}">${idx.price != null ? fmtN(idx.price,2) : '--'}</div>
-      <div class="index-day ${dayCls}">${arrow} ${idx.change != null ? fmt(Math.abs(idx.change),2) : '--'} (${idx.pct_change != null ? fmt(idx.pct_change,2) : '--'}%)</div>
-      <div class="index-ytd">YTD <span class="${ytdCls}">${idx.ytd_pct != null ? (idx.ytd_pct>=0?'+':'')+fmt(idx.ytd_pct,2)+'%' : '--'}</span></div>
-    </${tag}>`;
-  }).join('');
-  setEl('indicesContent', indexCells || '<div class="error-row">NO INDEX DATA</div>');
-  document.getElementById('indicesContent').className = 'indices-grid';
+  // ── Sector Rotation: all 11 sectors, bars proportional to the move ──
+  const sectors = (data.sectors || []).filter(x => x.pct_change != null).sort((x, y) => y.pct_change - x.pct_change);
+  const band = (data.breadth && data.breadth.flat_band) ?? 0.2;
+  const maxAbs = Math.max(...sectors.map(x => Math.abs(x.pct_change)), 0.01);
+  const sig = data.sector_signal || '';
+  setEl('sectorContent', sectors.length ? `
+    <div class="sig-line"><span class="sig-word">${_xe(_titleCase(sig))}</span><span class="sig-detail">${_xe(data.sector_detail || '')}</span></div>
+    <table class="tbl tbl-bars"><tbody>${sectors.map(x => {
+      const v = x.pct_change, flat = Math.abs(v) <= band;
+      const cls = flat ? 'flat' : v > 0 ? 'up' : 'dn';
+      const w = (Math.abs(v) / maxAbs * 50).toFixed(1);
+      return `<tr><td class="lbl"><a class="sec-link" href="https://finance.yahoo.com/quote/${_xe(x.symbol)}" target="_blank" rel="noopener noreferrer">${_xe(_titleCase(x.label || x.short || ''))}</a><span class="row-sub">${_xe(x.symbol || '')}</span></td>
+        <td class="bar-cell"><div class="hbar"><span class="hbar-mid"></span><span class="hbar-fill ${cls}" style="${v >= 0 ? 'left:50%' : `right:50%`};width:${w}%"></span></div></td>
+        <td class="${cls}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</td></tr>`;
+    }).join('')}</tbody></table>
+    <div class="panel-foot">Moves within ±${band}% count as flat (grey).</div>` : '<div class="panel-note">No sector data.</div>');
+  const secAsOf = (data.sectors || []).find(x => x.as_of)?.as_of;
+  _asOfStamp('sectorStamp', secAsOf || null, 'Twelve Data');
 
-  // Sectors
-  const sectors = data.sectors || [];
-  const ssig = data.sector_signal || '';
-  const ssigCls = signalBadgeClass(ssig);
-  setEl('sectorSignalBar', `
-    <div class="signal-badge ${ssigCls}">${ssig}</div>
-    <div class="signal-detail">${data.sector_detail||''}</div>`);
-
-  const sectorCells = sectors.map(s => {
-    const pct = s.pct_change;
-    const fg  = sectorFgColor(pct);
-    const bg  = sectorBg(pct);
-    const pctStr = pct != null ? (pct>=0?'+':'')+fmt(pct,2)+'%' : '--';
-    const secUrl = s.symbol ? `https://finance.yahoo.com/quote/${s.symbol}` : '';
-    const stag = secUrl ? `a` : `div`; const sattrs = secUrl ? ` href="${secUrl}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${stag} class="sector-cell" style="background:${bg}"${sattrs}>
-      <div class="sector-cell-label" style="color:${fg}">${s.short||s.label||''}</div>
-      <div class="sector-cell-pct" style="color:${fg}">${pctStr}</div>
-      <div class="sector-cell-ticker">${s.symbol||''}</div>
-    </${stag}>`;
-  }).join('');
-  setEl('sectorContent', sectorCells || '<div class="error-row">NO SECTOR DATA</div>');
-  document.getElementById('sectorContent').className = 'sector-grid';
-
-  // VIX
+  // ── VIX Fear Gauge: the word and the bands come from the same table (config.VIX_LEVELS) ──
   const vix = data.vix || {};
-  const vixVal = vix.value;
-  const vixPct = vixVal != null ? Math.min(100, vixVal / 50 * 100) : 0;
-  const vixCls = vix.color === 'green' ? 'c-green' : vix.color === 'red' ? 'c-red' : 'c-amber';
-  const vixBadgeBorder = vix.color === 'green' ? 'var(--pos)' : vix.color === 'red' ? 'var(--neg)' : 'var(--warn)';
-  const vixArrow = vix.direction === 'UP' ? '▲' : vix.direction === 'DOWN' ? '▼' : '→';
-  setEl('vixContent', `
-    <a class="vix-wrap" href="${YAHOO_URLS['^VIX']}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
-      <div class="vix-header">
-        <div class="vix-value ${vixCls}">${vixVal != null ? fmt(vixVal,2) : '--'}</div>
-        <div class="vix-change ${vixCls}">${vix.change != null ? vixArrow+' '+fmt(Math.abs(vix.change),2) : ''}</div>
-        <div class="vix-level-badge" style="border-color:${vixBadgeBorder};color:${vixBadgeBorder}">${vix.label||'--'}</div>
-      </div>
-      <div class="vix-track">
-        <div class="vix-marker" style="left:${vixPct}%"></div>
-      </div>
-      <div class="vix-scale">
-        <span>0</span><span style="color:var(--pos)">12 COMPLACENT</span><span style="color:var(--pos)">17 CALM</span>
-        <span style="color:var(--accent)">22 CAUTIOUS</span><span style="color:var(--accent)">28 FEARFUL</span>
-        <span style="color:var(--neg)">35 PANIC</span><span style="color:color-mix(in srgb, var(--neg) 50%, transparent)">50 EXTREME</span>
-      </div>
-      <div class="vix-description">${vix.description||''}</div>
-    </a>
-    ${(()=>{
-      if (vixVal == null) return '';
-      const expected = (vixVal / 16);
-      const actualPct = data.breadth?.spy_pct;
-      const expectedStr = expected.toFixed(2);
-      let actualBlock = '';
-      if (actualPct != null) {
-        const absActual = Math.abs(actualPct);
-        const ratio = absActual / expected;
-        let status, statusColor;
-        if (ratio < 1)         { status = 'NORMAL';   statusColor = 'var(--pos)'; }
-        else if (ratio < 1.5)  { status = 'ELEVATED'; statusColor = 'var(--warn)'; }
-        else if (ratio < 2)    { status = 'UNUSUAL';  statusColor = 'var(--accent)'; }
-        else                   { status = 'EXTREME';  statusColor = 'var(--neg)'; }
-        const sign = actualPct >= 0 ? '+' : '';
-        actualBlock = `<div class="vix-dm-actual" style="color:${statusColor}">TODAY: ${sign}${fmt(actualPct,2)}% — <strong>${status}</strong></div>`;
-      }
-      return `<div class="vix-daily-move">
-        <div class="vix-dm-label">EXPECTED DAILY MOVE ${_tipBtn('vix_daily_move')}</div>
-        <div class="vix-dm-value">± ${expectedStr}%</div>
-        ${actualBlock}
-      </div>`;
-    })()}`);
-
-  // Commodities
-  const commodities = data.commodities || [];
-  const commodCells = commodities.map(c => {
-    const cls = colorClass(c.pct_change, true);
-    const arrow = c.direction === 'UP' ? '▲' : c.direction === 'DOWN' ? '▼' : '→';
-    const dec = c.decimals ?? 2;
-    const url = YAHOO_URLS[c.symbol] || '';
-    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${tag} class="commod-cell"${attrs}>
-      <div class="commod-label" style="display:flex;align-items:center;justify-content:space-between">${c.label||''}${_tipBtn(COMMOD_TIP_IDS[c.label]||'')}</div>
-      <div class="commod-price ${cls}">${c.price != null ? fmt(c.price, dec) : c.pending_source ? 'SOURCE PENDING' : '--'}</div>
-      <div class="commod-change ${cls}">${arrow} ${c.pct_change != null ? fmt(c.pct_change,2)+'%' : '--'}</div>
-      <div class="commod-suffix">${c.suffix||''}</div>
-    </${tag}>`;
+  const levels = vix.levels || [];
+  const vmax = vix.display_max || 50;
+  const vv = vix.value;
+  const COLOR = { green: 'var(--pos)', amber: 'var(--warn)', red: 'var(--neg)' };
+  const wordColor = COLOR[vix.color] || 'var(--text-muted)';
+  let prev = 0;
+  const segs = levels.map(l => {
+    const hi = Math.min(l.max, vmax), w = Math.max(0, (hi - prev) / vmax * 100);
+    const seg = `<span class="vg-seg" style="width:${w}%;background:${COLOR[l.color] || 'var(--text-muted)'}"></span>`;
+    prev = hi; return seg;
   }).join('');
-  setEl('commodContent', commodCells || '<div class="error-row">NO COMMODITY DATA</div>');
-  document.getElementById('commodContent').className = 'commod-grid';
+  let p2 = 0;
+  const ticks = levels.filter(l => l.max < vmax).map(l => `<span class="vg-tick" style="left:${(l.max / vmax * 100).toFixed(1)}%">${l.max}</span>`).join('');
+  const names = levels.map(l => { const lo = p2; p2 = l.max; return `<span>${lo}${l.max < 9999 ? '–' + l.max : '+'} ${_titleCase(l.label)}</span>`; }).join('');
+  const expected = vv != null ? vv / 16 : null;   // VIX/16 ≈ expected daily % move (annual → daily, √252 ≈ 16)
+  const spy = data.breadth && data.breadth.spy_pct;
+  setEl('vixContent', vv == null ? '<div class="panel-note">VIX unavailable.</div>' : `
+    <div class="vg-head"><span class="vg-val">${_num(vv, 2)}</span>${_chg(vix.pct_change, 2, '%')}<span class="vg-word" style="color:${wordColor}">${_xe(_titleCase(vix.label || ''))}</span></div>
+    <div class="vg-track">${segs}<span class="vg-marker" style="left:${Math.min(100, vv / vmax * 100).toFixed(1)}%"></span></div>
+    <div class="vg-ticks">${ticks}</div>
+    <div class="vg-names">${names}</div>
+    <p class="panel-note vg-desc">${_xe(vix.description || '')}</p>
+    <table class="tbl tbl-kv"><tr><td class="lbl">Expected daily move${_tipBtn('vix_daily_move')}</td><td class="val">±${expected.toFixed(2)}%</td></tr>
+    ${spy != null ? `<tr><td class="lbl">SPY prior session</td><td class="val">${_chg(spy, 2, '%')} <span class="row-sub">${(Math.abs(spy) / expected).toFixed(1)}× expected</span></td></tr>` : ''}</table>`);
+  _asOfStamp('vixStamp', vix.as_of);
 
-  // Currencies
-  const currencies = data.currencies || [];
-  const dxyVal = currencies.find(c => c.symbol==='DTWEXBGS')?.price;
-  const dSig   = data.dollar_signal || '';
-  const dDetail = data.dollar_detail || '';
-  const currCells = currencies.map(c => {
-    const cls   = colorClass(c.pct_change, true);
-    const arrow = c.direction === 'UP' ? '▲' : c.direction === 'DOWN' ? '▼' : '→';
-    const dec   = c.decimals ?? 2;
-    const extraHTML = c.symbol === 'DTWEXBGS'
-      ? `<div class="currency-signal">${dSig ? '<strong>'+dSig+'</strong> — ' : ''}${dDetail}</div>`
-      : `<div class="currency-signal">${c.description||''}</div>`;
-    const curl = YAHOO_URLS[c.symbol] || '';
-    const ctag = curl ? `a` : `div`; const cattrs = curl ? ` href="${curl}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${ctag} class="currency-cell"${cattrs}>
-      <div class="currency-label" style="display:flex;align-items:center;justify-content:space-between">${c.label||''}${_tipBtn(CURRENCY_TIP_IDS[c.label]||'')}</div>
-      <div class="currency-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
-      <div class="currency-change ${cls}">${arrow} ${c.change != null ? fmt(Math.abs(c.change),dec) : '--'} (${c.pct_change != null ? fmt(c.pct_change,2) : '--'}%)</div>
-      ${extraHTML}
-    </${ctag}>`;
-  }).join('');
-  setEl('currencyContent', currCells || '<div class="error-row">NO FX DATA</div>');
-  document.getElementById('currencyContent').className = 'currency-grid';
+  // ── Commodities: crude (benchmark named); metals and gas have no source ──
+  const BENCH = { DCOILWTICO: 'WTI', DCOILBRENTEU: 'Brent' };
+  const comm = (data.commodities || []).filter(c => c.source !== 'pending' && c.price != null);
+  const pending = (data.commodities || []).filter(c => c.source === 'pending').map(c => _titleCase(c.label).toLowerCase());
+  setEl('commodContent', (comm.length ? `<table class="tbl">${comm.map(c => {
+      const name = BENCH[c.symbol] ? `Crude oil (${BENCH[c.symbol]})` : _titleCase(c.label);
+      return `<tr>${_lblCell(_xe(name), COMMOD_TIP_IDS[c.label] || '', c.as_of, lead, c.suffix || '')}<td class="val">${_num(c.price, c.decimals ?? 2)}</td><td>${_chg(c.pct_change, 2, '%')}</td></tr>`;
+    }).join('')}</table>` : '') + (pending.length ? `<p class="panel-note">Not connected: ${pending.join(', ')}.</p>` : ''));
+  _asOfStamp('commodStamp', comm[0] && comm[0].as_of);
 
-  // New derived panels
+  // ── Currencies ──
+  const cur = (data.currencies || []).filter(c => c.price != null);
+  setEl('currencyContent', cur.length ? `<table class="tbl">${cur.map(c => `<tr>${_lblCell(_xe(_titleCase(c.label || '')), CURRENCY_TIP_IDS[c.label] || '', c.as_of, lead,
+      c.symbol === 'DTWEXBGS' && data.dollar_signal ? _xe(_titleCase(data.dollar_signal)) : '')}
+      <td class="val">${_num(c.price, c.decimals ?? 2)}</td><td>${_chg(c.pct_change, 2, '%')}</td></tr>`).join('')}</table>` : '<div class="panel-note">No FX data.</div>');
+  _asOfStamp('currencyStamp', cur[0] && cur[0].as_of, 'FRED');
+
   renderBreadth(data);
   renderVixTerm(data);
   renderCuAu(data);
-
   checkAlerts('market', data);
 }
 
+// Market Breadth: counts use the same ±flat band as the sector table, so they always match it.
 function renderBreadth(data) {
   const b = data.breadth || {};
+  const band = b.flat_band ?? 0.2;
   const sig = b.signal || 'UNKNOWN';
-  const sigCls = sig.includes('BROAD') || sig.includes('IMPROVING') ? 'green'
-               : sig.includes('NARROW') || sig.includes('DETERIORATING') ? 'red' : 'muted';
-  const diffVal = b.differential;
-  const diffStr = diffVal != null ? (diffVal >= 0 ? '+' : '') + fmt(diffVal, 2) + '%' : '--';
-  const diffCls = diffVal != null ? (diffVal > 0 ? 'c-green' : diffVal < 0 ? 'c-red' : 'c-muted') : 'c-muted';
-  const spyStr  = b.spy_pct != null ? (b.spy_pct >= 0 ? '+' : '') + fmt(b.spy_pct, 2) + '%' : '--';
-  const rspStr  = b.rsp_pct != null ? (b.rsp_pct >= 0 ? '+' : '') + fmt(b.rsp_pct, 2) + '%' : '--';
-  const spyCls  = colorClass(b.spy_pct, true);
-  const rspCls  = colorClass(b.rsp_pct, true);
   setEl('breadthContent', `
-    <div class="breadth-wrap">
-      <div class="signal-bar" style="margin-bottom:10px">
-        <div class="signal-badge ${sigCls}">${sig}</div>
-        <div class="signal-detail">${b.detail||''}</div>
-      </div>
-      <div class="breadth-grid">
-        <div class="breadth-cell">
-          <div class="breadth-cell-label">SPY (CAP-WT)</div>
-          <div class="breadth-cell-val ${spyCls}">${spyStr}</div>
-          <div class="breadth-cell-sub">S&P 500</div>
-        </div>
-        <div class="breadth-cell">
-          <div class="breadth-cell-label">RSP (EQUAL-WT)</div>
-          <div class="breadth-cell-val ${rspCls}">${rspStr}</div>
-          <div class="breadth-cell-sub">Equal-weight S&P</div>
-        </div>
-        <div class="breadth-cell">
-          <div class="breadth-cell-label">RSP − SPY</div>
-          <div class="breadth-cell-val ${diffCls}">${diffStr}</div>
-          <div class="breadth-cell-sub">${b.sectors_up||0}↑ ${b.sectors_down||0}↓ sectors</div>
-        </div>
-      </div>
-    </div>`);
+    <div class="sig-line"><span class="sig-word">${_xe(_titleCase(sig))}</span></div>
+    <table class="tbl">
+      <tr>${_lblCell('SPY (cap-weight)', '', null, null)}<td>${_chg(b.spy_pct, 2, '%')}</td></tr>
+      <tr>${_lblCell('RSP (equal-weight)', '', null, null)}<td>${_chg(b.rsp_pct, 2, '%')}</td></tr>
+      <tr>${_lblCell('RSP − SPY', '', null, null)}<td>${_chg(b.differential, 2, '%')}</td></tr>
+      <tr>${_lblCell('Sectors', '', null, null, `±${band}% = flat`)}<td class="val"><span class="up">${b.sectors_up ?? 0} up</span> · <span class="flat">${b.sectors_flat ?? 0} flat</span> · <span class="dn">${b.sectors_down ?? 0} down</span></td></tr>
+    </table>`);
+  const st = document.getElementById('breadthStamp');
+  if (st) st.textContent = 'Twelve Data';
 }
 
+// VIX Term Structure: spot from FRED; the futures legs have no source yet.
 function renderVixTerm(data) {
-  const terms  = data.vix_term || [];
-  const signal = data.vix_term_signal || 'UNKNOWN';
-  const detail = data.vix_term_detail || '';
-  const sigCls = signal.includes('CONTANGO') ? 'green'
-               : signal.includes('BACKWARDATION') ? 'red'
-               : signal.includes('FLAT') ? 'amber' : 'muted';
-
-  const barMax = Math.max(...terms.map(t => t.price || 0), 1);
-  const bars = terms.map(t => {
-    const pct = t.price != null ? Math.min(100, (t.price / barMax) * 100) : 0;
-    const fill = t.months === 'SPOT' ? 'var(--accent)' : t.months === '5M' ? 'var(--accent)' : 'var(--text-muted)';
-    const chgStr = t.pct_change != null ? (t.pct_change >= 0 ? '+' : '') + fmt(t.pct_change, 2) + '%' : '';
-    const valCls = colorClass(t.pct_change, false);
-    return `<div class="vix-term-bar">
-      <div class="vix-term-bar-label">${t.label||''} <span style="color:var(--text-muted);font-size:var(--fs-11)">${t.months||''}</span></div>
-      <div class="vix-term-bar-val" style="color:${fill}">${t.price != null ? fmt(t.price, 2) : '--'}</div>
-      <div class="vix-term-track" style="margin-top:6px"><div class="vix-term-fill" style="width:${pct}%;background:${fill}"></div></div>
-      <div class="vix-term-bar-sub ${valCls}">${chgStr}</div>
-    </div>`;
-  }).join('');
-
-  setEl('vixTermContent', `
-    <div class="vix-term-wrap">
-      <div class="signal-bar" style="margin-bottom:10px">
-        <div class="signal-badge ${sigCls}">${signal}</div>
-        <div class="signal-detail">${detail}</div>
-      </div>
-      <div class="vix-term-bars">${bars || '<div class="error-row">NO VIX TERM DATA</div>'}</div>
-    </div>`);
+  const terms = (data.vix_term || []);
+  const live = terms.filter(t => !t.pending_source && (t.price ?? t.value) != null);
+  const spot = (data.vix && data.vix.value);
+  const rows = live.length ? live : (spot != null ? [{ label: 'VIX spot', months: 'SPOT', price: spot, pct_change: data.vix.pct_change }] : []);
+  const pending = terms.filter(t => t.pending_source).map(t => `${t.label.toLowerCase().replace('vix ', '')} (${t.months})`);
+  setEl('vixTermContent', (rows.length ? `<table class="tbl tbl-flush">${rows.map(t => `<tr><td class="lbl">${_xe(_titleCase(t.label))}<span class="row-sub">${_xe(t.months || '')}</span></td><td class="val">${_num(t.price ?? t.value, 2)}</td><td>${_chg(t.pct_change, 2, '%')}</td></tr>`).join('')}</table>` : '')
+    + (pending.length ? `<p class="panel-note">Not connected — VIX futures ${pending.join(', ')} have no data source, so the curve shape (contango / backwardation) can’t be shown.</p>` : ''));
 }
 
+// CU/AU ratio needs copper and gold prices.
 function renderCuAu(data) {
-  const ratio  = data.cu_au_ratio;
-  const signal = data.cu_au_signal || '';
-  const detail = data.cu_au_detail || '';
-  const sigCls = signal.includes('GROWTH POSITIVE') ? 'c-green'
-               : signal.includes('CONCERN') || signal.includes('RISK') ? 'c-red'
-               : signal.includes('NEUTRAL') ? 'c-amber' : 'c-muted';
-  const ratioStr = ratio != null ? ratio.toFixed(4) : '--';
-  setEl('cuAuContent', `
-    <div class="cu-au-wrap">
-      <div class="cu-au-label" style="display:flex;align-items:center;gap:6px">CU/AU RATIO ${_tipBtn('cu_au_ratio')}</div>
-      <div class="cu-au-ratio ${sigCls}">${ratioStr}</div>
-      <div class="cu-au-signal-badge" style="border-color:currentColor" class="${sigCls}">${signal}</div>
-      <div class="cu-au-detail">${detail}</div>
-    </div>`);
+  const ratio = data.cu_au_ratio;
+  if (ratio == null) { setEl('cuAuContent', _notConnected('the copper/gold ratio (copper and gold)')); return; }
+  setEl('cuAuContent', `<div class="vg-head"><span class="vg-val">${ratio.toFixed(4)}</span><span class="vg-word">${_xe(_titleCase(data.cu_au_signal || ''))}</span></div><p class="panel-note">${_xe(data.cu_au_detail || '')}</p>`);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3246,7 +3045,7 @@ function renderCOT(data) {
     el.innerHTML = '<div class="error-row">COT DATA UNAVAILABLE</div>';
     return;
   }
-  setTimestamp('cotTimestamp', data.timestamp);
+  { const st = document.getElementById('cotTimestamp'); if (st) st.textContent = data.as_of ? 'CFTC · week of ' + _ymdLabel(String(data.as_of).slice(0, 10), { month: 'short', day: 'numeric' }) : 'CFTC'; }
 
   const rows = data.positions.map(p => {
     if (p.net_long == null || p.score == null) {
@@ -3408,21 +3207,19 @@ function _drawRatioChart(period) {
 
 async function fetchMarkets() {
   setStatus('loading');
-  try {
-    const [data, cotData, ratioData] = await Promise.all([
-      apiFetch('/api/market'),
-      apiFetch('/api/cot').catch(() => null),
-      apiFetch('/api/breadth/ratio').catch(() => null),
-    ]);
-    _lastMarket = data;
-    renderMarkets(data);
-    if (cotData) renderCOT(cotData);
-    if (ratioData) renderBreadthRatio(ratioData);
-    setStatus('ok');
-  } catch(e) {
-    renderError('futuresContent', 'MARKET DATA UNAVAILABLE — ' + e.message);
-    setStatus('error');
-  }
+  const retry = () => fetchMarkets();
+  const MARKET_PANELS = ['indicesContent', 'futuresContent', 'currencyContent', 'cuAuContent', 'sectorContent',
+                         'vixTermContent', 'breadthContent', 'vixContent', 'commodContent'];
+  const [m, c, r] = await Promise.allSettled([
+    apiFetch('/api/market'), apiFetch('/api/cot'), apiFetch('/api/breadth/ratio'),
+  ]);
+  if (m.status === 'fulfilled') { _lastMarket = m.value; renderMarkets(m.value); }
+  else MARKET_PANELS.forEach(id => panelState(id, 'failed', { msg: `Market data unavailable (${_xe(m.reason.message || 'timeout')}).`, retry }));
+  if (c.status === 'fulfilled') renderCOT(c.value);
+  else panelState('cotContent', 'failed', { msg: 'COT data unavailable.', retry });
+  if (r.status === 'fulfilled') renderBreadthRatio(r.value);
+  else panelState('breadthRatioContent', 'failed', { msg: 'Breadth history unavailable.', retry });
+  setStatus(m.status === 'fulfilled' ? 'ok' : 'error');
   startRefreshCountdown();
 }
 
@@ -4159,15 +3956,6 @@ function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
 // ── Section definitions ───────────────────────────────────────
 const SEC_DEFS = [
-  {id:'mkt-futures',  tab:'markets', title:'Futures',            els:['futuresContent'],                        pw:false},
-  {id:'mkt-indices',  tab:'markets', title:'Equity Indices',     els:['indicesContent'],                        pw:false},
-  {id:'mkt-sector',   tab:'markets', title:'Sector Rotation',    els:['sectorSignalBar','sectorContent'],        pw:false},
-  {id:'mkt-breadth',  tab:'markets', title:'Market Breadth',     els:['breadthContent'],                        pw:false},
-  {id:'mkt-vix',      tab:'markets', title:'VIX Fear Gauge',     els:['vixContent'],                            pw:false},
-  {id:'mkt-vix-term', tab:'markets', title:'VIX Term Structure', els:['vixTermContent'],                        pw:false},
-  {id:'mkt-commod',   tab:'markets', title:'Commodities',        els:['commodContent'],                         pw:false},
-  {id:'mkt-currency', tab:'markets', title:'Currencies',         els:['currencyContent'],                       pw:false},
-  {id:'mkt-cot',      tab:'markets', title:'COT Positioning',    els:['cotContent'],                            pw:false},
   {id:'eco-scorecard',tab:'economy', title:'Economic Scorecard', els:['sec-eco-scorecard'],                     pw:true},
   {id:'eco-recession',tab:'economy', title:'Recession Prob.',    els:['recessionContent'],                      pw:false},
   {id:'eco-kshape',   tab:'economy', title:'K-Shape Monitor',    els:['kshapeContent'],                         pw:false},
