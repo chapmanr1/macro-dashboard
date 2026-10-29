@@ -110,16 +110,10 @@ def _calculate_technicals():
             tech["vix_current"]  = round(vc, 2)
             tech["vix_1m_avg"]   = round(v1m, 2)
             tech["vix_vs_avg"]   = round(vc - v1m, 2)
-            if vc < 11:
-                tech["vix_signal"] = "COMPLACENT — elevated complacency, watch for reversal"
-            elif vc < 14:
-                tech["vix_signal"] = "CALM — normal conditions"
-            elif vc < 19:
-                tech["vix_signal"] = "CAUTIOUS — elevated awareness"
-            elif vc < 23:
-                tech["vix_signal"] = "FEARFUL — significant uncertainty"
-            else:
-                tech["vix_signal"] = "PANIC — crisis territory"
+            # Same spot-VIX bands as the Markets gauge (config.VIX_LEVELS).
+            from config import VIX_LEVELS
+            band = next((l for l in VIX_LEVELS if vc <= l["max"]), VIX_LEVELS[-1])
+            tech["vix_signal"] = f"{band['label']} — {band['description']}"
     except Exception as e:
         tech["vix_error"] = str(e)[:120]
 

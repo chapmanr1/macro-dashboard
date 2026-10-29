@@ -152,6 +152,9 @@ def _vix_signal(vix_value):
                 "color":       level["color"],
                 "gauge_pct":   gauge_pct,
                 "description": level["description"],
+                # The gauge draws its bands from these, so word and scale always agree.
+                "levels":      [{"max": l["max"], "label": l["label"], "color": l["color"]} for l in VIX_LEVELS],
+                "display_max": VIX_DISPLAY_MAX,
             }
     return {"label": "EXTREME FEAR", "color": "red", "gauge_pct": 100,
             "description": VIX_LEVELS[-1]["description"]}
