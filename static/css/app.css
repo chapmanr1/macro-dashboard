@@ -1639,3 +1639,18 @@ button:focus-visible, .btn:focus-visible, .hdr-btn:focus-visible, [role="button"
   .tbl { font-size: var(--fs-11); }
   .tbl th, .tbl td { padding: 5px 9px; }
 }
+
+/* ── Ticker tape: very top, scrolls continuously, pauses on hover ── */
+.tape { height: 28px; overflow: hidden; background: var(--bg); border-bottom: 1px solid var(--border); font-size: var(--fs-12); white-space: nowrap; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; }
+.tape[hidden] { display: none; }
+.tape-track { display: inline-flex; height: 28px; align-items: center; width: max-content; animation: tape-scroll 90s linear infinite; }
+.tape:hover .tape-track { animation-play-state: paused; }
+.tape-run { display: inline-flex; align-items: center; }
+.tape-item { display: inline-flex; align-items: baseline; gap: 6px; padding: 0 12px; }
+.tape-lead { color: var(--accent); font-size: var(--fs-11); font-weight: 600; letter-spacing: var(--tracking-label); }
+.tape-lbl { color: var(--text-muted); }
+.tape-val { color: var(--text-strong); }
+.tape-date { color: var(--text-faint); font-size: var(--fs-11); }
+.tape-sep { color: var(--text-faint); }
+@keyframes tape-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+

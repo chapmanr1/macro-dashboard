@@ -10,6 +10,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v={{ build_id }}">
 </head>
 <body>
+<!-- TICKER TAPE — prior-session market data; hidden from Settings (per device) -->
+<div class="tape" id="tape" aria-label="Market tape, prior close">
+  <div class="tape-track" id="tapeTrack"><span class="tape-item tape-lead">Loading market tape…</span></div>
+</div>
 <!-- FIXED TOP BAR -->
 <header class="topbar">
   <div class="topbar-left">
@@ -4065,7 +4069,7 @@ const ST_KEY = 'macrodash_settings_v3';
 const S_KEY  = 'macrodash_sv2';
 
 const ST_DEF = {
-  theme:'dark', fontSize:'normal', density:'normal',
+  theme:'dark', fontSize:'normal', density:'normal', tickerTape:true,
   refreshRate:120, numFormat:'abbreviated', decimals:2,
   inflationThreshold:3.5, growthThreshold:2.0,
   bullProb:33, baseProb:34, bearProb:33,
@@ -6130,6 +6134,7 @@ fetchBDC();
 _makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementById('thesisFloatHdr'));
 </script>
 <script src="{{ url_for('static', filename='js/status.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/tape.js') }}?v={{ build_id }}"></script>
 <script src="{{ url_for('static', filename='js/palette.js') }}?v={{ build_id }}"></script>
 </body>
 </html>
