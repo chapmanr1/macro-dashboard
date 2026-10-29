@@ -944,10 +944,17 @@ function dirArrow(val) {
   return '→';
 }
 
+// Server timestamps come from datetime.utcnow().isoformat() — UTC with no zone marker,
+// which browsers would read as local time. Treat zone-less ISO strings as UTC.
+function parseServerTime(iso) {
+  if (iso instanceof Date) return iso;
+  const s = String(iso);
+  return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) || !/T\d/.test(s) ? s : s + 'Z');
+}
 function fmtTime(iso) {
   if (!iso) return '--';
-  try { return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}); }
-  catch { return '--'; }
+  const d = parseServerTime(iso);
+  return isNaN(d) ? '--' : etTime(d);
 }
 
 function fmtRelTime(iso) {
