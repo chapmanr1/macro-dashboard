@@ -1834,3 +1834,17 @@ button:focus-visible, .btn:focus-visible, .hdr-btn:focus-visible, [role="button"
 /* COT rows inside a 300px rail */
 .ws-col .cot-wrap { padding: 0; }
 .ws-col .cot-row { grid-template-columns: minmax(0, 1fr) 72px 56px; gap: 8px; }
+
+/* ════════ ECONOMY WORKSPACE ════════ */
+.tbl-score .lbl { min-width: 180px; }
+.tbl-score .ind-type-badge { margin-left: 6px; vertical-align: 1px; }
+.tbl-score .col-trend svg { display: block; margin-left: auto; }
+.tbl-score .col-asof { color: var(--text-muted); }
+.tbl-score .row-nfs .lbl-txt { color: var(--text-muted); }
+.warn-t { color: var(--warn); }
+.row-interp { display: none; font-size: var(--fs-11); color: var(--text-muted); line-height: 1.45; margin-top: 3px; white-space: normal; max-width: 60ch; }
+.panel.panel-open .row-interp { display: block; }
+@media (max-width: 1180px) { .tbl-score .col-trend { display: none; } }
+@media (max-width: 600px)  { .tbl-score .col-sig { display: none; } .tbl-score .lbl { min-width: 0; } .tbl-score .row-sub { display: none; } }
+.ws-col .kshape-grid { grid-template-columns: 1fr; }
+.ws-col .recession-wrap { padding: 0; }
