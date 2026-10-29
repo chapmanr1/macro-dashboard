@@ -4630,7 +4630,7 @@ async function fetchBDC(){
 function fetchCalendarNotifs(){
   if(_calendarChecked)return;
   _calendarChecked=true;
-  const today=new Date().toISOString().slice(0,10);
+  const today=etDayKey(new Date());   // Eastern calendar day (UTC rolls over at 8 PM ET)
   apiFetch('/api/calendar').then(data=>{
     const block=(data.events||[]).find(b=>b.date===today);
     if(!block)return;
