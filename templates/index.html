@@ -6,9 +6,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <title>MACRO DASHBOARD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v={{ build_id }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v={{ build_id }}">
 </head>
@@ -807,6 +804,7 @@
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/panel.js') }}?v={{ build_id }}"></script>
 <script>
 // ════════════════════════════════════════════════════════════
 // DESIGN TOKENS IN JS — colors come only from static/css/tokens.css.
@@ -4136,8 +4134,8 @@ let _appRefreshInt = null;
 function applyAppSettings() {
   const d = stLoad();
   const h = document.documentElement;
-  // Two themes since the redesign; older saved choices (original, midnight, …) fall back to dark.
-  h.setAttribute('data-theme',    d.theme === 'light' ? 'light' : 'dark');
+  // The workspace design is dark-only; any saved theme choice falls back to dark.
+  h.setAttribute('data-theme',    'dark');
   h.setAttribute('data-fontsize', d.fontSize || 'normal');
   h.setAttribute('data-density',  d.density  || 'normal');
   h.setAttribute('data-client',   d.clientMode ? 'true' : 'false');
