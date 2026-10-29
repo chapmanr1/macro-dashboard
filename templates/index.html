@@ -108,161 +108,49 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel active" id="tab-overview" role="tabpanel" aria-labelledby="tabbtn-overview">
 
-    <!-- AI MORNING BRIEFING -->
-    <section id="ai-briefing-section" class="briefing-section section-wrap" data-widget-id="briefing" draggable="true">
-      <div class="section-header" onclick="toggleBriefing()">
-        <button class="briefing-collapse-btn" title="Collapse">&#9660;</button>
-        <span class="section-title">&#11045; AI MORNING BRIEFING</span>
-        <div class="section-line"></div>
-        <div class="briefing-meta" onclick="event.stopPropagation()">
-          <span id="briefing-timestamp">Loading...</span>
-          <button id="briefing-refresh" class="briefing-refresh-btn" title="Regenerate briefing">&#8635;</button>
-        </div>
-      </div>
-      <div id="briefing-body">
-        <div id="briefing-content">
-          <div class="briefing-loading">GENERATING BRIEFING...</div>
-        </div>
-      </div>
-    </section>
-
-    <div id="ov-regime-wrap" class="section-wrap" data-widget-id="regime" draggable="true">
-    <div id="ov-anchor-regime" class="ov-anchor"></div>
-    <div class="section-header">
-      <div class="section-title">REGIME STATUS</div>
-      <div class="section-meta" id="regimeTimestamp">--</div>
-    </div>
-    <div id="regimeContent">
-      <div class="ov-three-col">
-
-        <!-- LEFT: regime tag + confidence + indices -->
-        <div class="ov-col-left">
-          <div id="regimeLeft" class="ov-cell ov-cell-div">
-            <div class="skel" style="width:100%;height:36px;margin-bottom:8px"></div>
-            <div class="skel" style="width:80px;height:10px"></div>
-          </div>
-          <div id="ovIndicesContent" class="ov-cell">
-            <div class="regime-risks-title">INDICES</div>
-            <div class="skel" style="height:10px;margin-bottom:5px"></div>
-            <div class="skel" style="height:10px;margin-bottom:5px"></div>
-            <div class="skel" style="height:10px;margin-bottom:5px"></div>
-            <div class="skel" style="height:10px"></div>
-          </div>
-        </div>
-
-        <!-- CENTER: indicator cards + positioning -->
-        <div class="ov-col-center" id="regimeCenter">
-          <div class="regime-indicators">
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-          </div>
-        </div>
-
-        <!-- RIGHT: key risks + market driving -->
-        <div class="ov-col-right">
-          <div id="regimeRight" class="ov-cell ov-cell-div">
-            <div class="regime-risks-title">KEY RISKS</div>
-            <div class="skel" style="height:10px;margin-bottom:6px"></div>
-            <div class="skel" style="height:10px;margin-bottom:6px"></div>
-            <div class="skel" style="height:10px"></div>
-          </div>
-          <div style="padding:8px 14px 4px"><div class="regime-risks-title">MARKET DRIVING</div></div>
-          <div id="ovDrivingContent">
-            <a class="driving-item" href="#" style="border-left:3px solid var(--neg)"><div class="skel" style="height:9px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:60%"></div></div><div></div></a>
-            <a class="driving-item" href="#" style="border-left:3px solid var(--accent)"><div class="skel" style="height:9px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:70%"></div></div><div></div></a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-    </div><!-- /regime wrap -->
-
-    <div id="ov-sec-thesis" class="ov-collapsible section-wrap" data-widget-id="thesis" draggable="true">
-      <div id="ov-anchor-thesis" class="ov-anchor"></div>
-      <div class="section-header">
-        <div class="section-title" style="color:var(--warn)">&#11045; THESIS INTEGRITY</div>
-        <div class="section-meta" id="thesisTimestamp">--</div>
-        <button class="thesis-detach-btn" onclick="event.stopPropagation();thesisDetach()" title="Float panel">&#10696;</button>
-        <button class="sec-collapse-btn" onclick="event.stopPropagation();toggleSectionCollapse('ov-sec-thesis')" title="Minimize">&#9660;</button>
-      </div>
-      <div class="ov-sec-body">
-        <div id="thesisIntegrityCard"><div class="skel" style="height:54px;width:100%"></div></div>
-        <div id="thesisTriggerGrid" class="thesis-trigger-grid">
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-          <div class="thesis-trigger-card"><div class="skel" style="height:9px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:28px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:20px;width:100%"></div></div>
-        </div>
-        <div style="padding:5px 14px 7px;font-size:var(--fs-11);color:var(--text-faint);letter-spacing:0.06em;border-top:1px solid var(--border)">
-          Triggers also visible in Credit tab &middot; FRED data updated hourly
-        </div>
-      </div>
+    <!-- REGIME BAR — slim full-width bar above the columns -->
+    <div class="regime-bar" id="regimeBar" aria-live="polite">
+      <div class="rb-call"><div class="skel" style="width:180px;height:22px"></div></div>
     </div>
 
-    <div id="ov-macro-wrap" class="section-wrap" data-widget-id="macro" draggable="true">
-    <div class="section-header">
-      <div class="section-title">MACRO INDICATORS</div>
-      <div class="section-meta" id="macroTimestamp">--</div>
-    </div>
-    <div id="macroContent" class="macro-grid">
-      <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
-      <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
-      <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
-      <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
-    </div>
-    </div><!-- /macro wrap -->
-
-    <div id="ov-sec-yields" class="ov-collapsible section-wrap" data-widget-id="yields" draggable="true">
-      <div id="ov-anchor-rates" class="ov-anchor"></div>
-      <div class="section-header">
-
-        <div class="section-title">YIELD CURVE</div>
-        <div class="section-meta" id="yieldsTimestamp">--</div>
+    <div class="ws ws-3" id="ovWs">
+      <!-- LEFT -->
+      <div class="ws-col" data-col="ov-left">
+      <section class="panel" id="ov-markets" data-widget-id="ov-markets">
+        <div class="panel-hdr"><span class="panel-title">Markets</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'ov_markets')" ontouchstart="event.stopPropagation();_showTooltip(this,'ov_markets')">ⓘ</button><span class="panel-stamp" id="ovMarketsStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Markets" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="ovMarketsBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-keylevels" data-widget-id="ov-keylevels">
+        <div class="panel-hdr"><span class="panel-title">Key Levels</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'key_levels')" ontouchstart="event.stopPropagation();_showTooltip(this,'key_levels')">ⓘ</button><span class="panel-stamp"></span><button class="panel-ctl" data-expand aria-label="Open Key Levels" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="ovKeyLevelsBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-macro-wrap" data-widget-id="ov-macro">
+        <div class="panel-hdr"><span class="panel-title">Macro Indicators</span><span class="panel-stamp" id="macroTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Macro Indicators" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="macroContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-notconn" data-widget-id="ov-notconn">
+        <div class="panel-hdr"><span class="panel-title">Not Connected</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'not_connected')" ontouchstart="event.stopPropagation();_showTooltip(this,'not_connected')">ⓘ</button><span class="panel-stamp"></span><button class="panel-ctl" data-expand aria-label="Open Not Connected" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="ovNotConnBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
       </div>
-      <div class="ov-sec-body">
-        <div id="yieldsContent">
-          <div class="yc-wrap">
-            <div class="yc-chart"><div class="skel" style="height:160px;width:100%"></div></div>
-            <div class="yc-spreads">
-              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-              <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div id="ov-sec-fedwatch" class="ov-collapsible section-wrap" data-widget-id="fedwatch" draggable="true">
-      <div class="section-header" id="fedwatch-header">
-
-        <div class="section-title">FED RATE PATH <button class="info-btn" onclick="event.stopPropagation();_showTooltip(this,'fed_rate_path')" ontouchstart="event.stopPropagation();_showTooltip(this,'fed_rate_path')">ⓘ</button></div>
-        <div class="section-meta" id="fedwatchTimestamp">--</div>
-      </div>
-      <div class="ov-sec-body">
-        <div id="fedwatchContent">
-          <div class="fedwatch-wrap">
-            <div class="skel" style="height:22px;width:80px;margin-bottom:10px"></div>
-            <div class="skel" style="height:10px;width:260px;margin-bottom:12px"></div>
-            <div class="fedwatch-path">
-              <div class="skel" style="height:66px"></div>
-              <div class="skel" style="height:66px"></div>
-              <div class="skel" style="height:66px"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="ov-sec-chart" class="ov-collapsible section-wrap" data-widget-id="chart" draggable="true">
-      <div id="ov-anchor-chart" class="ov-anchor"></div>
-      <div class="section-header">
-
-        <div class="section-title">MACRO TIME SERIES</div>
-        <div class="section-meta" id="macroChartTimestamp">--</div>
-      </div>
-      <div class="ov-sec-body">
+      <!-- CENTER: the briefing is the lead story -->
+      <div class="ws-col ws-first" data-col="ov-center">
+      <section class="panel panel-lead" id="ai-briefing-section" data-widget-id="ov-briefing">
+        <div class="panel-hdr"><span class="panel-title">AI Morning Briefing</span><span class="panel-stamp" id="briefing-timestamp">—</span><button id="briefing-refresh" class="panel-ctl" title="Regenerate briefing" aria-label="Regenerate briefing">&#8635;</button><button class="panel-ctl" data-expand aria-label="Open AI Morning Briefing" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="briefing-content"><div class="panel-skel"><div class="skel" style="width:40%"></div><div class="skel" style="height:22px;width:85%"></div><div class="skel"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-today" data-widget-id="ov-today">
+        <div class="panel-hdr"><span class="panel-title">Today's Data</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'todays_data')" ontouchstart="event.stopPropagation();_showTooltip(this,'todays_data')">ⓘ</button><span class="panel-stamp" id="ovTodayStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Today's Data" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="ovTodayBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-sec-yields" data-widget-id="ov-yields">
+        <div class="panel-hdr"><span class="panel-title">Yield Curve</span><span class="panel-stamp" id="yieldsTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Yield Curve" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="yieldsContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-sec-chart" data-widget-id="ov-chart">
+        <div class="panel-hdr"><span class="panel-title">Macro Time Series</span><span class="panel-stamp" id="macroChartTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Macro Time Series" title="Open">&#10530;</button></div>
+        <div class="panel-body">
         <div class="macro-chart-controls">
           <div class="mc-range-group">
             <button class="mc-btn mc-range" data-range="1y">1Y</button>
@@ -282,22 +170,39 @@
         </div>
         <div class="mc-legend" id="mcLegend"></div>
         <div class="mc-est-note" id="mcEstNote" style="display:none">* shaded bands before live tracking are estimated from FRED indicator thresholds</div>
-      </div>
-    </div>
-
-    <div id="ov-sec-history" class="ov-collapsible section-wrap" data-widget-id="history" draggable="true">
-      <div id="ov-anchor-history" class="ov-anchor"></div>
-      <div class="section-header" id="regime-history-header">
-
-        <div class="section-title">REGIME HISTORY</div>
-        <div class="section-meta">90-DAY</div>
-      </div>
-      <div class="ov-sec-body">
-        <div id="regimeHistoryContent">
-          <div class="rh-period-list">
-            <div class="skel" style="height:54px;width:100%"></div>
-          </div>
         </div>
+      </section>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="ws-col" data-col="ov-right">
+      <section class="panel" id="ov-positioning" data-widget-id="ov-positioning">
+        <div class="panel-hdr"><span class="panel-title">Suggested Positioning</span><span class="panel-stamp" id="ovPosStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Suggested Positioning" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="ovPosBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-risks" data-widget-id="ov-risks">
+        <div class="panel-hdr"><span class="panel-title">Key Risks</span><span class="panel-stamp" id="ovRisksStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Key Risks" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="ovRisksBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-sec-thesis" data-widget-id="ov-thesis">
+        <div class="panel-hdr"><span class="panel-title">Thesis Integrity</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'thesis_integrity')" ontouchstart="event.stopPropagation();_showTooltip(this,'thesis_integrity')">ⓘ</button><span class="panel-stamp" id="thesisTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Thesis Integrity" title="Open">&#10530;</button></div>
+        <div class="panel-body flush">
+          <div id="thesisIntegrityCard"><div class="panel-skel"><div class="skel"></div><div class="skel" style="width:70%"></div></div></div>
+          <div id="thesisTriggerGrid" class="thesis-trigger-grid"></div>
+        </div>
+      </section>
+      <section class="panel" id="ov-sec-fedwatch" data-widget-id="ov-fedwatch">
+        <div class="panel-hdr"><span class="panel-title">Fed Rate Path</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'fed_rate_path')" ontouchstart="event.stopPropagation();_showTooltip(this,'fed_rate_path')">ⓘ</button><span class="panel-stamp" id="fedwatchTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Fed Rate Path" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="fedwatchContent"><div class="panel-skel"><div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:84%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-sec-history" data-widget-id="ov-history">
+        <div class="panel-hdr"><span class="panel-title">Regime History — 90-Day</span><span class="panel-stamp" id="regimeTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Regime History — 90-Day" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="regimeHistoryContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="ov-topstories" data-widget-id="ov-topstories">
+        <div class="panel-hdr"><span class="panel-title">Top Stories</span><span class="panel-stamp" id="ovTopStoriesStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Top Stories" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="ovTopStoriesBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
       </div>
     </div>
 
@@ -1135,6 +1040,13 @@ function _srcLink(source) {
 // INDICATOR TOOLTIPS
 // ════════════════════════════════════════════════════════════
 const INDICATOR_TOOLTIPS = {
+  // ── Workspace panels (2026-10 redesign) ──
+  dgs10:          { title:'10-YEAR TREASURY YIELD', what:'Yield on the 10-year US Treasury note at the prior close (FRED DGS10). The benchmark for mortgages, corporate borrowing and equity valuations.', read:'Rising = tighter financial conditions and pressure on long-duration assets; falling = easing or a flight to safety. The change column is in basis points (1bp = 0.01%).', thresholds:'No watch level is set yet — one can be added in config.py.' },
+  dgs2:           { title:'2-YEAR TREASURY YIELD', what:'Yield on the 2-year US Treasury note at the prior close (FRED DGS2). The maturity most sensitive to expected Fed policy over the next two years.', read:'Moves with rate expectations: up = market expects a tighter Fed; down = expects cuts. Compare with the 10-year for the curve slope.', thresholds:'2Y above fed funds = market prices hikes | below = prices cuts' },
+  ov_markets:     { title:'MARKETS — PRIOR CLOSE', what:'Prior-session closing levels: S&P 500, Nasdaq, Dow and VIX from FRED; 10Y/2Y yields and the HY spread from FRED; crude oil (WTI) from FRED. Not live quotes.', read:'Each row is the latest FRED close. A small date under a row means that series has not yet posted the most recent session.', thresholds:'HY spread trigger (from the thesis) is shown under the HY row.' },
+  key_levels:     { title:'KEY LEVELS', what:'Upcoming dates that matter for positioning, from the official release calendar: the next FOMC decision and the next day with scheduled economic data.', read:'Times are Eastern. Only levels the dashboard has a source for are shown.', thresholds:'—' },
+  not_connected:  { title:'NOT CONNECTED', what:'Series the dashboard would show but has no data source for yet (no free API that works from the server without ETF proxies).', read:'These are kept off the dashboard entirely rather than shown as empty tiles, so nothing looks live that is not.', thresholds:'—' },
+  todays_data:    { title:"TODAY'S DATA", what:'Economic releases scheduled for today on the official calendar (BLS, BEA, Census, Fed, ISM, Conference Board), with the released value once FRED posts it.', read:'Consensus forecasts have no free source, so the verdict compares each print with the prior release, not with expectations. The highlighted row is the largest move vs prior.', thresholds:'Higher / Lower / Unchanged vs prior · Pending = not yet released' },
   china:          { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
   germany:        { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
   g7:             { title:'OECD COMPOSITE LEADING INDICATOR', what:'The OECD\'s Composite Leading Indicator (amplitude-adjusted, via FRED) combines forward-looking series — orders, confidence surveys, financial conditions — to anticipate turning points in the business cycle about 6-9 months ahead. Long-run trend = 100. Published monthly with roughly a 2-month lag; the card shows which month the data is for. Germany and the G7 replace the Euro Area and OECD-total series, which FRED stopped updating in Nov 2022.', read:'Above 100 and rising = expansion. Above 100 but falling = slowing. Below 100 and rising = recovering. Below 100 and falling = contraction. Direction matters more than level.', thresholds:'EXPANSION (>100, rising) | SLOWING (>100, falling) | RECOVERING (<100, rising) | CONTRACTION (<100, falling)' },
@@ -1654,125 +1566,116 @@ document.addEventListener('touchstart', e => { if (!e.target.closest('.info-btn,
 // ════════════════════════════════════════════════════════════
 function renderRegime(data) {
   _lastRegimeData = data;
-  const label       = data.label || 'UNKNOWN';
-  const confidence  = data.confidence_score ?? null;
-  const indicators  = data.indicator_breakdown || [];
-  const risks       = data.key_risks || [];
-  const positioning = data.asset_class_positioning || [];
-
   setTimestamp('regimeTimestamp', data.timestamp);
-
-  const cssLabel = label.replace(/\s+/g, '-');
-
-  // LEFT: regime tag + confidence (tag is clickable — opens explain popup)
-  const leftEl = document.getElementById('regimeLeft');
-  if (leftEl) {
-    setEl('regimeLeft', `
-      <div class="regime-tag ${cssLabel}">${label}</div>
-      <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>`);
-    const regimeTag = leftEl.querySelector('.regime-tag');
-    if (regimeTag) regimeTag.addEventListener('click', showRegimeExplain);
-  }
-
-  // CENTER is handled by renderRegimeCenterCards() after all data settles
-
-  // RIGHT: key risks
-  const riskItems = risks.length
-    ? risks.map(r => `<div class="regime-risk-item">▸ ${r}</div>`).join('')
-    : '<div class="c-muted" style="font-size:var(--fs-11)">NO FLAGS</div>';
-
-  const rightEl = document.getElementById('regimeRight');
-  if (rightEl) setEl('regimeRight', `
-    <div class="regime-risks-title">KEY RISKS</div>
-    ${riskItems}`);
-
+  renderRegimeBar();
+  const risks = data.key_risks || [];
+  setEl('ovRisksBody', risks.length
+    ? `<ul class="risk-list">${risks.map(r => `<li>${_xe(r)}</li>`).join('')}</ul>`
+    : '<div class="panel-note">No risk flags from the regime engine.</div>');
+  _regimeStamp('ovRisksStamp');
+  _regimeStamp('ovPosStamp');
   checkAlerts('regime', data);
 }
 
+// Panel stamp showing the current regime name in its regime color.
+function _regimeStamp(id) {
+  const el = document.getElementById(id);
+  if (!el || !_lastRegimeData) return;
+  el.textContent = regimeName(_lastRegimeData.label);
+  el.style.color = regimeColor(_lastRegimeData.label);
+  el.classList.add('stamp-regime');
+}
+
+// ── Calendar helpers (event times are "8:30 ET" — 12-hour, no AM/PM; 1–6 o'clock are afternoon) ──
+function _evMinutes(t) {
+  const m = /^(\d{1,2}):(\d{2})/.exec(t || '');
+  if (!m) return null;
+  let h = +m[1];
+  if (h >= 1 && h <= 6) h += 12;
+  return h * 60 + (+m[2]);
+}
+function _evTimeLabel(t) {
+  const mins = _evMinutes(t);
+  if (mins === null) return t || '';
+  const h = Math.floor(mins / 60), mm = String(mins % 60).padStart(2, '0');
+  return `${((h + 11) % 12) + 1}:${mm} ${h >= 12 ? 'PM' : 'AM'} ET`;
+}
+function _ymdLabel(ymd, opts = { weekday: 'short', month: 'short', day: 'numeric' }) {
+  return ymd ? new Date(ymd + 'T12:00:00').toLocaleDateString('en-US', opts) : '—';
+}
+function _etNow() {
+  const now = new Date();
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    .formatToParts(now).map(x => [x.type, x.value]));
+  return { key: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + (+p.minute) };
+}
+/** Upcoming calendar events in order: [{date, ev}] (today's already-passed times excluded). */
+function _upcomingEvents() {
+  const now = _etNow();
+  const out = [];
+  ((_lastCalendar && _lastCalendar.events) || []).forEach(day => {
+    (day.events || []).forEach(ev => {
+      if (day.date < now.key) return;
+      if (day.date === now.key && (_evMinutes(ev.time) ?? 0) <= now.mins) return;
+      out.push({ date: day.date, ev });
+    });
+  });
+  return out.sort((x, y) => x.date.localeCompare(y.date) || (_evMinutes(x.ev.time) ?? 0) - (_evMinutes(y.ev.time) ?? 0));
+}
+
+// ── Regime bar: call (in its regime color) · confidence · change · next event ──
+function renderRegimeBar() {
+  const d = _lastRegimeData;
+  if (!d) return;
+  const label = d.label || 'UNKNOWN';
+  const conf = d.confidence_score != null ? fmt(d.confidence_score, 0) + '%' : '—';
+  const periods = (_lastRegimeHistory && _lastRegimeHistory.periods) || [];
+  const cur = periods.find(p => p.is_current);
+  const prev = periods.filter(p => !p.is_current).sort((x, y) => (y.end_date || '').localeCompare(x.end_date || ''))[0];
+  const change = cur
+    ? (prev ? `From ${regimeName(prev.label)} · ${_ymdLabel(cur.start_date, { month: 'short', day: 'numeric' })}`
+            : `None since ${_ymdLabel(cur.start_date, { month: 'short', day: 'numeric' })}`)
+    : '—';
+  const nxt = _upcomingEvents()[0];
+  const next = nxt ? `${_xe(_titleCase(nxt.ev.event))} · ${_ymdLabel(nxt.date)} ${_evTimeLabel(nxt.ev.time)}` : '—';
+  setEl('regimeBar', `
+    <button class="rb-call" id="rbCall" style="color:${regimeColor(label)}" title="Why this regime?">${_xe(regimeName(label))}</button>
+    <span class="rb-item">Confidence <b>${conf}</b>${_tipBtn('regime_confidence')}</span>
+    <span class="rb-item" title="Regime history is tracked from the last server restart">Change <b>${change}</b></span>
+    <span class="rb-item">Next event <b>${next}</b></span>`);
+  document.getElementById('rbCall')?.addEventListener('click', showRegimeExplain);
+}
+function _titleCase(t) {
+  return String(t || '').toLowerCase().replace(/\b([a-z])/g, c => c.toUpperCase())
+    .replace(/\b(Gdp|Cpi|Pce|Ppi|Fomc|Ism|Jolts|Nfib|Umich|Ecb|Boj|Sep|Us|Tips|Reits?|Ig|Hy|Em|Usd|Bdc|M2)\b/g, w => w.toUpperCase())
+    .replace(/\bReits\b/gi, 'REITs').replace(/\bYoy\b/g, 'YoY').replace(/\bMom\b/g, 'MoM');
+}
+
+// Suggested Positioning: the regime's list with ▲ overweight / ▼ underweight / – neutral.
+// Rows keep the .pos-item / #posGrid structure so the drill-down (showPositioningDetail) works.
 function renderRegimeCenterCards() {
   if (!_lastRegimeData) return;
   const positioning = _lastRegimeData.asset_class_positioning || [];
-  const mkt    = _lastMarket  || {};
-  const ylds   = _lastYields  || {};
-  const crd    = _lastCredit  || {};
-
-  const sigCls = s => s === 'BULLISH' ? 'c-green' : s === 'BEARISH' ? 'c-red' : 'c-amber';
-
-  const cards = [];
-
-  // 10Y-2Y SPREAD
-  const sp1  = (ylds.spreads || []).find(s => s.label === '10Y-2Y');
-  const v12  = sp1 ? sp1.value : null;
-  const s12  = v12 === null ? 'NEUTRAL' : v12 >= 0.5 ? 'BULLISH' : v12 >= 0 ? 'NEUTRAL' : v12 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: '10Y-2Y SPREAD', tipId:'t10y2y',  value: v12 !== null ? (v12 >= 0 ? '+' : '') + fmt(v12,2) + '%' : '--', signal: s12 });
-
-  // 10Y-3M SPREAD
-  const sp2  = (ylds.spreads || []).find(s => s.label === '10Y-3MO');
-  const v13  = sp2 ? sp2.value : null;
-  const s13  = v13 === null ? 'NEUTRAL' : v13 >= 0.5 ? 'BULLISH' : v13 >= 0 ? 'NEUTRAL' : v13 >= -0.5 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: '10Y-3M SPREAD', tipId:'t10y3mo', value: v13 !== null ? (v13 >= 0 ? '+' : '') + fmt(v13,2) + '%' : '--', signal: s13 });
-
-  // VIX
-  const vixV = mkt.vix ? mkt.vix.value : null;
-  const sVix = vixV === null ? 'NEUTRAL' : vixV < 15 ? 'BULLISH' : vixV < 25 ? 'NEUTRAL' : vixV < 35 ? 'NEUTRAL-BEARISH' : 'BEARISH';
-  cards.push({ name: 'VIX',           tipId:'vix',     value: vixV !== null ? fmt(vixV,1) : '--', signal: sVix });
-
-  // USD INDEX
-  const dxy  = (mkt.currencies || []).find(c => c.symbol === 'DTWEXBGS');
-  const dxyV = dxy ? dxy.price : null;
-  const dSig = (mkt.dollar_signal || '').toUpperCase();
-  const sDxy = dSig.includes('VERY STRONG') ? 'BEARISH' : dSig.includes('STRONG') ? 'NEUTRAL-BEARISH' : dSig.includes('WEAK') ? 'BULLISH' : 'NEUTRAL';
-  cards.push({ name: 'USD INDEX',      tipId:'dxy',     value: dxyV !== null ? fmt(dxyV,1) : '--', signal: sDxy });
-
-  // HY SPREADS
-  const hy   = (crd.spreads || []).find(s => s.id === 'hy_oas');
-  const hyV  = hy ? hy.value : null;
-  const sHy  = hy && hy.signal ? (hy.signal === 'TIGHT' ? 'BULLISH' : hy.signal === 'NORMAL' ? 'NEUTRAL' : 'BEARISH') : 'NEUTRAL';
-  cards.push({ name: 'HY SPREADS',    tipId:'hy_oas',  value: hyV !== null ? fmt(hyV,0) + 'bp' : '--', signal: sHy });
-
-  // 5Y BREAKEVEN
-  const be   = (crd.breakevens || []).find(s => s.id === 't5yie');
-  const beV  = be ? be.value : null;
-  const sBe  = beV === null ? 'NEUTRAL' : beV > 3.0 ? 'BEARISH' : beV > 2.5 ? 'NEUTRAL-BEARISH' : beV >= 1.5 ? 'NEUTRAL' : 'BULLISH';
-  cards.push({ name: '5Y BREAKEVEN',  tipId:'t5yie',   value: beV !== null ? fmt(beV,2) + '%' : '--', signal: sBe });
-
-  // 10Y REAL YIELD
-  const ry   = (crd.real_yields || []).find(s => s.id === 'dfii10');
-  const ryV  = ry ? ry.value : null;
-  const sRy  = ryV === null ? 'NEUTRAL' : ryV > 2.5 ? 'BEARISH' : ryV > 1.5 ? 'NEUTRAL-BEARISH' : ryV >= 0 ? 'NEUTRAL' : 'BULLISH';
-  cards.push({ name: '10Y REAL YIELD',tipId:'dfii10',  value: ryV !== null ? fmt(ryV,2) + '%' : '--', signal: sRy });
-
-  const cardHtml = cards.map(c => `<div class="regime-ind" data-widget-id="${c.tipId}" draggable="true">
-    <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${c.name}${_tipBtn(c.tipId)}</div>
-    <div class="regime-ind-val ${sigCls(c.signal)}">${c.value}</div>
-    <div class="regime-ind-signal ${sigCls(c.signal)}">${c.signal}</div>
-  </div>`).join('');
-
-  const posItems = positioning.map(p => {
-    const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
-    const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
-    const assetEsc = (p.asset_class||'').replace(/"/g,'&quot;');
-    return `<div class="pos-item ${cls}" data-asset="${assetEsc}">${pre}${p.asset_class||''}<span class="pos-item-arrow">&#9654;</span></div>`;
+  _regimeStamp('ovPosStamp');
+  if (!positioning.length) { setEl('ovPosBody', '<div class="panel-note">No positioning for this regime.</div>'); return; }
+  const rows = positioning.map(p => {
+    const cls = p.stance === 'OW' ? 'OW' : p.stance === 'UW' ? 'UW' : 'N';
+    const mark = p.stance === 'OW' ? '▲' : p.stance === 'UW' ? '▼' : '–';
+    const word = p.stance === 'OW' ? 'Overweight' : p.stance === 'UW' ? 'Underweight' : 'Neutral';
+    const assetEsc = (p.asset_class || '').replace(/"/g, '&quot;');
+    return `<div class="pos-item ${cls}" data-asset="${assetEsc}" role="button" tabindex="0">
+      <span class="pos-mark">${mark}</span><span class="pos-name">${_xe(_titleCase(p.asset_class || ''))}</span><span class="pos-word">${word}</span></div>`;
   }).join('');
-
-  const centerEl = document.getElementById('regimeCenter');
-  if (!centerEl) return;
-  setEl('regimeCenter', `
-    <div class="regime-indicators" id="regimeIndGrid">${cardHtml}</div>
-    ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid" id="posGrid">${posItems}</div></div>` : ''}`);
-
-  _makeSortable(document.getElementById('regimeIndGrid'), 'regime-inds');
-
+  setEl('ovPosBody', `<div class="pos-list" id="posGrid">${rows}</div>`);
   const grid = document.getElementById('posGrid');
-  if (grid) {
-    grid.addEventListener('click', e => {
-      const item = e.target.closest('.pos-item');
-      if (!item) return;
-      const asset = item.dataset.asset;
-      if (_openPositioningAsset === asset) { closePositioningDetail(); return; }
-      showPositioningDetail(asset);
-    });
-  }
+  grid.addEventListener('click', e => {
+    const item = e.target.closest('.pos-item');
+    if (!item) return;
+    const asset = item.dataset.asset;
+    if (_openPositioningAsset === asset) { closePositioningDetail(); return; }
+    showPositioningDetail(asset);
+  });
   if (_openPositioningAsset) showPositioningDetail(_openPositioningAsset);
 }
 
@@ -1896,27 +1799,20 @@ function closePositioningDetail() {
 function renderMacro(data) {
   const series = data.series || [];
   setTimestamp('macroTimestamp', data.timestamp);
-  if (!series.length) { setEl('macroContent','<div class="error-row">NO MACRO DATA</div>'); return; }
-
-  const cells = series.map(s => {
+  if (!series.length) { panelState('macroContent', 'failed', { msg: 'No macro data.', retry: () => fetchOverview() }); return; }
+  const rows = series.map(s => {
     _slStorePut(s);
     const chg = s.change ?? null;
     const pig = s.positive_is_good !== false;
-    const cls = colorClass(chg, pig);
-    const fredUrl = FRED_URLS[s.id];
-    const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
-    return `<div class="macro-cell" data-sl-id="${s.id}" data-widget-id="${s.id}" draggable="true">
-      <div class="macro-cell-label"><span>${s.label||s.id||''}</span><span style="display:flex;align-items:center;gap:2px">${fredTag}${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
-      <div class="macro-cell-value ${cls}">${s.display ?? (s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--')}</div>
-      ${_sparkline(s.sparkline, s.positive_is_good)}
-      <div class="macro-cell-sub">${s.description||''}</div>
-      ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
-    </div>`;
+    const cls = chg == null || +chg === 0 ? 'flat' : ((+chg > 0) === pig ? 'up' : 'dn');
+    const dp = s.decimals ?? 2;
+    const val = s.display ?? (s.current != null ? fmt(s.current, dp) + (s.suffix || '') : '—');
+    const chgTxt = chg !== null ? `${+chg > 0 ? '+' : ''}${fmt(chg, dp)}${s.suffix || ''}` : '—';
+    const asOf = s.as_of ? `<span class="row-sub">${_ymdLabel(s.as_of.slice(0, 10), { month: 'short', year: 'numeric' })}</span>` : '';
+    return `<tr data-sl-id="${s.id}"><td class="lbl"><span class="lbl-txt">${_xe(_titleCase(s.label || s.id || ''))}</span>${_tipBtn(s.id)}${_chartBtn(s.id)}${asOf}</td>
+      <td class="val">${val}</td><td><span class="${cls}">${chgTxt}</span></td></tr>`;
   }).join('');
-
-  document.getElementById('macroContent').className = 'macro-grid';
-  setEl('macroContent', cells);
-  _makeSortable(document.getElementById('macroContent'), 'macro-cells');
+  setEl('macroContent', `<table class="tbl"><thead><tr><th>Series</th><th>Latest</th><th>vs prior</th></tr></thead><tbody>${rows}</tbody></table>`);
 }
 
 // ── YIELD CURVE SVG HELPERS ──────────────────────────────────
@@ -2064,30 +1960,132 @@ function renderYields(data) {
   }
 }
 
-function renderOverviewIndices(data) {
-  const WANTED = ['^GSPC','^DJI','^IXIC','^RUT'];
-  const NAMES  = {'^GSPC':'S&P 500','^DJI':'DOW','^IXIC':'NASDAQ','^RUT':'RUSSELL 2K'};
-  const idxMap = {};
-  (data.indices || []).forEach(i => { idxMap[i.symbol] = i; });
-
-  const cells = WANTED.map(sym => {
-    const idx = idxMap[sym];
-    if (!idx || idx.error) {
-      return `<div class="regime-ind"><div class="regime-ind-name">${NAMES[sym]}</div><div class="regime-ind-val c-muted">--</div><div class="regime-ind-signal c-muted">--</div></div>`;
-    }
-    const cls   = idx.direction === 'UP' ? 'c-green' : idx.direction === 'DOWN' ? 'c-red' : 'c-muted';
-    const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '–';
-    const pct   = idx.pct_change != null ? arrow + ' ' + Math.abs(idx.pct_change).toFixed(2) + '%' : '--';
-    const price = idx.price != null ? Number(idx.price).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
-    return `<div class="regime-ind">
-      <div class="regime-ind-name" style="display:flex;align-items:center;justify-content:space-between">${NAMES[sym]}${_tipBtn(INDEX_TIP_IDS[sym]||'')}</div>
-      <div class="regime-ind-val ${cls}">${price}</div>
-      <div class="regime-ind-signal ${cls}">${pct}</div>
-    </div>`;
-  }).join('');
-
-  setEl('ovIndicesContent', `<div class="regime-risks-title">INDICES</div><div class="regime-indicators" style="grid-template-columns:1fr">${cells}</div>`);
+// Signed change with direction color; dp decimals; unit appended.
+function _chg(v, dp, unit = '', pigInvert = false) {
+  if (v == null || !isFinite(v)) return '<span class="flat">—</span>';
+  const up = v > 0, dn = v < 0;
+  const cls = !up && !dn ? 'flat' : (up !== pigInvert ? 'up' : 'dn');
+  return `<span class="${cls}">${up ? '+' : ''}${Number(v).toFixed(dp)}${unit}</span>`;
 }
+function _num(v, dp) {
+  return v == null || !isFinite(v) ? '—' : Number(v).toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+// Label cell with an ⓘ, plus a small date when the series is older than the lead session.
+function _lblCell(label, tip, asOf, leadAsOf, sub = '') {
+  const date = asOf && leadAsOf && asOf !== leadAsOf ? `<span class="row-sub">${_ymdLabel(asOf, { month: 'short', day: 'numeric' })}</span>` : '';
+  return `<td class="lbl"><span class="lbl-txt">${label}</span>${_tipBtn(tip)}${sub ? `<span class="row-sub">${sub}</span>` : ''}${date}</td>`;
+}
+
+// Markets: compact prior-close table (indices, yields, VIX, HY spread, crude).
+function renderOvMarkets() {
+  const mkt = _lastMarket || {}, ylds = _lastYields || {}, crd = _lastCredit || {};
+  if (!_lastMarket && !_lastYields && !_lastCredit) return;
+  const idx = sym => (mkt.indices || []).find(i => i.symbol === sym);
+  const spx = idx('^GSPC');
+  const lead = spx && spx.as_of;
+  const rows = [];
+  [['^GSPC', 'S&amp;P 500', 'spx'], ['^IXIC', 'Nasdaq Composite', 'nasdaq'], ['^DJI', 'Dow Jones', 'djia']].forEach(([sym, name, tip]) => {
+    const i = idx(sym);
+    if (i && i.price != null) rows.push(`<tr>${_lblCell(name, tip, i.as_of, lead)}<td class="val">${_num(i.price, 2)}</td><td>${_chg(i.pct_change, 2, '%')}</td></tr>`);
+  });
+  [['dgs10', '10-year yield', 'dgs10'], ['dgs2', '2-year yield', 'dgs2']].forEach(([id, name, tip]) => {
+    const y = (ylds.yields || []).find(x => x.id === id);
+    if (y && y.value != null) rows.push(`<tr>${_lblCell(name, tip, y.as_of, lead)}<td class="val">${_num(y.value, 2)}%</td><td>${_chg(y.change != null ? y.change * 100 : null, 0, 'bp')}</td></tr>`);
+  });
+  const vix = mkt.vix;
+  if (vix && vix.value != null) rows.push(`<tr>${_lblCell('VIX', 'vix', vix.as_of, lead)}<td class="val">${_num(vix.value, 2)}</td><td>${_chg(vix.pct_change, 2, '%')}</td></tr>`);
+  const hy = (crd.spreads || []).find(x => x.id === 'hy_oas');
+  if (hy && hy.value != null) {
+    const trig = ((_macroThesisData && _macroThesisData.triggers) || []).find(t => t.id === 'hy_spreads');
+    const sub = trig ? `Trigger ${_num(trig.threshold, 0)}${trig.unit || ''}` : '';
+    rows.push(`<tr>${_lblCell('High-yield spread', 'hy_oas', hy.as_of, lead, sub)}<td class="val">${_num(hy.value, 0)}bp</td><td>${_chg(hy.change, 0, 'bp')}</td></tr>`);
+  }
+  const BENCH = { DCOILWTICO: 'WTI', DCOILBRENTEU: 'Brent' };
+  const crude = (mkt.commodities || []).find(c => BENCH[c.symbol]);
+  if (crude && crude.price != null) rows.push(`<tr>${_lblCell(`Crude oil (${BENCH[crude.symbol]})`, 'crude_oil', crude.as_of, lead)}<td class="val">$${_num(crude.price, 2)}</td><td>${_chg(crude.pct_change, 2, '%')}</td></tr>`);
+  setEl('ovMarketsBody', rows.length ? `<table class="tbl">${rows.join('')}</table>` : '<div class="panel-note">Market data unavailable.</div>');
+  const st = document.getElementById('ovMarketsStamp');
+  if (st) st.textContent = lead ? 'Prior close · ' + _ymdLabel(lead, { month: 'short', day: 'numeric' }) : 'Prior close';
+}
+
+// Key Levels: only levels the data layer actually has (FOMC, next data day).
+function renderKeyLevels() {
+  const up = _upcomingEvents();
+  const rows = [];
+  const fomc = up.find(x => /FOMC RATE DECISION/i.test(x.ev.event));
+  if (fomc) rows.push(`<tr><td class="lbl">FOMC decision</td><td class="val">${_ymdLabel(fomc.date)} · ${_evTimeLabel(fomc.ev.time)}</td></tr>`);
+  const now = _etNow();
+  const nextDay = up.find(x => x.date > now.key) || up[0];
+  if (nextDay) {
+    const names = up.filter(x => x.date === nextDay.date).map(x => _titleCase(x.ev.event));
+    const more = names.length > 2 ? ` +${names.length - 2}` : '';
+    rows.push(`<tr><td class="lbl">Next data day</td><td class="val">${_ymdLabel(nextDay.date)} · ${_xe(names.slice(0, 2).join(', '))}${more}</td></tr>`);
+  }
+  setEl('ovKeyLevelsBody', rows.length ? `<table class="tbl tbl-kv">${rows.join('')}</table>` : '<div class="panel-note">Calendar unavailable.</div>');
+}
+
+// Not Connected: every series that has no data source attached, listed from the data itself.
+function renderNotConnected() {
+  const mkt = _lastMarket;
+  if (!mkt) return;
+  const NAME = { 'RUSSELL 2K': 'Russell 2000', 'GOLD': 'gold', 'SILVER': 'silver', 'COPPER': 'copper', 'NAT GAS': 'natural gas' };
+  const items = [];
+  (mkt.indices || []).filter(i => i.pending_source).forEach(i => items.push(NAME[i.label] || i.label));
+  if ((mkt.futures || []).some(f => f.pending_source)) items.push('pre-market futures (S&amp;P, Nasdaq, Dow)');
+  (mkt.commodities || []).filter(c => c.source === 'pending').forEach(c => items.push(NAME[c.label] || c.label.toLowerCase()));
+  if ((mkt.vix_term || []).some(v => v.pending_source)) items.push('VIX term structure');
+  setEl('ovNotConnBody', items.length
+    ? `<p class="panel-note">No data source is attached yet for ${items.join(', ')}. These series stay off the dashboard until a source is connected.</p>`
+    : '<p class="panel-note">Every series on the dashboard has a data source.</p>');
+}
+
+// Today's Data: today's releases (ET). Consensus has no free source, so verdicts are vs prior.
+function renderTodayData() {
+  const now = _etNow();
+  const today = ((_lastCalendar && _lastCalendar.events) || []).find(d => d.date === now.key);
+  const st = document.getElementById('ovTodayStamp');
+  if (st) st.textContent = _ymdLabel(now.key) + ' · vs prior';
+  if (!today || !(today.events || []).length) {
+    const nxt = _upcomingEvents()[0];
+    setEl('ovTodayBody', `<div class="panel-note">No economic data scheduled today.${nxt ? ` Next: ${_xe(_titleCase(nxt.ev.event))}, ${_ymdLabel(nxt.date)} ${_evTimeLabel(nxt.ev.time)}.` : ''}</div>`);
+    return;
+  }
+  const evs = today.events;
+  // Biggest surprise: the largest relative move vs prior among printed releases.
+  const pnum = v => { const m = /[-+]?\d[\d,]*\.?\d*/.exec(v || ''); return m ? parseFloat(m[0].replace(/,/g, '')) : null; };
+  let big = -1, bigScore = 0;
+  evs.forEach((ev, i) => {
+    const a = pnum(ev.actual), b = pnum(ev.prior);
+    if (a == null || b == null || !b) return;
+    const sc = Math.abs((a - b) / b);
+    if (sc > bigScore) { bigScore = sc; big = i; }
+  });
+  const VERD = { UP: ['Higher', 'warn'], DOWN: ['Lower', 'accent'], UNCH: ['Unchanged', ''] };
+  const rows = evs.map((ev, i) => {
+    const printed = ev.actual != null;
+    const v = printed && VERD[ev.vs_prior] ? `<span class="tag ${VERD[ev.vs_prior][1]}">${VERD[ev.vs_prior][0]}</span>` : '<span class="flat">Pending</span>';
+    return `<tr class="${i === big ? 'row-hl' : ''}"><td class="t-time">${_evTimeLabel(ev.time).replace(' ET', '')}</td><td class="lbl">${_xe(_titleCase(ev.event))}</td>
+      <td class="val">${printed ? _xe(ev.actual) : '—'}</td><td class="flat" title="Consensus forecasts have no free source">—</td><td>${ev.prior ? _xe(ev.prior) : '—'}</td><td>${v}</td></tr>`;
+  }).join('');
+  setEl('ovTodayBody', `<table class="tbl tbl-data"><thead><tr><th>ET</th><th>Release</th><th>Actual</th><th>Exp.</th><th>Prior</th><th>vs Prior</th></tr></thead><tbody>${rows}</tbody></table>`);
+}
+
+// Top Stories: featured story + headline list, from the same news data as the News tab.
+function renderTopStories(articles) {
+  const list = [...(articles || [])].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 7);
+  if (!list.length) { setEl('ovTopStoriesBody', '<div class="panel-note">No stories available.</div>'); return; }
+  const [f, ...rest] = list;
+  const age = a => _xe(a.relTime || fmtRelTime(a.publishedAt || a.timestamp));
+  setEl('ovTopStoriesBody', `
+    <a class="story-feat" href="${a_href(f.url)}" target="_blank" rel="noopener noreferrer">
+      <span class="story-hl">${_xe(f.title || f.headline || '')}</span>
+      <span class="story-meta">${_xe(f.source || '')} · ${age(f)}</span>
+    </a>
+    ${rest.map(a => `<a class="story-row" href="${a_href(a.url)}" target="_blank" rel="noopener noreferrer"><span class="story-t">${_xe(a.title || a.headline || '')}</span><span class="story-meta">${_xe(a.source || '')} · ${age(a)}</span></a>`).join('')}`);
+  const st = document.getElementById('ovTopStoriesStamp');
+  if (st) st.textContent = 'By impact';
+}
+function a_href(u) { return /^https?:\/\//.test(u || '') ? _xe(u) : '#'; }
 
 let _lastNewsRaw = null;
 
@@ -2109,7 +2107,7 @@ function renderMarketDriving(articles, containerId) {
 function renderOverviewDriving(data) {
   _lastNewsRaw = data.articles || [];
   _lastHeadlines = _lastNewsRaw.slice(0, 10);
-  renderMarketDriving(_lastNewsRaw, 'ovDrivingContent');
+  renderTopStories(_lastNewsRaw);
   renderMarketDriving(_lastNewsRaw, 'drivingContent');
   const ts = document.getElementById('drivingTimestamp');
   if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
@@ -2164,6 +2162,8 @@ function renderFedWatch(data) {
 const REGIME_COLORS = _regimeColorMap;   // regime label → token color (tokens.css)
 
 function renderRegimeHistory(data) {
+  _lastRegimeHistory = data;
+  renderRegimeBar();
   const periods = data.periods || [];
   const wrap = document.getElementById('regimeHistoryContent');
   if (!wrap) return;
@@ -2208,12 +2208,12 @@ function renderRegimeHistory(data) {
     </div>`;
   }
   const rows = periods.map((p, i) => {
-    const color = REGIME_COLORS[p.display_label] || REGIME_COLORS['STAGFLATION RISK'];
+    const color = regimeColor(p.label || p.display_label);
     const endStr = p.is_current ? 'Present' : fmtDate(p.end_date);
     const conf = p.avg_confidence != null ? Math.round(p.avg_confidence) + '%' : '—';
     return `<div class="rh-period" id="rh-period-${i}">
       <div class="rh-period-hdr" onclick="togglePeriod(${i})">
-        <div class="rh-chip" style="background:${color}">${p.display_label || p.label}</div>
+        <div class="rh-chip" style="color:${color}">${regimeName(p.label || p.display_label)}</div>
         <div class="rh-period-dates">${fmtDate(p.start_date)} → ${endStr}</div>
         <div class="rh-period-dur">${p.duration_days}d</div>
         <div class="rh-period-conf">${conf}</div>
@@ -2230,25 +2230,40 @@ function togglePeriod(idx) {
   if (el) el.classList.toggle('expanded');
 }
 
+let _lastRegimeHistory = null, _lastCalendar = null;
+
+// Overview: every panel loads independently. A failed or timed-out request (15 s, apiFetch)
+// puts only that panel into its failed state with a Retry; nothing waits forever.
 async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
-  // Briefing runs independently — it has a 90s timeout and must not
-  // block renderRegimeCenterCards() or startRefreshCountdown() on mobile.
+  const retry = () => fetchOverview();
+  const fail = (ids, what) => e => {
+    anyError = true;
+    [].concat(ids).forEach(id => panelState(id, 'failed', { msg: `${what} unavailable (${_xe(e.message || 'timeout')}).`, retry }));
+  };
   loadBriefing().catch(() => {});
   await Promise.allSettled([
-    apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); }).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
-    apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
-    apiFetch('/api/yields').then(d => { _lastYields = d; renderYields(d); }).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
-    apiFetch('/api/market').then(d => { _lastMarket = d; renderOverviewIndices(d); }).catch(() => {}),
-    apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
-    apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(() => { setEl('fedwatchContent','<div class="error-row">FED WATCH UNAVAILABLE</div>'); }),
-    apiFetch('/api/regime/history').then(renderRegimeHistory).catch(() => {}),
-    apiFetch('/api/macro/chart').then(renderMacroChart).catch(() => {}),
+    apiFetch('/api/regime').then(d => { _lastRegime = d.label; renderRegime(d); })
+      .catch(fail(['ovRisksBody', 'ovPosBody'], 'Regime data')),
+    apiFetch('/api/macro').then(renderMacro).catch(fail('macroContent', 'Macro data')),
+    apiFetch('/api/yields').then(d => { _lastYields = d; renderYields(d); }).catch(fail('yieldsContent', 'Yield data')),
+    apiFetch('/api/market').then(d => { _lastMarket = d; }).catch(fail(['ovMarketsBody', 'ovNotConnBody'], 'Market data')),
+    apiFetch('/api/news').then(renderOverviewDriving).catch(fail('ovTopStoriesBody', 'News')),
+    apiFetch('/api/fedwatch').then(d => { _lastFedWatch = d; renderFedWatch(d); }).catch(fail('fedwatchContent', 'Fed rate path')),
+    apiFetch('/api/regime/history').then(renderRegimeHistory).catch(fail('regimeHistoryContent', 'Regime history')),
+    apiFetch('/api/macro/chart').then(renderMacroChart).catch(fail('macroChartSvgWrap', 'Chart data')),
     apiFetch('/api/credit').then(d => { _lastCredit = d; }).catch(() => {}),
-    apiFetch('/api/thesis').then(renderThesis).catch(() => {}),
+    apiFetch('/api/thesis').then(renderThesis).catch(fail('thesisIntegrityCard', 'Thesis data')),
+    apiFetch('/api/calendar?days=60').then(d => { _lastCalendar = d; })
+      .catch(fail(['ovKeyLevelsBody', 'ovTodayBody'], 'Calendar')),
   ]);
+  // Panels that combine several feeds render once everything has settled.
   renderRegimeCenterCards();
+  renderRegimeBar();
+  if (_lastMarket || _lastYields || _lastCredit) renderOvMarkets();
+  if (_lastMarket) renderNotConnected();
+  if (_lastCalendar) { renderKeyLevels(); renderTodayData(); }
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
 }
@@ -3744,7 +3759,7 @@ async function fetchCredit() {
 function renderDriving(articles) {
   _lastNewsRaw = articles;
   renderMarketDriving(articles, 'drivingContent');
-  renderMarketDriving(articles, 'ovDrivingContent');
+  renderTopStories(articles);
   const ts = document.getElementById('drivingTimestamp');
   if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
@@ -4144,14 +4159,6 @@ function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
 // ── Section definitions ───────────────────────────────────────
 const SEC_DEFS = [
-  {id:'ov-briefing',  tab:'overview',title:'AI Briefing',        els:['ai-briefing-section'], pw:true},
-  {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['ov-regime-wrap'],       pw:true},
-  {id:'ov-thesis',    tab:'overview',title:'Thesis Monitor',     els:['ov-sec-thesis'],        pw:true},
-  {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['ov-macro-wrap'],        pw:true},
-  {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['ov-sec-yields'],        pw:true},
-  {id:'ov-fedwatch',  tab:'overview',title:'Fed Rate Path',      els:['ov-sec-fedwatch'],      pw:true},
-  {id:'ov-chart',     tab:'overview',title:'Macro Chart',        els:['ov-sec-chart'],         pw:true},
-  {id:'ov-reg-hist',  tab:'overview',title:'Regime History',     els:['ov-sec-history'],       pw:true},
   {id:'mkt-futures',  tab:'markets', title:'Futures',            els:['futuresContent'],                        pw:false},
   {id:'mkt-indices',  tab:'markets', title:'Equity Indices',     els:['indicesContent'],                        pw:false},
   {id:'mkt-sector',   tab:'markets', title:'Sector Rotation',    els:['sectorSignalBar','sectorContent'],        pw:false},
@@ -5622,10 +5629,30 @@ function _formatBriefingText(text) {
 function _renderBriefing(data, updating) {
   const content = document.getElementById('briefing-content');
   const timestamp = document.getElementById('briefing-timestamp');
-  content.innerHTML = `<div class="briefing-content">${_formatBriefingText(data.briefing)}</div>`;
-  const t = new Date(data.generated_at);
-  const timeStr = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
-  timestamp.textContent = `GENERATED ${timeStr}${updating ? ' · UPDATING…' : (data.from_cache ? ' (CACHED)' : '')}`;
+  const lines = String(data.briefing || '').split('\n');
+  const first = lines.findIndex(l => l.trim());
+  const headline = first >= 0 ? lines[first].replace(/^#+\s*/, '').trim() : 'Morning Briefing';
+  const headlineText = headline === headline.toUpperCase() ? _titleCase(headline).replace(/\b(Am|Pm|Et)\b/g, w => w.toUpperCase()) : headline;
+  const body = lines.slice(first + 1).join('\n').replace(/^\s*-{3,}\s*$/gm, '').trim();
+  const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+    .map(p => `<p>${_formatBriefingText(_xe(p)).replace(/\n/g, '<br>')}</p>`).join('');
+  const t = parseServerTime(data.generated_at);
+  content.innerHTML = `<article class="brief">
+    <div class="brief-byline">AI Morning Briefing · ${etDate(t, { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+    <h2 class="brief-headline">${_xe(headlineText)}</h2>
+    <div class="brief-body" id="briefBody">${paras}</div>
+    <button class="brief-more" id="briefMore" type="button" hidden>Continue reading</button>
+  </article>`;
+  // Long briefings are capped so the panels below stay in view; expand in place.
+  const bb = document.getElementById('briefBody'), more = document.getElementById('briefMore');
+  if (bb && more && bb.scrollHeight > bb.clientHeight + 8) {
+    more.hidden = false;
+    more.addEventListener('click', () => {
+      const open = bb.classList.toggle('expanded');
+      more.textContent = open ? 'Show less' : 'Continue reading';
+    });
+  }
+  timestamp.textContent = `Generated ${etTime(t)}${updating ? ' · updating…' : ' (cached)'}`;
   _briefingShownAt = data.generated_at;
 }
 
@@ -5641,7 +5668,7 @@ async function loadBriefing(opts = {}) {
   };
 
   try {
-    const data = await apiFetch('/api/briefing', 30000);
+    const data = await apiFetch('/api/briefing', 15000);
 
     if (data.status === 'no_api_key') {
       content.innerHTML = `<div class="briefing-setup">

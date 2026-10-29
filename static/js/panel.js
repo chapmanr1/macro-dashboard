@@ -82,3 +82,82 @@ function panelState(el, state, opts = {}) {
     });
   }
 }
+
+// ── Workspace columns: drag panels by their header to reorder within a column ──
+// Order persists per column in the app settings (stLoad/stSave, key widgetLayouts[col]).
+function initColumnDnD(col) {
+  const key = col.dataset.col;
+  if (!key || col._dndReady) return;
+  col._dndReady = true;
+  const panels = () => [...col.querySelectorAll(':scope > .panel[data-widget-id]')];
+  // Restore saved order
+  try {
+    const saved = ((stLoad().widgetLayouts || {})[key]) || [];
+    saved.forEach(id => { const el = col.querySelector(`:scope > .panel[data-widget-id="${id}"]`); if (el) col.appendChild(el); });
+  } catch (e) { /* no saved layout */ }
+  let dragging = null;
+  col.addEventListener('mousedown', e => {
+    const hdr = e.target.closest('.panel-hdr');
+    if (!hdr || e.target.closest('button, a, input, select')) return;
+    const p = hdr.closest('.panel');
+    if (p && p.parentElement === col) p.setAttribute('draggable', 'true');
+  });
+  document.addEventListener('mouseup', () => panels().forEach(p => { if (p !== dragging) p.removeAttribute('draggable'); }));
+  col.addEventListener('dragstart', e => {
+    const p = e.target.closest('.panel');
+    if (!p || p.parentElement !== col || p.getAttribute('draggable') !== 'true') { e.preventDefault(); return; }
+    dragging = p;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', p.dataset.widgetId);
+    requestAnimationFrame(() => p.classList.add('sw-ghost'));
+  });
+  col.addEventListener('dragover', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    const t = e.target.closest('.panel');
+    if (!t || t === dragging || t.parentElement !== col) return;
+    const before = e.clientY < t.getBoundingClientRect().top + t.offsetHeight / 2;
+    col.insertBefore(dragging, before ? t : t.nextSibling);
+  });
+  col.addEventListener('drop', e => e.preventDefault());
+  col.addEventListener('dragend', () => {
+    if (!dragging) return;
+    dragging.classList.remove('sw-ghost');
+    dragging.removeAttribute('draggable');
+    dragging = null;
+    try {
+      const d = stLoad();
+      d.widgetLayouts = d.widgetLayouts || {};
+      d.widgetLayouts[key] = panels().map(p => p.dataset.widgetId);
+      stSave(d);
+    } catch (e) { /* settings storage unavailable */ }
+  });
+}
+
+// ── ⤢ open control: show one panel large over a scrim; Esc or the scrim closes it ──
+function _panelOpenScrim() {
+  let s = document.getElementById('panelScrim');
+  if (!s) {
+    s = document.createElement('div');
+    s.id = 'panelScrim'; s.className = 'panel-scrim'; s.hidden = true;
+    s.addEventListener('click', closeOpenPanel);
+    document.body.appendChild(s);
+  }
+  return s;
+}
+function closeOpenPanel() {
+  const p = document.querySelector('.panel.panel-open');
+  if (p) p.classList.remove('panel-open');
+  _panelOpenScrim().hidden = true;
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.panel [data-expand]');
+  if (!btn) return;
+  const p = btn.closest('.panel');
+  const wasOpen = p.classList.contains('panel-open');
+  closeOpenPanel();
+  if (!wasOpen) { p.classList.add('panel-open'); _panelOpenScrim().hidden = false; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOpenPanel(); });
+
+document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.ws-col[data-col]').forEach(initColumnDnD));
