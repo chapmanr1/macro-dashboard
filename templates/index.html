@@ -294,70 +294,34 @@
   <!-- CREDIT TAB                                            -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel" id="tab-credit" role="tabpanel" aria-labelledby="tabbtn-credit">
-
-    <div class="section-header">
-      <div class="section-title">CREDIT SPREAD DASHBOARD</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="creditTimestamp">--</div>
-    </div>
-    <div id="spreadsContent" class="spread-grid">
-      <div class="spread-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:8px"></div><div class="skel" style="height:36px;width:100px;margin-bottom:6px"></div><div class="skel" style="height:10px;width:80px;margin-bottom:10px"></div><div class="skel" style="height:9px;width:95%"></div></div>
-      <div class="spread-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:8px"></div><div class="skel" style="height:36px;width:100px;margin-bottom:6px"></div><div class="skel" style="height:10px;width:80px;margin-bottom:10px"></div><div class="skel" style="height:9px;width:95%"></div></div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">TIPS &amp; BREAKEVEN INFLATION</div>
-      <div class="section-line"></div>
-    </div>
-    <div id="breakevensContent" class="tips-grid">
-      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
-      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
-      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
-      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">YIELD CURVE — BOND DESK VIEW</div>
-      <div class="section-line"></div>
-    </div>
-    <div id="creditCurveContent">
-      <div class="curve-table-wrap">
-        <div class="skel" style="height:120px"></div>
+    <div class="ws ws-3">
+      <div class="ws-col" data-col="cr-left">
+      <section class="panel" id="cr-spreads" data-widget-id="cr-spreads">
+        <div class="panel-hdr"><span class="panel-title">Credit Spread Dashboard</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'hy_oas')" ontouchstart="event.stopPropagation();_showTooltip(this,'hy_oas')">ⓘ</button><span class="panel-stamp" id="creditTimestamp">—</span><button class="panel-ctl" data-expand aria-label="Open Credit Spread Dashboard" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="spreadsContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      <section class="panel" id="cr-tips" data-widget-id="cr-tips">
+        <div class="panel-hdr"><span class="panel-title">TIPS &amp; Breakeven Inflation</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'t5yie')" ontouchstart="event.stopPropagation();_showTooltip(this,'t5yie')">ⓘ</button><span class="panel-stamp" id="tipsStamp">—</span><button class="panel-ctl" data-expand aria-label="Open TIPS &amp; Breakeven Inflation" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="breakevensContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      </div>
+      <div class="ws-col ws-first" data-col="cr-center">
+      <section class="panel" id="cr-curve" data-widget-id="cr-curve">
+        <div class="panel-hdr"><span class="panel-title">Yield Curve — Bond Desk View</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'t10y2y')" ontouchstart="event.stopPropagation();_showTooltip(this,'t10y2y')">ⓘ</button><span class="panel-stamp" id="curveStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Yield Curve — Bond Desk View" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="creditCurveContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
+      <section class="panel" id="sec-bdc" data-widget-id="sec-bdc">
+        <div class="panel-hdr"><span class="panel-title">BDC Monitor</span><span class="panel-stamp" id="bdcStamp">—</span><button class="panel-ctl" data-expand aria-label="Open BDC Monitor" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="bdcContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      </div>
+      <div class="ws-col" data-col="cr-right">
+      <section class="panel" id="sec-crd-triggers" data-widget-id="sec-crd-triggers">
+        <div class="panel-hdr"><span class="panel-title">Thesis Monitor</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'thesis_integrity')" ontouchstart="event.stopPropagation();_showTooltip(this,'thesis_integrity')">ⓘ</button><span class="panel-stamp" id="triggersStamp">—</span><button class="panel-ctl" data-expand aria-label="Open Thesis Monitor" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="triggersContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div></div></div>
+      </section>
       </div>
     </div>
-
-    <div id="sec-crd-triggers">
-    <div class="section-header">
-      <div class="section-title" style="color:var(--warn)">⬦ THESIS MONITOR</div>
-      <div class="section-line"></div>
-      <div class="section-meta" style="color:var(--text-muted)">STAGFLATION FALSIFICATION TRIGGERS</div>
-    </div>
-    <div style="padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);font-size:var(--fs-11);color:var(--text-muted);line-height:1.5;">
-      These five conditions would each challenge the stagflation thesis. <span style="color:var(--accent)">NOT MET</span> = thesis intact. <span style="color:var(--pos)">TRIGGERED</span> = thesis under review.
-    </div>
-    <div id="triggersContent">
-      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
-      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
-      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
-    </div>
-
-    </div><!-- /sec-crd-triggers -->
-
-    <!-- BDC MONITOR (shown when enabled in settings) -->
-    <div id="sec-bdc">
-    <div class="section-header">
-      <div class="section-title" style="color:var(--accent)">⬦ BDC MONITOR</div>
-      <div class="section-line"></div>
-      <div class="section-meta">ARCC · OBDC · GBDC · PSEC</div>
-    </div>
-    <div id="bdcContent" class="bdc-grid">
-      <div class="bdc-cell"><div class="skel" style="height:8px;width:40px;margin-bottom:4px"></div><div class="skel" style="height:20px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-      <div class="bdc-cell"><div class="skel" style="height:8px;width:40px;margin-bottom:4px"></div><div class="skel" style="height:20px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-      <div class="bdc-cell"><div class="skel" style="height:8px;width:40px;margin-bottom:4px"></div><div class="skel" style="height:20px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-      <div class="bdc-cell"><div class="skel" style="height:8px;width:40px;margin-bottom:4px"></div><div class="skel" style="height:20px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:50px"></div></div>
-    </div>
-    </div><!-- /sec-bdc -->
-
   </div><!-- /tab-credit -->
 
   <!-- ══════════════════════════════════════════════════════ -->
@@ -3356,150 +3320,88 @@ function spreadContextBar(value, maxBp, zones) {
 }
 
 function renderSpreads(spreads) {
-  if (!spreads || !spreads.length) { setEl('spreadsContent','<div class="error-row">NO CREDIT DATA</div>'); return; }
-  const cells = spreads.map(s => {
-    _slStorePut({...s, positive_is_good: false, suffix: 'bp'});
-    const sigBorder = s.signal_color === 'green' ? 'var(--pos)' : s.signal_color === 'red' ? 'var(--neg)' : 'var(--accent)';
-    const valCls    = s.signal_color === 'green' ? 'c-green' : s.signal_color === 'red' ? 'c-red' : 'c-amber';
-    const chgCls    = colorClass(s.change, false);
-    const arrow     = s.direction === 'UP' ? '▲' : s.direction === 'DOWN' ? '▼' : '→';
-
-    const isHY = s.id === 'hy_oas';
-    const maxBp = isHY ? 900 : 350;
-    const ctxZones = isHY
-      ? [{start:0,end:300,color:'color-mix(in srgb, var(--pos) 20%, transparent)',label:'<300 TIGHT',labelColor:'var(--pos)',first:true},
-         {start:300,end:450,color:'color-mix(in srgb, var(--warn) 20%, transparent)',label:'300-450 NORMAL',labelColor:'var(--warn)'},
-         {start:450,end:600,color:'color-mix(in srgb, var(--neg) 18%, transparent)',label:'450-600 WIDE',labelColor:'var(--neg)'},
-         {start:600,end:900,color:'color-mix(in srgb, var(--neg) 34%, transparent)',label:'>600 CRISIS',labelColor:'var(--neg)',last:true}]
-      : [{start:0,end:80,color:'color-mix(in srgb, var(--pos) 20%, transparent)',label:'<80 TIGHT',labelColor:'var(--pos)',first:true},
-         {start:80,end:130,color:'color-mix(in srgb, var(--warn) 20%, transparent)',label:'80-130 NORMAL',labelColor:'var(--warn)'},
-         {start:130,end:200,color:'color-mix(in srgb, var(--neg) 18%, transparent)',label:'130-200 WIDE',labelColor:'var(--neg)'},
-         {start:200,end:350,color:'color-mix(in srgb, var(--neg) 34%, transparent)',label:'>200 CRISIS',labelColor:'var(--neg)',last:true}];
-
-    return `<div class="spread-cell" data-sl-id="${s.id}">
-      <div class="spread-lbl" style="display:flex;align-items:center;justify-content:space-between"><span>${s.label||''} — ${s.description||''}</span><span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
-      <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
-      <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
-      ${_sparkline(s.sparkline, false)}
-      <div class="spread-signal" style="border-color:${sigBorder};color:${sigBorder}">${s.signal||''}</div>
-      <div class="spread-interp">${s.interpretation||''}</div>
-      ${spreadContextBar(s.value, maxBp, ctxZones)}
-    </div>`;
-  }).join('');
-  setEl('spreadsContent', cells);
-  document.getElementById('spreadsContent').className = 'spread-grid';
+  if (!spreads || !spreads.length) { setEl('spreadsContent', '<div class="panel-note">No credit data.</div>'); return; }
+  const COLOR = { green: 'var(--pos)', amber: 'var(--warn)', red: 'var(--neg)' };
+  setEl('spreadsContent', spreads.map(s => {
+    _slStorePut({ ...s, positive_is_good: false, suffix: 'bp' });
+    const bands = s.bands || [];
+    const top = bands.length ? bands[bands.length - 1].max : Math.max(s.value || 0, 1);
+    let prev = 0;
+    const segs = bands.map(b => { const w = (b.max - prev) / top * 100; prev = b.max; return `<span class="vg-seg" style="width:${w}%;background:${COLOR[b.color] || 'var(--text-muted)'}"></span>`; }).join('');
+    let p2 = 0;
+    const names = bands.map((b, i) => { const lo = p2; p2 = b.max; return `<span>${i === bands.length - 1 ? '>' + lo : (lo ? lo + '–' : '<') + b.max} ${_titleCase(b.label)}</span>`; }).join('');
+    return `<div class="spread-block" data-sl-id="${s.id}">
+      <table class="tbl"><tr>${_lblCell(_xe(s.label || ''), s.id, null, null, _xe(s.description || ''))}<td class="val">${_num(s.value, 0)}bp</td><td>${_chg(s.change, 0, 'bp', true)}</td></tr></table>
+      <div class="spread-gauge">
+        <div class="vg-head"><span class="vg-word" style="margin-left:0;color:${COLOR[s.signal_color] || 'var(--text-muted)'}">${_xe(_titleCase(s.signal || ''))}</span><span class="row-sub" style="margin:0 0 0 auto">${_chartBtn(s.id)}</span></div>
+        ${bands.length ? `<div class="vg-track">${segs}<span class="vg-marker" style="left:${Math.min(100, (s.value || 0) / top * 100).toFixed(1)}%"></span></div><div class="vg-names">${names}</div>` : ''}
+        ${s.interpretation ? `<p class="panel-note vg-desc">${_xe(s.interpretation)}</p>` : ''}
+      </div></div>`;
+  }).join(''));
+  const st = document.getElementById('creditTimestamp');
+  if (st) st.textContent = spreads[0].as_of ? 'Prior close · ' + _ymdLabel(spreads[0].as_of, { month: 'short', day: 'numeric' }) : 'FRED';
 }
 
 function renderTipsPanel(breakevens, realYields) {
-  const all = [...(breakevens||[]), ...(realYields||[])];
-  if (!all.length) { setEl('breakevensContent','<div class="error-row">NO TIPS DATA</div>'); return; }
-  const cells = all.map(s => {
-    _slStorePut({...s, positive_is_good: null, suffix: '%', decimals: s.decimals ?? 2});
-    const chgCls = colorClass(s.change, null);
-    const arrow  = s.direction === 'UP' ? '▲' : s.direction === 'DOWN' ? '▼' : '→';
-    const isBreakeven = s.id && s.id.includes('yie');
-    const valCls = isBreakeven ? 'c-amber' : 'c-blue';
-    return `<div class="tips-cell" data-sl-id="${s.id}">
-      <div class="tips-label" style="display:flex;align-items:center;justify-content:space-between">${s.label||''}<span style="display:flex;align-items:center;gap:1px">${_chartBtn(s.id)}${_tipBtn(s.id)}</span></div>
-      <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
-      <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
-      ${_sparkline(s.sparkline, null)}
-      ${s.interpretation ? `<div class="tips-interp">${s.interpretation}</div>` : ''}
-    </div>`;
-  }).join('');
-  setEl('breakevensContent', cells);
-  document.getElementById('breakevensContent').className = 'tips-grid';
+  const groups = [['Breakevens', breakevens || []], ['Real yields (TIPS)', realYields || []]];
+  if (!groups.some(g => g[1].length)) { setEl('breakevensContent', '<div class="panel-note">No TIPS data.</div>'); return; }
+  setEl('breakevensContent', `<table class="tbl">${groups.map(([name, rows]) => rows.length ? `<tr class="tbl-group"><td colspan="3">${name}</td></tr>` + rows.map(s => {
+    _slStorePut({ ...s, positive_is_good: null, suffix: '%', decimals: s.decimals ?? 2 });
+    return `<tr data-sl-id="${s.id}">${_lblCell(_xe(_titleCase(s.label || '')) + _chartBtn(s.id), s.id, null, null)}<td class="val">${_num(s.value, 2)}%</td><td>${_chg(s.change != null ? s.change * 100 : null, 0, 'bp')}</td></tr>
+      ${s.interpretation ? `<tr class="row-interp-tr"><td colspan="3"><span class="row-interp">${_xe(s.interpretation)}</span></td></tr>` : ''}`;
+  }).join('') : '').join('')}</table>`);
+  const asOf = (breakevens || [])[0]?.as_of;
+  const st = document.getElementById('tipsStamp');
+  if (st) st.textContent = asOf ? 'Prior close · ' + _ymdLabel(asOf, { month: 'short', day: 'numeric' }) : 'FRED';
 }
 
 function renderCreditCurve(yieldsData) {
-  const yields  = (yieldsData||{}).yields  || [];
-  const spreads = (yieldsData||{}).spreads || [];
-  const curve   = (yieldsData||{}).curve_status || 'UNKNOWN';
-
-  if (!yields.length) { setEl('creditCurveContent','<div class="error-row">NO YIELD CURVE DATA</div>'); return; }
-
-  const rows = yields.map(y => {
-    const cls = colorClass(y.change, null);
-    const arrow = y.direction === 'UP' ? '▲' : y.direction === 'DOWN' ? '▼' : '→';
-    return `<tr>
-      <td>${y.label||y.maturity||''}</td>
-      <td class="${y.value != null && y.value < 0 ? 'c-red':'c-green'}">${y.value != null ? fmt(y.value,2)+'%' : '--'}</td>
-      <td class="${cls}" style="font-size:var(--fs-11)">${y.prior != null ? fmt(y.prior,2)+'%' : '--'}</td>
-      <td class="${cls}">${arrow} ${y.change != null ? fmt(Math.abs(y.change),3)+'%' : '--'}</td>
-    </tr>`;
-  }).join('');
-
-  const curveColor = curve === 'INVERTED' ? 'var(--neg)' : curve === 'FLAT' ? 'var(--accent)' : 'var(--pos)';
-  const spreadItems = spreads.map(sp => {
-    const cls = colorClass(sp.value, false);
-    return `<div class="curve-spread-item"><span class="curve-spread-lbl">${sp.label}</span><span class="${cls}" style="font-weight:700">${sp.value != null ? fmt(sp.value,3)+'%' : '--'}</span></div>`;
-  }).join('');
-
+  const yields = (yieldsData || {}).yields || [];
+  const spreads = (yieldsData || {}).spreads || [];
+  const curve = (yieldsData || {}).curve_status || 'UNKNOWN';
+  if (!yields.length) { setEl('creditCurveContent', '<div class="panel-note">No yield curve data.</div>'); return; }
+  const word = curve === 'INVERTED' ? 'dn' : curve === 'FLAT' ? 'warn-t' : 'up';
   setEl('creditCurveContent', `
-    <div class="curve-table-wrap">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <span style="font-size:var(--fs-11);color:var(--text-muted);letter-spacing:var(--tracking-label)">CURVE STATUS</span>
-        <span style="font-size:var(--fs-11);font-weight:700;color:${curveColor}">${curve}</span>
-      </div>
-      <table class="curve-table">
-        <thead><tr>
-          <th>MATURITY</th><th>YIELD</th><th>PRIOR</th><th>CHG</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div class="curve-spreads">${spreadItems}</div>
-    </div>`);
+    <div class="sig-line"><span class="sig-word">Curve: <span class="${word}">${_xe(_titleCase(curve))}</span></span></div>
+    <table class="tbl"><thead><tr><th>Tenor</th><th>Yield</th><th>Prior</th><th>Change</th></tr></thead><tbody>
+    ${yields.map(y => `<tr><td class="lbl">${_xe(y.maturity || y.label || '')}</td><td class="val">${_num(y.value, 2)}%</td><td class="flat">${_num(y.prior, 2)}%</td><td>${_chg(y.change != null ? y.change * 100 : null, 0, 'bp')}</td></tr>`).join('')}
+    <tr class="tbl-group"><td colspan="4">Spreads</td></tr>
+    ${spreads.map(sp => `<tr><td class="lbl">${_xe(sp.label)}${_tipBtn(sp.label === '10Y-2Y' ? 't10y2y' : sp.label === '10Y-3MO' ? 't10y3mo' : '')}</td><td class="val">${sp.value != null ? (sp.value >= 0 ? '+' : '') + _num(sp.value, 2) + '%' : '—'}</td><td></td><td></td></tr>`).join('')}
+    </tbody></table>`);
+  const st = document.getElementById('curveStamp');
+  if (st) st.textContent = yields[0].as_of ? 'Prior close · ' + _ymdLabel(yields[0].as_of, { month: 'short', day: 'numeric' }) : 'FRED';
 }
 
 function renderTriggers(triggers) {
-  if (!triggers || !triggers.length) { setEl('triggersContent','<div class="error-row">NO TRIGGER DATA</div>'); return; }
-  const html = triggers.map(t => {
-    const status  = (t.status||'').toUpperCase();
-    const isTriggered  = status === 'TRIGGERED';
-    const isApproach   = status === 'APPROACHING' || (status.startsWith('MET') && !isTriggered);
-    const isManual     = status === 'MANUAL INPUT';
-    const statusCls = isTriggered ? 'triggered' : isApproach ? 'approaching' : isManual ? 'manual' : status === 'ERROR' ? 'error' : 'not-met';
-
-    const progress = t.progress_pct ?? 0;
-    const fillCls  = isTriggered ? 'triggered' : isApproach ? 'approaching' : '';
-    const thresholdPct = 100; // threshold is always at 100% of the progress scale
-
-    const valDisplay = t.current_value != null
-      ? `${t.current_value}${t.unit}`
-      : isManual ? 'MANUAL INPUT REQUIRED' : 'NO DATA';
-    const thrDisplay = t.threshold != null ? `${t.threshold}${t.unit} threshold` : '';
-
-    const sustainedTxt = (t.required > 1 && t.current_value != null)
-      ? `<div class="trigger-sustained">${t.sustained_count||0} of ${t.required} required periods met</div>`
-      : '';
-
-    return `<div class="trigger-item">
-      <div class="trigger-header">
-        <div class="trigger-label">${t.full_label||t.label||''}</div>
-        <div class="trigger-status ${statusCls}">${t.status||'--'}</div>
-      </div>
-      ${t.current_value != null ? `
-        <div class="trigger-track">
-          <div class="trigger-fill ${fillCls}" style="width:${Math.min(progress,100)}%"></div>
-          <div class="trigger-threshold-line" style="left:${thresholdPct}%"></div>
-        </div>
-        <div class="trigger-values">
-          <span>CURRENT: <span class="trigger-current">${valDisplay}</span></span>
-          <span>${thrDisplay}</span>
-        </div>
-      ` : `<div style="padding:6px 0;font-size:var(--fs-11);color:var(--text-muted)">${isManual ? 'Requires manual input from BDC earnings reports (ARCC, BXSL, FSK).' : 'Data unavailable.'}</div>`}
-      ${sustainedTxt}
-      <div class="trigger-desc">${t.description||''}</div>
-    </div>`;
-  }).join('');
-  setEl('triggersContent', html);
+  if (!triggers || !triggers.length) { setEl('triggersContent', '<div class="panel-note">No trigger data.</div>'); return; }
+  const TAG = { 'TRIGGERED': 'pos', 'APPROACHING': 'warn', 'NOT MET': '', 'MANUAL INPUT': 'accent', 'ERROR': 'neg' };
+  setEl('triggersContent', `<p class="panel-note trig-intro">Five conditions that would each challenge the stagflation thesis. Not met = thesis intact · Triggered = thesis under pressure.</p>` +
+    triggers.map(t => {
+      const status = (t.status || '').toUpperCase();
+      const manual = status === 'MANUAL INPUT';
+      const tag = TAG[status] ?? (status.startsWith('MET') ? 'warn' : '');
+      const fillCls = status === 'TRIGGERED' ? 'triggered' : (status === 'APPROACHING' || status.startsWith('MET')) ? 'approaching' : '';
+      const sustained = t.required > 1 && t.current_value != null ? `<div class="row-sub">${t.sustained_count || 0} of ${t.required} required periods met</div>` : '';
+      return `<div class="trig">
+        <div class="trig-head"><span class="trig-label">${_xe(t.full_label || t.label || '')}</span><span class="tag ${tag}">${_xe(_titleCase(t.status || '—'))}</span></div>
+        ${manual
+          ? `<div class="trig-manual">Manual input — no data source yet. Update from BDC earnings reports (non-accruals as % of portfolio at cost).</div>`
+          : t.current_value != null
+            ? `<div class="trigger-track"><div class="trigger-fill ${fillCls}" style="width:${Math.min(t.progress_pct ?? 0, 100)}%"></div><div class="trigger-threshold-line" style="left:100%"></div></div>
+               <div class="trig-vals"><span>Current <b>${_xe(String(t.current_value))}${_xe(t.unit || '')}</b></span><span>Threshold ${_xe(String(t.threshold))}${_xe(t.unit || '')}</span></div>${sustained}`
+            : '<div class="row-sub">Data unavailable.</div>'}
+        ${t.description ? `<div class="trig-desc">${_xe(t.description)}</div>` : ''}
+      </div>`;
+    }).join(''));
+  const st = document.getElementById('triggersStamp');
+  if (st) st.textContent = 'Stagflation falsification';
 }
 
 async function fetchCredit() {
   setStatus('loading');
+  const retry = () => fetchCredit();
   try {
     const data = await apiFetch('/api/credit');
-    setTimestamp('creditTimestamp', data.timestamp);
     renderSpreads(data.spreads);
     renderTipsPanel(data.breakevens, data.real_yields);
     renderCreditCurve(data.yield_curve);
@@ -3507,8 +3409,10 @@ async function fetchCredit() {
     checkAlerts('credit', data);
     fetchBDC();
     setStatus('ok');
-  } catch(e) {
-    ['spreadsContent','breakevensContent','creditCurveContent','triggersContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
+  } catch (e) {
+    ['spreadsContent', 'breakevensContent', 'creditCurveContent', 'triggersContent'].forEach(id =>
+      panelState(id, 'failed', { msg: `Credit data unavailable (${_xe(e.message || 'timeout')}).`, retry }));
+    fetchBDC();
     setStatus('error');
   }
   startRefreshCountdown();
@@ -3920,11 +3824,6 @@ function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
 // ── Section definitions ───────────────────────────────────────
 const SEC_DEFS = [
-  {id:'crd-spreads',  tab:'credit',  title:'Credit Spreads',     els:['spreadsContent'],                        pw:false},
-  {id:'crd-tips',     tab:'credit',  title:'TIPS & Breakeven',   els:['breakevensContent'],                     pw:false},
-  {id:'crd-curve',    tab:'credit',  title:'Bond Desk Curve',    els:['creditCurveContent'],                    pw:false},
-  {id:'crd-triggers', tab:'credit',  title:'Thesis Monitor',     els:['sec-crd-triggers'],                      pw:true},
-  {id:'crd-bdc',      tab:'credit',  title:'BDC Monitor',        els:['sec-bdc'],                               pw:true},
   {id:'news-driving', tab:'news',    title:'Market Driving',     els:['drivingContent'],                        pw:false},
   {id:'news-feed',    tab:'news',    title:'News Feed',          els:['newsContent'],                           pw:false},
 ];
@@ -4609,21 +4508,23 @@ async function fetchWatchlist(){
 }
 
 async function fetchBDC(){
-  const d=stLoad(); if(!d.showBDC)return;
-  const BDC=['ARCC','OBDC','GBDC','PSEC'];
-  const NAMES={ARCC:'Ares Capital',OBDC:'Blue Owl',GBDC:'Golub Cap',PSEC:'Prospect Cap'};
-  const el=document.getElementById('bdcContent'); if(!el)return;
-  try{
-    const data=await apiFetch('/api/watchlist?tickers='+BDC.join(','));
-    const map={}; (data.items||[]).forEach(it=>{map[it.symbol]=it;});
-    el.innerHTML=BDC.map(t=>{
-      const it=map[t];
-      const cls=!it||it.error?'c-muted':it.direction==='UP'?'c-green':it.direction==='DOWN'?'c-red':'c-muted';
-      const arrow=!it||it.error?'–':it.direction==='UP'?'▲':it.direction==='DOWN'?'▼':'→';
-      return `<div class="bdc-cell"><div class="bdc-ticker">${t}</div><div class="bdc-name">${NAMES[t]||''}</div><div class="bdc-price ${cls}">${it&&it.price!=null?fmtN(it.price,2):'--'}</div><div class="bdc-chg ${cls}">${it&&it.pct_change!=null?arrow+' '+Math.abs(it.pct_change).toFixed(2)+'%':'--'}</div></div>`;
-    }).join('');
-    el.className='bdc-grid';
-  }catch(e){}
+  const el = document.getElementById('bdcContent'); if (!el) return;
+  const d = stLoad();
+  if (!d.showBDC) { el.innerHTML = '<p class="panel-note">BDC Monitor is turned off in Settings → Market data.</p>'; return; }
+  const BDC = ['ARCC', 'OBDC', 'GBDC', 'PSEC'];
+  const NAMES = { ARCC: 'Ares Capital', OBDC: 'Blue Owl Capital', GBDC: 'Golub Capital BDC', PSEC: 'Prospect Capital' };
+  try {
+    const data = await apiFetch('/api/watchlist?tickers=' + BDC.join(','));
+    const map = {}; (data.items || []).forEach(it => { map[it.symbol] = it; });
+    el.innerHTML = `<table class="tbl"><thead><tr><th>BDC</th><th>Price</th><th>Day</th></tr></thead><tbody>${BDC.map(t => {
+      const it = map[t];
+      const ok = it && !it.error && it.price != null;
+      return `<tr><td class="lbl"><span class="lbl-txt">${t}</span><span class="row-sub">${NAMES[t]}</span></td><td class="val">${ok ? '$' + _num(it.price, 2) : '—'}</td><td>${ok ? _chg(it.pct_change, 2, '%') : '<span class="flat">—</span>'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+    const st = document.getElementById('bdcStamp'); if (st) st.textContent = 'Twelve Data · delayed';
+  } catch (e) {
+    panelState(el, 'failed', { msg: 'BDC prices unavailable.', retry: fetchBDC });
+  }
 }
 
 // ── Calendar notifications (fires once on page load) ──────────

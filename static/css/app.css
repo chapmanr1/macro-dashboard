@@ -1848,3 +1848,18 @@ button:focus-visible, .btn:focus-visible, .hdr-btn:focus-visible, [role="button"
 @media (max-width: 600px)  { .tbl-score .col-sig { display: none; } .tbl-score .lbl { min-width: 0; } .tbl-score .row-sub { display: none; } }
 .ws-col .kshape-grid { grid-template-columns: 1fr; }
 .ws-col .recession-wrap { padding: 0; }
+
+/* ════════ CREDIT WORKSPACE ════════ */
+.spread-block + .spread-block { border-top: 1px solid var(--border); }
+.spread-gauge { padding: 2px 12px 10px; }
+.row-interp-tr { display: none; }
+.panel.panel-open .row-interp-tr { display: table-row; }
+.trig-intro { padding: 0 0 8px; }
+.trig { padding: 10px 0; border-top: 1px solid var(--border-faint); }
+.trig-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.trig-label { font-size: var(--fs-12); font-weight: 600; color: var(--text-strong); line-height: 1.35; }
+.trig .tag { flex-shrink: 0; }
+.trig-vals { display: flex; justify-content: space-between; font-size: var(--fs-11); color: var(--text-muted); margin-top: 4px; }
+.trig-vals b { color: var(--text-strong); font-weight: 600; }
+.trig-manual { font-size: var(--fs-11); color: var(--accent); line-height: 1.45; padding: 6px 8px; background: var(--accent-soft); border-radius: var(--radius-sm); }
+.trig-desc { font-size: var(--fs-11); color: var(--text-muted); line-height: 1.45; margin-top: 6px; }
