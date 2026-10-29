@@ -3,13 +3,17 @@
 # Real-time headlines from free RSS feeds.
 # Fixed: date parsing and chronological sorting.
 
+import re
 import time
 import logging
 import requests
+from collections import Counter
 from source_status import timed_get
 from datetime import datetime, timezone
 from xml.etree import ElementTree as ET
 from email.utils import parsedate_to_datetime
+from config import (NEWS_TOPICS, NEWS_DEFAULT_TOPIC, NEWS_IMPACT_SCALE,
+                    NEWS_WATCHLIST, NEWS_WATCHLIST_CHECKPOINTS)
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +24,7 @@ REQUEST_TIMEOUT = 10
 
 # ── CACHE ─────────────────────────────────────────────────────
 _cache = {"data": None, "ts": 0}
+_last_good: dict = {"data": None}   # last successful pull, served (marked stale) if every feed fails
 
 def _cache_valid():
     return (
@@ -150,13 +155,11 @@ MIN_SCORE = 6
 def _parse_date(pub_date):
     """
     Robustly parse any RSS date format.
-    Returns (iso_string, datetime_object) tuple.
-    Falls back to now if unparseable.
+    Returns (iso_string, datetime_object), or (None, None) when the feed gives no
+    usable date — a story is never re-dated to "now" to look fresh.
     """
-    now = datetime.now(timezone.utc)
-
     if not pub_date or not pub_date.strip():
-        return now.strftime("%Y-%m-%dT%H:%M:%SZ"), now
+        return None, None
 
     pub_date = pub_date.strip()
 
@@ -187,9 +190,8 @@ def _parse_date(pub_date):
         except ValueError:
             continue
 
-    # Fallback — use now but log it
-    log.warning(f"Could not parse date: '{pub_date}' — using now")
-    return now.strftime("%Y-%m-%dT%H:%M:%SZ"), now
+    log.warning(f"Could not parse date: '{pub_date}' — story kept as undated")
+    return None, None
 
 
 def _fmt_rel_time(dt):
@@ -292,6 +294,28 @@ def _score_article(article):
 
     return max(0, score)
 
+def _matches(term: str, text: str) -> bool:
+    """Whole-word (prefix) match, so short terms like 'srt' don't hit inside other words."""
+    return re.search(r"\b" + re.escape(term), text) is not None
+
+
+def _topic(article: dict) -> str:
+    """One topic per story: highest keyword score (title 2, description 1); ties → earlier topic."""
+    title = " " + (article.get("title") or "").lower() + " "
+    desc  = " " + (article.get("description") or "").lower() + " "
+    best, best_score = NEWS_DEFAULT_TOPIC, 0
+    for name, words in NEWS_TOPICS:
+        sc = sum(2 if _matches(w, title) else 1 if _matches(w, desc) else 0 for w in words)
+        if sc > best_score:
+            best, best_score = name, sc
+    return best
+
+
+def _watch_tags(article: dict) -> list[str]:
+    text = ((article.get("title") or "") + " " + (article.get("description") or "")).lower()
+    return [tag for tag, terms in NEWS_WATCHLIST.items() if any(_matches(t, text) for t in terms)]
+
+
 def _is_valid(article):
     return (
         article.get("title") and
@@ -311,26 +335,15 @@ def _deduplicate(articles):
 
 
 # ── FALLBACK ──────────────────────────────────────────────────
-def _fallback(error=""):
-    ts  = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return {
-        "articles": [{
-            "title":       "NEWS FEED TEMPORARILY UNAVAILABLE",
-            "headline":    "NEWS FEED TEMPORARILY UNAVAILABLE",
-            "description": "RSS feeds could not be reached. Will retry shortly.",
-            "source":      "SYSTEM",
-            "url":         "#",
-            "publishedAt": ts,
-            "timestamp":   ts,
-            "relTime":     "JUST NOW",
-            "score":       0,
-        }],
-        "count":     0,
-        "timestamp": ts,
-        "cached":    False,
-        "error":     error,
-        "status":    "fallback",
-    }
+def _fallback(error: str = "") -> dict:
+    """Every feed failed. Serve the last good pull (marked stale) rather than padding the feed."""
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    prev = _last_good["data"]
+    if prev:
+        return {**prev, "cached": True, "status": "stale", "error": error, "timestamp": ts}
+    return {"articles": [], "count": 0, "timestamp": ts, "cached": False, "error": error,
+            "status": "failed", "last_success_at": None, "source_counts": {},
+            "watchlist": list(NEWS_WATCHLIST.keys()), "checkpoint_events": NEWS_WATCHLIST_CHECKPOINTS}
 
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
@@ -386,18 +399,21 @@ def get_news():
     # Filter valid articles
     valid = [a for a in raw if _is_valid(a)]
 
-    # Score for relevance
-    scored = [(a, _score_article(a)) for a in valid]
-    filtered = [(a, s) for a, s in scored if s >= MIN_SCORE]
+    # Score for relevance; watchlist stories are always kept
+    scored = [(a, _score_article(a), _watch_tags(a)) for a in valid]
+    filtered = [(a, s, w) for a, s, w in scored if s >= MIN_SCORE or w]
 
-    # Sort by recency first — most recent at top
+    # Sort by recency first — most recent at top; undated stories last
     filtered.sort(key=lambda x: x[0].get("dt") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
 
-    # Add score, remove dt object before sending to frontend
+    # Add score/impact/topic/watchlist, remove dt object before sending to frontend
     cleaned = []
-    for a, s in filtered:
+    for a, s, w in filtered:
         article = {k: v for k, v in a.items() if k != "dt"}
-        article["score"] = s
+        article["score"]     = s
+        article["impact"]    = min(100, round(s * 100 / NEWS_IMPACT_SCALE))
+        article["topic"]     = _topic(a)
+        article["watchlist"] = w
         cleaned.append(article)
 
     unique = _deduplicate(cleaned)
@@ -406,14 +422,19 @@ def get_news():
     status = "ok" if not errors else "partial"
 
     result = {
-        "articles":  final,
-        "count":     len(final),
-        "timestamp": ts,
-        "cached":    False,
-        "error":     "; ".join(errors) if errors else None,
-        "status":    status,
+        "articles":          final,
+        "count":             len(final),
+        "timestamp":         ts,
+        "last_success_at":   ts,                      # true time of this successful pull
+        "source_counts":     dict(Counter(a["source"] for a in final)),
+        "watchlist":         list(NEWS_WATCHLIST.keys()),
+        "checkpoint_events": NEWS_WATCHLIST_CHECKPOINTS,
+        "cached":            False,
+        "error":             "; ".join(errors) if errors else None,
+        "status":            status,
     }
 
+    _last_good["data"] = result
     _set_cache(result)
     log.info(f"News: {len(final)} articles, status={status}.")
     return result

@@ -1066,3 +1066,41 @@ K_SHAPE = {
     "umich_weak": 70.0,           "umich_strong": 85.0,
     "cs_hpi_strong": 5.0,
 }
+
+# ── NEWS: TOPICS, PRIVATE-CREDIT WATCHLIST, CHECKPOINTS ──────
+# Every story gets exactly one topic: the topic whose keywords score highest
+# (title match = 2, description match = 1); ties go to the earlier topic; no match = "Markets".
+NEWS_TOPICS = [
+    ("Credit",        ["credit", "spread", "default", "junk", "high-yield", "high yield", "leveraged loan",
+                       "private credit", "bdc", "lending", "lender", "bank loan", "debt", "bankrupt",
+                       "commercial property", "cre "]),
+    ("Fed & Rates",   ["federal reserve", "fed ", "fomc", "powell", "warsh", "rate cut", "rate hike",
+                       "interest rate", "treasury", "treasuries", "yield", "bond"]),
+    ("Inflation",     ["inflation", "cpi", "pce", "ppi", "prices", "price index"]),
+    ("Energy",        ["oil", "crude", "opec", "natural gas", "energy", "brent", "gasoline"]),
+    ("Growth & Jobs", ["gdp", "jobs", "payroll", "unemployment", "jobless", "recession", "growth",
+                       "retail sales", "housing", "consumer", "manufacturing", "economy", "economic"]),
+    ("Global",        ["china", "chinese", "europe", "european", "ecb", "japan", "boj", "tariff", "trade war",
+                       "ukraine", "iran", "russia", "global", "emerging market", "asia", "india", "korea",
+                       "hong kong", "philippines", "peso", "yen", "yuan", "euro ", "sterling", "uk ",
+                       "germany", "france", "brazil", "mexico", "canada", "canadian", "australia"]),
+]
+NEWS_DEFAULT_TOPIC = "Markets"
+
+# Impact = relevance score scaled to 0–100 (score / NEWS_IMPACT_SCALE, capped at 100).
+NEWS_IMPACT_SCALE = 50
+
+# Private-credit watchlist: a story matching any term (whole words, case-insensitive) is
+# flagged WATCHLIST and always kept in the feed, whatever its relevance score.
+NEWS_WATCHLIST = {
+    "BDCs":          ["bdc", "bdcs", "business development compan", "private credit", "ares capital",
+                      "blue owl", "golub", "prospect capital", "blackstone private credit"],
+    "SRT deals":     ["significant risk transfer", "synthetic risk transfer", "srt", "credit risk transfer"],
+    "Forbearance":   ["forbearance", "amend and extend", "amend-and-extend", "payment-in-kind", "pik toggle"],
+    "Credit stress": ["default", "defaults", "bankruptcy", "chapter 11", "downgrade", "distressed",
+                      "non-accrual", "nonaccrual", "delinquenc"],
+    "Insurers":      ["insurer", "insurers", "life insurance", "annuity", "annuities", "athene", "reinsur"],
+}
+
+# Calendar events treated as watchlist checkpoints (the On Watch panel shows the next one).
+NEWS_WATCHLIST_CHECKPOINTS = ["BEIGE BOOK RELEASE", "FOMC RATE DECISION"]
