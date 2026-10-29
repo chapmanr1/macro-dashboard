@@ -12,6 +12,7 @@ from fred_data import get_index_data
 
 log = logging.getLogger(__name__)
 
+SECTOR_FLAT_BAND = 0.2  # % move treated as flat when counting advancing/declining sectors
 CACHE_TTL = 3600  # 60 minutes — keeps TD daily calls at ~72/day (well under 800 free-tier limit)
 
 def warm_fred_index_cache() -> None:
@@ -165,8 +166,9 @@ def _sector_signal(sectors_data):
     if not valid:
         return "NO DATA", "Sector data unavailable."
 
-    positive = sum(1 for s in valid if s["pct_change"] > 0)
-    negative = sum(1 for s in valid if s["pct_change"] < 0)
+    # Same ±SECTOR_FLAT_BAND rule as the breadth counts, so every count on the page agrees.
+    positive = sum(1 for s in valid if s["pct_change"] >  SECTOR_FLAT_BAND)
+    negative = sum(1 for s in valid if s["pct_change"] < -SECTOR_FLAT_BAND)
     total    = len(valid)
 
     defensive_sym = {"XLU", "XLP", "XLV", "XLRE"}
@@ -397,8 +399,11 @@ def _fetch_market_data() -> dict:
     spy_stats = _parse_quote(batch1.get("SPY"))
     rsp_stats = _parse_quote(batch1.get("RSP"))
 
-    sectors_up   = sum(1 for s in sectors_out if (s.get("pct_change") or 0) >  0.2)
-    sectors_down = sum(1 for s in sectors_out if (s.get("pct_change") or 0) < -0.2)
+    # Moves within ±SECTOR_FLAT_BAND % count as flat; the sector table greys out the same band.
+    sectors_up   = sum(1 for s in sectors_out if (s.get("pct_change") or 0) >  SECTOR_FLAT_BAND)
+    sectors_down = sum(1 for s in sectors_out if (s.get("pct_change") or 0) < -SECTOR_FLAT_BAND)
+    sectors_flat = sum(1 for s in sectors_out if s.get("pct_change") is not None
+                       and abs(s["pct_change"]) <= SECTOR_FLAT_BAND)
 
     breadth_out = {
         "spy_pct":      spy_stats["pct_change"] if spy_stats else None,
@@ -407,6 +412,8 @@ def _fetch_market_data() -> dict:
         "differential": None,
         "sectors_up":   sectors_up,
         "sectors_down": sectors_down,
+        "sectors_flat": sectors_flat,
+        "flat_band":    SECTOR_FLAT_BAND,
     }
     if spy_stats and rsp_stats:
         breadth_out["differential"] = round(rsp_stats["pct_change"] - spy_stats["pct_change"], 3)
