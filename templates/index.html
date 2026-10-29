@@ -859,6 +859,12 @@ function fixHeaderLayout() {}
 let REFRESH_INTERVAL = 120;
 let autoRefreshInterval = null;
 const state = { currentTab: 'overview', tabLoaded: {} };
+// Briefing poll state lives up here: fetchOverview() runs during script start-up and calls
+// loadBriefing() before the briefing section below is reached, so a later let/const would
+// still be uninitialised (ReferenceError, silently swallowed — briefing stuck until the
+// next auto-refresh).
+const _BRIEF_POLL_MS = 30000, _BRIEF_MAX_POLLS = 16;   // ~8 minutes
+let _briefingPoll = null, _briefingShownAt = null;
 
 const LEADING_IDS  = new Set(['ism_proxy','houst','icsa','jolts','umich','t5yie','t10yie']);
 const LAGGING_IDS  = new Set(['gdp','cpi','pce','unemployment','retail','savings','cs_hpi','cc_delinq']);
@@ -5605,8 +5611,6 @@ function _formatBriefingText(text) {
 // The server never generates inside a request: it answers at once with the cached
 // briefing, "refreshing" (old briefing shown while a new one is built) or "generating"
 // (no briefing yet — e.g. the 3–5 minutes after a deploy). The page polls patiently.
-const _BRIEF_POLL_MS = 30000, _BRIEF_MAX_POLLS = 16;   // ~8 minutes
-let _briefingPoll = null, _briefingShownAt = null;
 
 function _renderBriefing(data, updating) {
   const content = document.getElementById('briefing-content');
