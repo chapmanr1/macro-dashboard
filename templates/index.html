@@ -14,20 +14,25 @@
 <div class="tape" id="tape" aria-label="Market tape, prior close">
   <div class="tape-track" id="tapeTrack"><span class="tape-item tape-lead">Loading market tape…</span></div>
 </div>
-<!-- FIXED TOP BAR -->
+<!-- HEADER — sticky, one line: menu · logo · status + actions -->
 <header class="topbar">
   <div class="topbar-left">
-    <a class="brand" href="/" aria-label="Macro Dashboard — home">
-      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="5"/><polyline points="5,15 9.5,10.5 13,13.5 19,7"/></svg>
-      <span class="brand-title">Macro Dashboard</span>
-    </a>
+    <button class="hdr-btn hdr-icon" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenu">
+      <svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2.5" y1="4" x2="13.5" y2="4"/><line x1="2.5" y1="8" x2="13.5" y2="8"/><line x1="2.5" y1="12" x2="13.5" y2="12"/></svg>
+    </button>
   </div>
+  <a class="brand" href="/" aria-label="Macro Dashboard — home">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="5"/><polyline points="5,15 9.5,10.5 13,13.5 19,7"/></svg>
+    <span class="brand-title"><span class="bw-1">Macro</span> <span class="bw-2">Dashboard</span></span>
+  </a>
   <div class="topbar-right">
+    <div class="hdr-status">
     <div class="asof" id="asOf" title="Next automatic refresh">
       <svg class="refresh-ring" id="refreshRing" viewBox="0 0 20 20" aria-hidden="true"><circle class="ring-track" cx="10" cy="10" r="8"/><circle class="ring-progress" id="refreshRingProgress" cx="10" cy="10" r="8"/></svg>
       <span id="asOfLabel">Data as of --:-- ET</span>
     </div>
-    <span id="clock" class="hdr-clock" aria-label="Current time, Eastern">--:--:--</span>
+      <span id="clock" class="hdr-clock" aria-label="Current time, Eastern">--:--:-- ET</span>
+    </div>
     <div class="hdr-actions">
     <div class="notif-wrap" id="notifWrap">
       <button class="hdr-btn hdr-icon notif-bell" id="notifBell" title="Notifications" aria-label="Notifications" aria-haspopup="true">
@@ -64,21 +69,37 @@
         <div class="cal-body" id="calBody"></div>
       </div>
     </div>
-      <button class="hdr-btn" id="prepExportBtn" title="Export daily prep summary">Prep</button>
-      <button class="hdr-btn" id="researchBtn" title="Research (⌘K then type)" aria-label="Research"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="btn-label">Research</span></button>
-      <button class="hdr-btn hdr-kbd" id="paletteBtn" title="Command palette" aria-label="Open command palette"><kbd>⌘K</kbd></button>
-      <button class="hdr-btn hdr-icon settings-gear" id="settingsGear" title="Settings" aria-label="Settings"><span class="gear-alert" id="gearAlert" hidden></span><svg class="hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="hdr-btn" id="researchBtn" title="Research" aria-label="Research"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg><span class="hdr-word">Research</span></button>
+      <button class="hdr-btn hdr-kbd" id="paletteBtn" title="Command palette" aria-label="Open command palette"><kbd>Ctrl K</kbd></button>
     </div>
   </div>
 </header>
-<!-- FIXED TAB NAV — keys 1–6 or ←/→ switch tabs (palette.js) -->
-<nav class="tab-nav" role="tablist" aria-label="Dashboard sections">
-  <button class="tab-btn active" data-tab="overview" role="tab" id="tabbtn-overview" aria-controls="tab-overview" title="Shortcut: press 1" aria-selected="true" tabindex="0">Overview</button>
-  <button class="tab-btn" data-tab="markets" role="tab" id="tabbtn-markets" aria-controls="tab-markets" title="Shortcut: press 2" aria-selected="false" tabindex="-1">Markets</button>
-  <button class="tab-btn" data-tab="economy" role="tab" id="tabbtn-economy" aria-controls="tab-economy" title="Shortcut: press 3" aria-selected="false" tabindex="-1">Economy</button>
-  <button class="tab-btn" data-tab="credit" role="tab" id="tabbtn-credit" aria-controls="tab-credit" title="Shortcut: press 4" aria-selected="false" tabindex="-1">Credit</button>
-  <button class="tab-btn" data-tab="news" role="tab" id="tabbtn-news" aria-controls="tab-news" title="Shortcut: press 5" aria-selected="false" tabindex="-1">News</button>
-  <button class="tab-btn" data-tab="journal" role="tab" id="tabbtn-journal" aria-controls="tab-journal" title="Shortcut: press 6" aria-selected="false" tabindex="-1">Journal</button>
+<!-- SESSION BAR — section stepper + session label + source/as-of/clock -->
+<div class="session-bar" role="navigation" aria-label="Section stepper">
+  <button class="sb-step" id="sbPrev" aria-label="Previous section">&#8249;</button>
+  <button class="sb-step" id="sbNext" aria-label="Next section">&#8250;</button>
+  <span class="sb-preset">Session Preset: <b>Prior Close</b></span>
+  <span class="sb-section" id="sbSection">Overview</span>
+  <span class="sb-meta">Source FRED · <span id="sbAsOf">Data as of --:-- ET</span> · <span id="sbClock">--:--:-- ET</span></span>
+</div>
+<!-- SLIDE-OUT MENU — the six sections live here (no tab row) -->
+<div class="menu-scrim" id="menuScrim" hidden></div>
+<nav class="side-menu" id="sideMenu" aria-label="Menu" aria-hidden="true">
+  <div class="sm-sections" role="tablist" aria-label="Dashboard sections">
+    <button class="tab-btn sm-item active" data-tab="overview" role="tab" id="tabbtn-overview" aria-controls="tab-overview" aria-selected="true">Overview<span class="sm-key">1</span></button>
+    <button class="tab-btn sm-item" data-tab="markets" role="tab" id="tabbtn-markets" aria-controls="tab-markets" aria-selected="false">Markets<span class="sm-key">2</span></button>
+    <button class="tab-btn sm-item" data-tab="economy" role="tab" id="tabbtn-economy" aria-controls="tab-economy" aria-selected="false">Economy<span class="sm-key">3</span></button>
+    <button class="tab-btn sm-item" data-tab="credit" role="tab" id="tabbtn-credit" aria-controls="tab-credit" aria-selected="false">Credit<span class="sm-key">4</span></button>
+    <button class="tab-btn sm-item" data-tab="news" role="tab" id="tabbtn-news" aria-controls="tab-news" aria-selected="false">News<span class="sm-key">5</span></button>
+    <button class="tab-btn sm-item" data-tab="journal" role="tab" id="tabbtn-journal" aria-controls="tab-journal" aria-selected="false">Journal<span class="sm-key">6</span></button>
+  </div>
+  <div class="sm-div"></div>
+  <button class="sm-item" id="smNotif">Notifications<span class="sm-badge" id="smNotifBadge" hidden>0</span></button>
+  <button class="sm-item" id="smCal">Calendar</button>
+  <button class="sm-item" id="prepExportBtn" title="Copy the daily prep summary">Prep</button>
+  <button class="sm-item" id="smResearch">Research<span class="sm-key">Ctrl K</span></button>
+  <button class="sm-item" id="settingsGear">Settings<span class="gear-alert" id="gearAlert" hidden></span></button>
+  <button class="sm-item sm-close" id="menuClose">Close Menu</button>
 </nav>
 <div class="terminal">
 
@@ -176,11 +197,6 @@
           Triggers also visible in Credit tab &middot; FRED data updated hourly
         </div>
       </div>
-    </div>
-
-    <!-- WATCHLIST STRIP (hidden until populated) -->
-    <div id="watchlistStrip" class="watchlist-strip section-wrap" data-widget-id="watchlist" draggable="true" style="display:none">
-      <span class="watchlist-strip-lbl">WATCHLIST</span>
     </div>
 
     <div id="ov-macro-wrap" class="section-wrap" data-widget-id="macro" draggable="true">
@@ -678,7 +694,7 @@
 <!-- SETTINGS OVERLAY + DRAWER -->
 <div class="settings-overlay" id="settingsOverlay"></div>
 <div class="settings-drawer" id="settingsDrawer">
-  <div class="settings-hdr" id="settingsHdr" title="Drag to move">
+  <div class="settings-hdr" id="settingsHdr">
     <div class="settings-title-lbl">Settings</div>
     <button class="hdr-btn hdr-icon settings-close" id="settingsClose" aria-label="Close settings"><svg class="hdr-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg></button>
   </div>
@@ -690,7 +706,6 @@
   <div class="settings-nomatch" id="settingsNoMatch" hidden>No settings match your search.</div>
   <div class="settings-footer">
     <button class="hdr-btn" id="settingsReset">Reset settings</button>
-    <button class="hdr-btn" onclick="resetWidgetLayouts()">Reset layout</button>
   </div>
 </div>
 
@@ -713,16 +728,6 @@
       </div>
       <div id="researchSearchResults" class="research-search-results" role="listbox" aria-label="Search results" style="display:none"></div>
     </div>
-
-    <!-- WATCHLIST -->
-    <div class="research-sec-hdr"><div class="research-sec-title">Watchlist <span class="research-count" id="rwlCount"></span></div></div>
-    <div class="research-wl-add">
-      <div class="field-group">
-        <input type="text" id="rwlAddInput" class="field-input research-wl-input" placeholder="Add ticker" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters" aria-label="Add ticker to watchlist">
-        <button id="rwlAddBtn" class="research-wl-add-btn" aria-label="Add ticker">+ Add</button>
-      </div>
-    </div>
-    <div id="researchWLList"></div>
 
     <!-- ANALYSIS -->
     <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">Company analysis</div></div>
@@ -799,7 +804,6 @@
       <div class="summary-stat"><span class="ss-label">vs 200MA</span><span class="ss-value" id="modal-vs-200ma">--</span></div>
     </div>
     <div class="modal-action-buttons">
-      <button class="modal-action-btn" id="modal-add-watchlist">+ WATCHLIST</button>
       <button class="modal-action-btn" id="modal-view-analysis">VIEW ANALYSIS</button>
       <button class="modal-action-btn" id="modal-view-news">NEWS</button>
       <a class="modal-action-btn" id="modal-edgar-link" href="#" target="_blank" rel="noopener noreferrer">SEC EDGAR</a>
@@ -844,28 +848,10 @@ function regimeColor(label) { return tok(regimeToken(label)); }
 const _regimeColorMap = new Proxy({}, { get: (_, k) => regimeColor(k) });
 
 // ════════════════════════════════════════════════════════════
-// FIXED HEADER LAYOUT — measure actual rendered heights and
-// position tab-nav + content padding precisely, including
-// iPhone notch (safe-area-inset-top is baked into topbar height
-// via CSS padding-top: calc(8px + env(safe-area-inset-top))).
+// HEADER — the header is position:sticky (CSS), so content needs no
+// measured top padding. Kept as a no-op for any old callers.
 // ════════════════════════════════════════════════════════════
-function fixHeaderLayout() {
-  var topbar   = document.querySelector('.topbar');
-  var tabnav   = document.querySelector('.tab-nav');
-  var terminal = document.querySelector('.terminal');
-  var alertEl  = document.getElementById('alertBanner');
-  var resPanel = document.getElementById('researchPanel');
-  if (!topbar || !tabnav || !terminal) return;
-  var th = topbar.offsetHeight;
-  var nh = tabnav.offsetHeight;
-  tabnav.style.top          = th + 'px';
-  terminal.style.paddingTop = (th + nh) + 'px';
-  if (alertEl)  alertEl.style.top  = (th + nh) + 'px';
-  if (resPanel) resPanel.style.top = (th + nh) + 'px';
-}
-fixHeaderLayout();
-window.addEventListener('resize', fixHeaderLayout);
-window.addEventListener('orientationchange', function() { setTimeout(fixHeaderLayout, 150); });
+function fixHeaderLayout() {}
 
 // ════════════════════════════════════════════════════════════
 // CONFIG & STATE
@@ -881,8 +867,8 @@ const LAGGING_IDS  = new Set(['gdp','cpi','pce','unemployment','retail','savings
 // CLOCK
 // ════════════════════════════════════════════════════════════
 function updateClock() {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ET';
+  const t = new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ET';
+  for (const id of ['clock', 'sbClock']) { const el = document.getElementById(id); if (el) el.textContent = t; }
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -909,6 +895,8 @@ function _renderAsOf() {
     ? _dataAsOf.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit' })
     : '--:--';
   el.textContent = `Data as of ${t} ET`;
+  const sb = document.getElementById('sbAsOf');
+  if (sb) sb.textContent = `Data as of ${t} ET`;
 }
 
 // Countdown ring: drains over one refresh interval, restarts on every auto-refresh.
@@ -1007,6 +995,10 @@ function switchTab(tabId) {
     b.tabIndex = on ? 0 : -1;
   });
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
+  const sbName = document.getElementById('sbSection');
+  const btnOn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+  if (sbName && btnOn) sbName.textContent = btnOn.childNodes[0].textContent.trim();
+  if (typeof closeMenu === 'function') closeMenu();
   if (!state.tabLoaded[tabId]) {
     state.tabLoaded[tabId] = true;
     fetchTab(tabId);
@@ -1016,6 +1008,45 @@ function switchTab(tabId) {
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
+
+// ── Slide-out menu: opens from the three-lines button; closes on scrim, Esc,
+//    a section choice, or Close Menu ──
+const SECTION_ORDER = ['overview', 'markets', 'economy', 'credit', 'news', 'journal'];
+let _menuReturnFocus = null;
+function openMenu() {
+  const m = document.getElementById('sideMenu');
+  _menuReturnFocus = document.activeElement;
+  m.classList.add('open'); m.setAttribute('aria-hidden', 'false');
+  document.getElementById('menuScrim').hidden = false;
+  document.getElementById('menuBtn').setAttribute('aria-expanded', 'true');
+  (m.querySelector('.tab-btn.active') || m.querySelector('button'))?.focus();
+}
+function closeMenu() {
+  const m = document.getElementById('sideMenu');
+  if (!m || !m.classList.contains('open')) return;
+  m.classList.remove('open'); m.setAttribute('aria-hidden', 'true');
+  document.getElementById('menuScrim').hidden = true;
+  document.getElementById('menuBtn').setAttribute('aria-expanded', 'false');
+  if (_menuReturnFocus && document.contains(_menuReturnFocus)) _menuReturnFocus.focus();
+}
+document.getElementById('menuBtn').addEventListener('click', () =>
+  document.getElementById('sideMenu').classList.contains('open') ? closeMenu() : openMenu());
+document.getElementById('menuScrim').addEventListener('click', closeMenu);
+document.getElementById('menuClose').addEventListener('click', closeMenu);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+// Menu shortcuts to header popovers: close the menu first, then open the popover
+// on the next tick so the same click doesn't count as an "outside" click.
+function _menuThen(fn) { return () => { closeMenu(); setTimeout(fn, 0); }; }
+document.getElementById('smNotif').addEventListener('click', _menuThen(() => document.getElementById('notifBell').click()));
+document.getElementById('smCal').addEventListener('click', _menuThen(() => document.getElementById('calBtn').click()));
+document.getElementById('smResearch').addEventListener('click', _menuThen(() => openResearch()));
+// Session bar ‹ › step through the sections
+function stepSection(delta) {
+  const i = SECTION_ORDER.indexOf(state.currentTab);
+  switchTab(SECTION_ORDER[(i + delta + SECTION_ORDER.length) % SECTION_ORDER.length]);
+}
+document.getElementById('sbPrev').addEventListener('click', () => stepSection(-1));
+document.getElementById('sbNext').addEventListener('click', () => stepSection(1));
 
 function fetchTab(tabId) {
   switch (tabId) {
@@ -4007,8 +4038,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Try clipboard first
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'COPIED!';
-        setTimeout(() => { btn.textContent = 'PREP'; }, 2000);
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = 'Prep'; }, 2000);
       }).catch(() => _downloadPrep(text, btn));
     } else {
       _downloadPrep(text, btn);
@@ -4024,8 +4055,8 @@ function _downloadPrep(text, btn) {
   a.href = url; a.download = `macro-prep-${date}.txt`;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
-  btn.textContent = 'SAVED!';
-  setTimeout(() => { btn.textContent = 'PREP'; }, 2000);
+  btn.textContent = 'Saved';
+  setTimeout(() => { btn.textContent = 'Prep'; }, 2000);
 }
 
 
@@ -4103,7 +4134,6 @@ const SEC_DEFS = [
   {id:'ov-briefing',  tab:'overview',title:'AI Briefing',        els:['ai-briefing-section'], pw:true},
   {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['ov-regime-wrap'],       pw:true},
   {id:'ov-thesis',    tab:'overview',title:'Thesis Monitor',     els:['ov-sec-thesis'],        pw:true},
-  {id:'ov-watchlist', tab:'overview',title:'Watchlist',          els:['watchlistStrip'],       pw:true},
   {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['ov-macro-wrap'],        pw:true},
   {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['ov-sec-yields'],        pw:true},
   {id:'ov-fedwatch',  tab:'overview',title:'Fed Rate Path',      els:['ov-sec-fedwatch'],      pw:true},
@@ -4140,8 +4170,8 @@ function applyAppSettings() {
   const h = document.documentElement;
   // The workspace design is dark-only; any saved theme choice falls back to dark.
   h.setAttribute('data-theme',    'dark');
-  h.setAttribute('data-fontsize', d.fontSize || 'normal');
-  h.setAttribute('data-density',  d.density  || 'normal');
+  h.setAttribute('data-fontsize', 'normal');   // font size / density controls were removed in the redesign
+  h.setAttribute('data-density',  'normal');
   h.setAttribute('data-client',   d.clientMode ? 'true' : 'false');
 
   const rate = (d.refreshRate === undefined || d.refreshRate === null) ? 120 : +d.refreshRate;   // 0 = manual
@@ -4172,7 +4202,7 @@ function applySettings() {
       .forEach(s=>{ const el=tabEl.querySelector(`[data-section-id="${s.id}"]`);if(el)tabEl.appendChild(el); });
     secs.forEach(s=>{
       const el=tabEl.querySelector(`[data-section-id="${s.id}"]`);
-      if(el) el.style.display = d[s.id]?.visible===false?'none':'';
+      if(el) el.style.display = '';   // visibility toggles were removed in the redesign
     });
   });
 }
@@ -4309,9 +4339,16 @@ function _si(id,val,ph=''){return `<input type="text" class="sset-input" id="${i
 function _sn(id,val,min,max,step){return `<input type="number" class="sset-input" id="${id}" value="${val}" min="${min}" max="${max}" step="${step}">`;}
 function _xe(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// ── S0: Ticker tape (per-device; default on) ──────────────────
+function _s0(d){
+  return _sh('00','Ticker tape',true)+
+    _sf('Ticker tape',`<label class="tog"><input type="checkbox" id="stTickerTape"${d.tickerTape!==false?' checked':''}><span class="tog-track"></span></label>`)+
+    _se;
+}
+
 // ── S12: Data Sources (status rows filled by static/js/status.js) ──
 function _s12(){
-  return _sh('12','Data sources',false)+
+  return _sh('12','Data sources',true)+
     `<div class="src-list" id="srcStatus" role="list" aria-label="Data source status"><div class="src-empty">Checking…</div></div>
      <div class="src-legend"><span><i data-level="ok"></i>Working</span><span><i data-level="warn"></i>Last call failed or data aging</span><span><i data-level="error"></i>Failing</span><span><i data-level="idle"></i>Not used yet</span></div>`+
     _se;
@@ -4319,10 +4356,7 @@ function _s12(){
 
 // ── S1: Display & Appearance ──────────────────────────────────
 function _s1(d){
-  return _sh('01','Display &amp; appearance',true)+
-    _sf('Theme',_ss('stTheme',[['dark','DARK (DEFAULT)'],['light','LIGHT']],d.theme === 'light' ? 'light' : 'dark'))+
-    _sf('Font Size',_ss('stFontSize',[['compact','CONDENSED'],['normal','STANDARD'],['large','LARGE TEXT']],d.fontSize))+
-    _sf('Data Density',_ss('stDensity',[['compact','COMPACT'],['normal','NORMAL'],['spacious','SPACIOUS']],d.density))+
+  return _sh('01','Display',false)+
     _sf('Refresh Rate',_ss('stRefreshRate',[['30','30 SECONDS'],['60','60 SECONDS'],['120','2 MINUTES (DEFAULT)'],['300','5 MINUTES'],['0','MANUAL']],String(d.refreshRate)))+
     _sf('Number Format',_ss('stNumFormat',[['abbreviated','ABBREVIATED'],['full','FULL']],d.numFormat))+
     _sf('Decimal Places',_ss('stDecimals',[['0','0'],['1','1'],['2','2']],String(d.decimals)))+
@@ -4369,7 +4403,7 @@ function _s4(d){
       The full journal has moved to the <strong style="color:var(--text)">JOURNAL</strong> tab.<br>
       ${count>0?`<span style="color:var(--warn)">${count} ${count===1?'entry':'entries'}</span> saved.`:'No entries yet.'}
     </div>
-    <button onclick="document.querySelector('[data-tab=journal]')?.click()" class="journal-add-btn">OPEN JOURNAL TAB &rarr;</button>`+
+    <button onclick="closeSettings();switchTab('journal')" class="journal-add-btn">Open Journal &rarr;</button>`+
     _se;
 }
 
@@ -4399,38 +4433,14 @@ function _s6(d){
   return _sh('06','Market data',false)+
     `<div class="sset-subtitle">Equity indices</div>${idxHtml}`+
     _sf('Custom Ticker',_si('stCustomTicker',d.customTicker||'','AAPL, BRK-B'))+
-    _se;
-}
-
-// ── S7: Watchlist ─────────────────────────────────────────────
-function _s7(d){
-  const tickers=d.watchlist||[];
-  const rows=tickers.length
-    ?tickers.map((t,i)=>`<div class="wl-ticker-row"><span class="wl-ticker-sym">${_xe(t)}</span><button class="wl-ticker-del" data-idx="${i}">✕</button></div>`).join('')
-    :'<div style="font-size:var(--fs-11);color:var(--text-muted);padding:6px 0">No tickers added.</div>';
-  return _sh('07','Watchlist',false)+
-    `<div class="wl-add-row"><input type="text" id="wlAddInput" class="wl-add-input" placeholder="TICKER" maxlength="10"><button id="wlAddBtn" class="wl-add-btn">+ ADD</button></div>
-    <div class="wl-ticker-list" id="wlTickerList">${rows}</div>`+
     _sf('BDC Monitor (Credit)',`<label class="tog"><input type="checkbox" id="stShowBDC"${d.showBDC?' checked':''}><span class="tog-track"></span></label>`)+
     _se;
 }
 
-// ── S8: Layout ────────────────────────────────────────────────
+// ── S8: Startup ───────────────────────────────────────────────
 function _s8(ld,sd){
-  const byTab={};
-  SEC_DEFS.forEach(s=>(byTab[s.tab]=byTab[s.tab]||[]).push(s));
-  const groups=Object.entries(byTab).map(([tab,secs])=>{
-    const sorted=[...secs].sort((a,b)=>(ld[a.id]?.order??DEF_ORDER[a.id])-(ld[b.id]?.order??DEF_ORDER[b.id]));
-    const rows=sorted.map(s=>{
-      const on=ld[s.id]?.visible!==false;
-      return `<div class="settings-row" draggable="true" data-sid="${s.id}"><span class="srow-drag">⠿</span><span class="settings-row-label">${s.title}</span><label class="tog"><input type="checkbox" data-key="${s.id}"${on?' checked':''}><span class="tog-track"></span></label></div>`;
-    }).join('');
-    return `<div class="settings-group-hdr">${TAB_NAMES[tab]}</div><div class="stab-rows" data-tab="${tab}">${rows}</div>`;
-  }).join('');
-  return _sh('08','Layout',false)+
-    _sf('Default Tab',_ss('stDefaultTab',[['overview','OVERVIEW'],['markets','MARKETS'],['economy','ECONOMY'],['credit','CREDIT'],['news','NEWS']],sd.defaultTab||'overview'))+
-    `<div class="sset-subtitle">Section visibility &amp; order</div><div>${groups}</div>`+
-    `<div style="padding:8px 0"><button id="stResetLayout" style="width:100%;background:none;border:1px solid var(--border-strong);color:var(--text-muted);font-family:var(--font-mono);font-size:var(--fs-11);letter-spacing:var(--tracking-label);padding:5px;cursor:pointer">↺ RESET LAYOUT</button></div>`+
+  return _sh('08','Startup',false)+
+    _sf('Default Section',_ss('stDefaultTab',[['overview','OVERVIEW'],['markets','MARKETS'],['economy','ECONOMY'],['credit','CREDIT'],['news','NEWS'],['journal','JOURNAL']],sd.defaultTab||'overview'))+
     _se;
 }
 
@@ -4469,7 +4479,7 @@ function _s11(){
 // ── Render drawer ─────────────────────────────────────────────
 function renderDrawer(){
   const d=stLoad(); const ld=sLoad();
-  document.getElementById('settingsBody').innerHTML=[_s1(d),_s2(d),_s3(d),_s4(d),_s5(d),_s6(d),_s7(d),_s8(ld,d),_s9(d),_s10(d),_s11(),_s12()].join('');
+  document.getElementById('settingsBody').innerHTML=[_s0(d),_s12(),_s1(d),_s2(d),_s3(d),_s4(d),_s5(d),_s6(d),_s8(ld,d),_s9(d),_s10(d),_s11()].join('');
   _bindDrawer();
   if (typeof refreshSourceStatus === 'function') refreshSourceStatus();
   const q = document.getElementById('settingsSearch');
@@ -4507,7 +4517,8 @@ document.getElementById('settingsSearch')?.addEventListener('keydown', e => {
 // ── Bind all drawer controls ──────────────────────────────────
 function _bindDrawer(){
   // S1 selects
-  [{id:'stTheme',key:'theme'},{id:'stFontSize',key:'fontSize'},{id:'stDensity',key:'density'},{id:'stNumFormat',key:'numFormat'}].forEach(({id,key})=>{
+  document.getElementById('stTickerTape')?.addEventListener('change',e=>{ const d=stLoad();d.tickerTape=e.target.checked;stSave(d);applyTape(); });
+  [{id:'stNumFormat',key:'numFormat'}].forEach(({id,key})=>{
     const el=document.getElementById(id);
     if(el)el.addEventListener('change',()=>{ const d=stLoad();d[key]=el.value;stSave(d);applyAppSettings();
       if(key==='theme') fetchTab(state.currentTab);   // SVG charts read token colors at render time
@@ -4659,19 +4670,19 @@ function _bindDrawer(){
 
 // ── Open / Close ──────────────────────────────────────────────
 function openSettings(){
-  const d = document.getElementById('settingsDrawer');
-  // Re-center if not yet manually dragged
-  if (!d.style.left) { d.style.transform = ''; d.style.top = ''; d.style.left = ''; }
-  d.classList.add('open');
-  document.getElementById('settingsGear').classList.add('active');
+  closeMenu();
+  document.getElementById('settingsDrawer').classList.add('open');
+  document.getElementById('settingsOverlay').classList.add('open');
   renderDrawer();
 }
 function closeSettings(){
   document.getElementById('settingsDrawer').classList.remove('open');
-  document.getElementById('settingsGear').classList.remove('active');
+  document.getElementById('settingsOverlay').classList.remove('open');
 }
 document.getElementById('settingsGear').addEventListener('click',()=>
   document.getElementById('settingsDrawer').classList.contains('open')?closeSettings():openSettings());
+document.getElementById('settingsOverlay').addEventListener('click',closeSettings);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
 document.getElementById('settingsClose').addEventListener('click',closeSettings);
 
 // ── Shared drag helper ─────────────────────────────────────────
@@ -4780,7 +4791,6 @@ function _makeDraggable(panel, handle) {
   document.addEventListener('touchmove', e => { if(active){ e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
   document.addEventListener('touchend',  end);
 }
-_makeDraggable(document.getElementById('settingsDrawer'), document.getElementById('settingsHdr'));
 // thesisFloatPanel is injected after this script block; wired below after the element exists
 // Overview sections are handled by initDashDnD via SEC_DEFS (pw:true)
 document.getElementById('settingsReset').addEventListener('click',()=>{
@@ -4869,13 +4879,16 @@ function _updateBell(){
   const empty=document.getElementById('notifEmpty');
   if(!bell)return;
   const count=_notifications.length;
+  const smBadge=document.getElementById('smNotifBadge');
   if(count>0){
     bell.classList.add('has-notif');
     badge.textContent=count>9?'9+':count;
     badge.style.display='';
+    if(smBadge){smBadge.textContent=badge.textContent;smBadge.hidden=false;}
   }else{
     bell.classList.remove('has-notif');
     badge.style.display='none';
+    if(smBadge)smBadge.hidden=true;
   }
   if(list)list.innerHTML=_notifications.map(n=>`<div class="notif-item"><span class="notif-item-time">${n.time}</span><span>${n.msg}</span></div>`).join('');
   if(empty)empty.style.display=count===0?'':'none';
@@ -5568,7 +5581,6 @@ function renderCompanyAnalysis(d) {
     <div class="ra-news-panel" id="ra-news-panel" style="display:none"></div>
 
     <div class="ra-btn-strip">
-      <button id="ra-wl-btn" class="ra-btn${inWL ? ' ra-btn-wl-active' : ''}" onclick="toggleRaWL('${safeS}')">${inWL ? '✓ WATCHLIST' : '+ WATCHLIST'}</button>
       <button class="ra-btn" onclick="toggleRaNews('${safeS}','${(d.name||'').replace(/'/g,'')}')">VIEW NEWS</button>
       <a class="ra-btn" href="${tenKUrl}" target="_blank" rel="noopener noreferrer">10-K</a>
       <a class="ra-btn" href="${earningsUrl}" target="_blank" rel="noopener noreferrer">EARNINGS</a>
@@ -5992,9 +6004,6 @@ document.querySelectorAll('.modal-period-btn').forEach(btn => {
   const cb = document.getElementById(id);
   if (cb) cb.addEventListener('change', () => { if (_modalData) _renderModalChart(_modalData); });
 });
-document.getElementById('modal-add-watchlist').addEventListener('click', () => {
-  if (_modalTicker) addResearchWL(_modalTicker);
-});
 document.getElementById('modal-view-analysis').addEventListener('click', () => {
   if (_modalTicker) { closeChartModal(); openResearch(); analyzeResearchTicker(_modalTicker); }
 });
@@ -6007,7 +6016,7 @@ document.getElementById('modal-view-news').addEventListener('click', () => {
 });
 
 // ── Double-tap delegation for watchlist ──────────────────────
-document.getElementById('researchWLList').addEventListener('click', e => {
+document.getElementById('researchWLList')?.addEventListener('click', e => {
   const sym = e.target.closest('.watchlist-ticker-symbol');
   if (!sym) return;
   const ticker = sym.dataset.ticker;

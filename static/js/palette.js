@@ -1,7 +1,7 @@
 // FILE: static/js/palette.js
 // Keyboard navigation + ⌘K / Ctrl+K command palette.
 //   1–6            switch tabs (when not typing in a field)
-//   ← → Home End   move between tabs when a tab has focus (ARIA tablist pattern)
+//   ← → Home End   move between sections when a section in the menu has focus
 //   ⌘K / Ctrl+K    open the palette: jump to a tab or panel, or research a ticker
 // Relies on globals from the inline script: switchTab(), openResearch().
 (function () {
@@ -11,18 +11,18 @@
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // ── Tab keyboard navigation ───────────────────────────────────────────────
+  // Sections live in the slide-out menu; switching closes it, so focus isn't moved there.
   function focusTab(id) {
     switchTab(id);
-    const btn = document.querySelector(`.tab-btn[data-tab="${id}"]`);
-    if (btn) btn.focus();
   }
-  document.querySelector('.tab-nav')?.addEventListener('keydown', e => {
+  document.querySelector('.sm-sections')?.addEventListener('keydown', e => {
     const cur = TABS.indexOf(document.activeElement?.dataset?.tab);
     if (cur < 0) return;
     const next = { ArrowRight: cur + 1, ArrowLeft: cur - 1, Home: 0, End: TABS.length - 1 }[e.key];
     if (next === undefined) return;
     e.preventDefault();
-    focusTab(TABS[(next + TABS.length) % TABS.length]);
+    const id = TABS[(next + TABS.length) % TABS.length];
+    document.querySelector(`.tab-btn[data-tab="${id}"]`)?.focus();
   });
 
   // ── Palette ───────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@
     const out = TABS.map((t, i) => {
       const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
       const label = btn ? btn.childNodes[0].textContent.trim() : t;
-      return { kind: 'Tab', label, hint: String(i + 1), run: () => focusTab(t) };
+      return { kind: 'Section', label, hint: String(i + 1), run: () => focusTab(t) };
     });
     document.querySelectorAll('.tab-panel [data-widget-id]').forEach(el => {
       const titleEl = el.querySelector('.section-title, .card-title');
@@ -150,9 +150,5 @@
     if (n >= 1 && n <= TABS.length) { e.preventDefault(); focusTab(TABS[n - 1]); }
   });
 
-  // Show the right modifier on non-Mac keyboards.
-  if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
-    const k = document.querySelector('#paletteBtn kbd');
-    if (k) k.textContent = 'Ctrl K';
-  }
+  // The button reads "Ctrl K" on every platform; ⌘K also works on a Mac.
 })();
