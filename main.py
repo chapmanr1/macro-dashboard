@@ -9,7 +9,7 @@ import time
 import logging
 import traceback
 import concurrent.futures
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 from datetime import datetime
 logging.basicConfig(
     level=logging.INFO,
@@ -108,6 +108,29 @@ except ImportError:
     def get_chart_data(s, p="1y"): return {"error": "Research module not loaded", "symbol": s}
 
 app = Flask(__name__)
+
+# ── GZIP COMPRESSION ──────────────────────────────────────────
+# The page is ~377 KB of HTML plus ~140 KB of CSS; gzip shrinks text like this
+# by roughly 80%, so phones on slow connections finish downloading in seconds.
+_GZIP_TYPES = ("text/html", "text/css", "application/javascript", "text/javascript", "application/json")
+_GZIP_MIN_BYTES = 1024
+
+@app.after_request
+def _gzip_response(response: Response) -> Response:
+    import gzip
+    if ("gzip" not in request.headers.get("Accept-Encoding", "").lower()
+            or response.status_code != 200
+            or "Content-Encoding" in response.headers
+            or response.mimetype not in _GZIP_TYPES):
+        return response
+    response.direct_passthrough = False  # static files stream from disk; read them into memory
+    body = response.get_data()
+    if len(body) < _GZIP_MIN_BYTES:
+        return response
+    response.set_data(gzip.compress(body, compresslevel=6))
+    response.headers["Content-Encoding"] = "gzip"
+    response.vary.add("Accept-Encoding")
+    return response
 
 # ── ROUTES ────────────────────────────────────────────────────
 @app.route("/")
