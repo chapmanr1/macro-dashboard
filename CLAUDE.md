@@ -50,7 +50,7 @@ Port defaults to 5000 (`PORT` env var overrides). No tests or linters configured
 Six tabs: Overview, Markets, Economy, Credit, News, Portfolio (inactive)
 
 Overview tab:
-- AI Morning Briefing (Anthropic API, cached 6 hours)
+- AI Morning Briefing (Anthropic API; page loads always serve the cached briefing — a new one is generated only from the panel's regenerate control, or at startup when no cache exists)
 - Regime status with confidence score
 - Macro indicators from FRED
 - Suggested positioning drill-down
@@ -96,7 +96,7 @@ Falsification triggers (if these occur thesis weakens):
 
 **All data functions return plain dicts** — Flask routes wrap them with `jsonify()`. When one module needs data from another, import and call the function directly. Never make HTTP calls to `localhost` or `127.0.0.1`.
 
-**AI briefing cache**: `ai_briefing.py` writes a 6-hour JSON cache to `briefing_cache.json`. Force-regenerate via `/api/briefing/regenerate`. It imports directly from `regime_engine`, `fred_data`, `market_data`, and `news_feed` — check all four before modifying.
+**AI briefing cache**: `ai_briefing.py` writes `briefing_cache.json`; `/api/briefing` always returns it whatever its age and never starts a generation unless no cache exists. Regenerate via `POST /api/briefing/refresh`. It imports directly from `regime_engine`, `fred_data`, `market_data`, and `news_feed` — check all four before modifying.
 
 ## Architecture rules — NON-NEGOTIABLE
 - NEVER make HTTP calls to localhost or 127.0.0.1 from backend code
@@ -123,7 +123,7 @@ Falsification triggers (if these occur thesis weakens):
   - FRED data: 1 hour
   - Fundamentals: 24 hours
   - Historical chart data: 1 hour intraday, 24 hours daily+
-  - AI Briefing: 6 hours
+  - AI Briefing: until regenerated (see Overview notes)
 
 ## Workflow rules
 - For any change touching 2+ files: use Plan Mode (Shift+Tab twice),

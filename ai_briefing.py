@@ -23,7 +23,6 @@ from anthropic import Anthropic as _Anthropic
 log = logging.getLogger(__name__)
 
 CACHE_FILE  = "briefing_cache.json"
-CACHE_HOURS = 6
 EASTERN     = pytz.timezone("America/New_York")
 
 # Reused across briefing calls — avoids creating a new httpx client + SSL
@@ -290,9 +289,12 @@ def get_briefing():
             ],
         }
 
-    # Always answers immediately. Generation only ever happens in a background thread.
+    # Always answers immediately with the cached briefing, whatever its age. Page loads
+    # never start a generation: a new briefing comes only from the regenerate control
+    # (force_regenerate). The one exception is when no briefing exists at all — e.g. right
+    # after a deploy wipes the cache — so the panel is never permanently empty.
     cached = _load_cache()
-    if cached and _cache_valid(cached):
+    if cached and cached.get("briefing"):
         return {
             "status":       "success",
             "briefing":     cached["briefing"],
@@ -300,16 +302,7 @@ def get_briefing():
             "from_cache":   True,
         }
 
-    _start_background_generation()   # no-op if one is already running
-    if cached and cached.get("briefing"):
-        # Expired: keep showing the last briefing while a new one is built.
-        return {
-            "status":       "success",
-            "briefing":     cached["briefing"],
-            "generated_at": cached["generated_at"],
-            "from_cache":   True,
-            "refreshing":   True,
-        }
+    _start_background_generation()   # no cache at all; no-op if one is already running
     return {
         "status":     "generating",
         "message":    "Generating the morning briefing — this takes 3–5 minutes after a restart.",
@@ -904,8 +897,8 @@ def _prewarm_briefing() -> None:
     _time.sleep(20)  # Let other startup tasks (FRED, market data) initialize first
     for attempt in range(1, 4):
         cached = _load_cache()
-        if cached and _cache_valid(cached):
-            log.info("Briefing pre-warm: valid cache present.")
+        if cached and cached.get("briefing"):
+            log.info("Briefing pre-warm: cached briefing present — not regenerating.")
             return
         log.info(f"Briefing pre-warm: generating (attempt {attempt}/3)...")
         _start_background_generation()          # or join one already running
@@ -913,7 +906,7 @@ def _prewarm_briefing() -> None:
         while _generation_lock.locked():        # wait for whichever generation is running
             _time.sleep(5)
         cached = _load_cache()
-        if cached and _cache_valid(cached):
+        if cached and cached.get("briefing"):
             log.info("Briefing pre-warm complete.")
             return
         log.warning(f"Briefing pre-warm attempt {attempt} did not produce a briefing: {_last_generation_error}")
@@ -934,11 +927,3 @@ def _save_cache(briefing_text):
         json.dump({"briefing": briefing_text, "generated_at": _now_et().isoformat()}, f)
 
 
-def _cache_valid(cached):
-    if not cached or "generated_at" not in cached:
-        return False
-    cached_time = datetime.fromisoformat(cached["generated_at"])
-    if cached_time.tzinfo is None:
-        cached_time = EASTERN.localize(cached_time)
-    age = _now_et() - cached_time
-    return age < timedelta(hours=CACHE_HOURS)
