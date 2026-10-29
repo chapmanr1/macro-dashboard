@@ -1899,3 +1899,27 @@ a.nf-item:hover .nf-head { color: var(--accent); }
 #newsWatchBody .tbl { margin: 0 -12px -10px; width: calc(100% + 24px); }
 @media (max-width: 430px) { .nf-item { grid-template-columns: 64px minmax(0, 1fr); gap: 8px; } }
 .tag.tag-plain { text-transform: none; letter-spacing: 0.01em; }
+
+/* ════════ JOURNAL ════════ */
+.ws-1 { max-width: 1180px; }
+#jn-journal .jnl-toolbar { padding: 10px 12px; gap: 8px; }
+.jnl-new-btn, .jnl-save-btn { background: transparent !important; color: var(--accent) !important; font-size: var(--fs-12); font-weight: 600; letter-spacing: 0; padding: 6px 10px; }
+.jnl-export-btn, .jnl-cancel-btn { background: transparent !important; color: var(--text-muted); font-size: var(--fs-12); font-weight: 500; letter-spacing: 0; padding: 6px 10px; }
+.jnl-new-btn:hover, .jnl-save-btn:hover, .jnl-export-btn:hover, .jnl-cancel-btn:hover { background: var(--surface-raised) !important; color: var(--text-on-accent) !important; opacity: 1; }
+.jnl-search, .jnl-filter, .jnl-ta, .jnl-tags-input { font-family: var(--font-sans); font-size: var(--fs-12); background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); color: var(--text); }
+.jnl-search { flex: 1 1 200px; min-width: 0; padding: 6px 10px; }
+.jnl-filter { padding: 6px 8px; color: var(--text); }
+.jnl-search:focus, .jnl-ta:focus, .jnl-tags-input:focus { border-color: var(--accent); }
+.jnl-count { margin-left: auto; font-size: var(--fs-11); color: var(--text-faint); }
+.jnl-form-wrap { border-bottom: 1px solid var(--border); background: none; }
+.jnl-snapshot { background: var(--row-group-bg); font-size: var(--fs-12); gap: 6px 16px; }
+.jnl-snap-regime { font-weight: 700; }
+.jnl-field-lbl { font-size: var(--fs-11); color: var(--text-muted); letter-spacing: 0.02em; text-transform: none; }
+.jnl-entry-hdr:hover { background: var(--surface-raised); }
+.jnl-entry-date { font-family: var(--font-sans); }
+.jnl-entry-regime { font-size: var(--fs-12); font-weight: 700; letter-spacing: 0; padding: 0; border: 0; background: none; }
+.jnl-entry-preview { font-size: var(--fs-12); color: var(--text); }
+.jnl-empty { font-size: var(--fs-14); color: var(--text-muted); letter-spacing: 0; line-height: 1.6; padding: 40px 20px; }
+.jnl-empty span { font-size: var(--fs-12); color: var(--text-faint); }
+@media (max-width: 600px) { .jnl-entry-tags { display: none; } .jnl-count { margin-left: 0; } }
+@media (max-width: 600px) { .jnl-fields { grid-template-columns: 1fr; } }

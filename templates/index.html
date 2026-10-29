@@ -351,27 +351,26 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel" id="tab-journal" role="tabpanel" aria-labelledby="tabbtn-journal">
 
-    <div class="section-header">
-      <div class="section-title" style="color:var(--warn)">&#11045; THESIS JOURNAL</div>
-      <div class="section-line"></div>
-      <div class="section-meta">PERSONAL MACRO RECORD · ENTRIES CANNOT BE DELETED</div>
-    </div>
+    <div class="ws ws-1">
+    <div class="ws-col" data-col="jn-main">
+    <section class="panel" id="jn-journal" data-widget-id="jn-journal">
+      <div class="panel-hdr"><span class="panel-title">Thesis Journal</span><span class="panel-stamp">Personal macro record · entries cannot be deleted</span><button class="panel-ctl" data-expand aria-label="Open Thesis Journal" title="Open">&#10530;</button></div>
 
     <div class="jnl-toolbar">
-      <button class="jnl-new-btn" onclick="jnlOpenForm()">+ NEW ENTRY</button>
-      <input class="jnl-search" id="jnlSearch" type="text" placeholder="Search entries..."
+      <button class="jnl-new-btn" onclick="jnlOpenForm()">+ New Entry</button>
+      <input class="jnl-search" id="jnlSearch" type="search" placeholder="Search entries…" aria-label="Search entries"
         oninput="jnlRender()" />
-      <select class="jnl-filter" id="jnlFilter" onchange="jnlRender()">
-        <option value="ALL">ALL REGIMES</option>
-        <option value="STAGFLATION">STAGFLATION</option>
-        <option value="STAGFLATION_RISK">STAGFLATION RISK</option>
-        <option value="REFLATION">REFLATION</option>
-        <option value="STRONG_GROWTH">STRONG GROWTH</option>
-        <option value="CONTRACTION">CONTRACTION</option>
-        <option value="OVERHEATING">OVERHEATING</option>
+      <select class="jnl-filter" id="jnlFilter" onchange="jnlRender()" aria-label="Filter by regime">
+        <option value="ALL">All regimes</option>
+        <option value="STAGFLATION">Stagflation</option>
+        <option value="STAGFLATION_RISK">Stagflation Risk</option>
+        <option value="REFLATION">Reflation</option>
+        <option value="STRONG_GROWTH">Strong Growth</option>
+        <option value="CONTRACTION">Contraction</option>
+        <option value="OVERHEATING">Overheating</option>
       </select>
       <span class="jnl-count" id="jnlCount"></span>
-      <button class="jnl-export-btn" onclick="jnlExport()">EXPORT .TXT</button>
+      <button class="jnl-export-btn" onclick="jnlExport()">Export .txt</button>
     </div>
 
     <div id="jnlFormWrap" style="display:none" class="jnl-form-wrap">
@@ -380,29 +379,29 @@
       </div>
       <div class="jnl-fields">
         <div style="grid-column:1/-1">
-          <div class="jnl-field-lbl">CURRENT VIEW — your macro thesis in your own words</div>
+          <div class="jnl-field-lbl">Current view — your macro thesis in your own words</div>
           <textarea class="jnl-ta full-width" id="jnlView" placeholder="What is your current macro view?"></textarea>
         </div>
         <div>
-          <div class="jnl-field-lbl">SUPPORTING EVIDENCE</div>
+          <div class="jnl-field-lbl">Supporting evidence</div>
           <textarea class="jnl-ta" id="jnlEvidence" placeholder="What data supports this view?"></textarea>
         </div>
         <div>
-          <div class="jnl-field-lbl">WHAT WOULD CHANGE MY MIND</div>
+          <div class="jnl-field-lbl">What would change my mind</div>
           <textarea class="jnl-ta" id="jnlChangeMind" placeholder="Specific conditions that would cause you to update..."></textarea>
         </div>
         <div style="grid-column:1/-1">
-          <div class="jnl-field-lbl">POSITIONING IMPLICATIONS</div>
+          <div class="jnl-field-lbl">Positioning implications</div>
           <textarea class="jnl-ta" id="jnlPositioning" placeholder="How does this view affect client portfolios?"></textarea>
         </div>
         <div style="grid-column:1/-1">
-          <div class="jnl-field-lbl">TAGS (comma-separated &mdash; e.g. Fed meeting, CPI print)</div>
+          <div class="jnl-field-lbl">Tags (comma-separated &mdash; e.g. Fed meeting, CPI print)</div>
           <input class="jnl-tags-input" id="jnlTags" type="text" placeholder="Fed meeting, CPI print, Client meeting" />
         </div>
       </div>
       <div class="jnl-form-footer">
-        <button class="jnl-save-btn" onclick="jnlSaveEntry()">SAVE ENTRY</button>
-        <button class="jnl-cancel-btn" onclick="jnlCloseForm()">CANCEL</button>
+        <button class="jnl-save-btn" onclick="jnlSaveEntry()">Save entry</button>
+        <button class="jnl-cancel-btn" onclick="jnlCloseForm()">Cancel</button>
         <span style="font-size:var(--fs-11);color:var(--text-faint);letter-spacing:.05em">
           Date, regime &amp; indicators locked at save &middot; text fields editable 24h
         </span>
@@ -410,6 +409,9 @@
     </div>
 
     <div id="jnlList" class="jnl-list"></div>
+    </section>
+    </div>
+    </div>
 
   </div><!-- /tab-journal -->
 
@@ -2224,8 +2226,8 @@ function jnlRender() {
   if (!listEl) return;
   if (!filtered.length) {
     listEl.innerHTML = `<div class="jnl-empty">${
-      all.length ? 'NO ENTRIES MATCH FILTER<br><span style="font-size:var(--fs-11)">Try a different regime or search term</span>'
-      : 'NO ENTRIES YET<br><span style="font-size:var(--fs-11)">Click + NEW ENTRY to start your intellectual track record</span>'
+      all.length ? 'No entries match this filter.<br><span>Try a different regime or search term.</span>'
+      : 'No entries yet.<br><span>Choose + New Entry to start your track record — each entry locks the regime and key indicators at the moment you save.</span>'
     }</div>`;
     return;
   }
@@ -2235,8 +2237,8 @@ function jnlRender() {
 function jnlRenderEntry(entry) {
   const expanded = _jnlExpanded.has(entry.id);
   const date  = new Date(entry.created_at);
-  const dateStr = date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const timeStr = date.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const dateStr = etDate(date, { month: 'short', day: 'numeric', year: 'numeric' });
+  const timeStr = etTime(date);
   const editable = new Date() < new Date(entry.editable_until);
   const color = jnlRegimeColor(entry.regime);
   const preview = (entry.view||'').slice(0,100) + ((entry.view||'').length>100?'…':'');
@@ -2252,7 +2254,7 @@ function jnlRenderEntry(entry) {
       <div class="jnl-body-ind">GDP <span>${fmtV(ind.gdp_growth)}</span></div>
       <div class="jnl-body-ind">UE <span>${fmtV(ind.unemployment)}</span></div>
       <div class="jnl-body-ind">FF <span>${fmtV(ind.fed_funds)}</span></div>
-      <div class="jnl-body-ind">10Y-2Y <span>${fmtV(ind.spread_10y2y,3)}</span></div>
+      <div class="jnl-body-ind">10Y-2Y <span>${fmtV(ind.spread_10y2y,2)}</span></div>
       ${entry.regime_confidence!=null?`<div class="jnl-body-ind">Confidence <span>${entry.regime_confidence}%</span></div>`:''}
     </div>`;
     const sections = [
@@ -2287,7 +2289,7 @@ function jnlRenderEntry(entry) {
   return `<div class="jnl-entry" id="jnl-${entry.id}">
     <div class="jnl-entry-hdr" onclick="jnlToggle('${entry.id}')">
       <div class="jnl-entry-date">${dateStr}<br><span style="font-size:var(--fs-11)">${timeStr}</span></div>
-      <div class="jnl-entry-regime" style="background:color-mix(in srgb, ${color} 13%, transparent);color:${color};border:1px solid color-mix(in srgb, ${color} 33%, transparent)">${entry.regime||'UNKNOWN'}</div>
+      <div class="jnl-entry-regime" style="color:${color}">${_xe(regimeName(entry.regime || 'UNKNOWN'))}</div>
       <div class="jnl-entry-preview">${preview||'<span style="color:var(--text-faint)">No view written</span>'}</div>
       <div class="jnl-entry-tags">${tags}</div>
       <span class="jnl-entry-chevron${expanded?' open':''}">&#9660;</span>
@@ -2313,15 +2315,15 @@ function jnlRenderSnapshot(snap) {
   const fmtV = (v,dp=2) => v!=null ? (+v).toFixed(dp)+'%' : '--';
   const color = jnlRegimeColor(snap.regime);
   setEl('jnlSnapshot',
-    `<span class="jnl-snap-regime" style="color:${color}">${snap.regime||'UNKNOWN'}</span>`+
+    `<span class="jnl-snap-regime" style="color:${color}">${_xe(regimeName(snap.regime || 'UNKNOWN'))}</span>`+
     (snap.regime_confidence!=null?`<span class="jnl-snap-ind">${snap.regime_confidence}% confidence</span>`:'')+
     `<span class="jnl-snap-ind">CPI YoY ${fmtV(ind.cpi_yoy)}</span>`+
     `<span class="jnl-snap-ind">Core PCE ${fmtV(ind.core_pce)}</span>`+
     `<span class="jnl-snap-ind">GDP ${fmtV(ind.gdp_growth)}</span>`+
     `<span class="jnl-snap-ind">UE ${fmtV(ind.unemployment)}</span>`+
     `<span class="jnl-snap-ind">FF ${fmtV(ind.fed_funds)}</span>`+
-    `<span class="jnl-snap-ind">10Y-2Y ${fmtV(ind.spread_10y2y,3)}</span>`+
-    `<span class="jnl-snap-note">&#128274; Auto-populated &middot; locked on save</span>`
+    `<span class="jnl-snap-ind">10Y-2Y ${fmtV(ind.spread_10y2y,2)}</span>`+
+    `<span class="jnl-snap-note">Auto-populated · locked on save · ${etTime(new Date())}</span>`
   );
 }
 
@@ -2429,12 +2431,12 @@ function jnlExport() {
   const sep = '='.repeat(70);
   const lines = entries.map(e => {
     const ind = e.indicators||{};
-    const dateStr = new Date(e.created_at).toLocaleString('en-US',{dateStyle:'long',timeStyle:'short'});
+    const dateStr = new Date(e.created_at).toLocaleString('en-US',{dateStyle:'long',timeStyle:'short',timeZone:'America/New_York'}) + ' ET';
     const parts = [
       sep,
       `DATE: ${dateStr}`,
       `REGIME: ${e.regime}${e.regime_confidence!=null?' ('+e.regime_confidence+'% confidence)':''}`,
-      `INDICATORS: CPI YoY ${fmtV(ind.cpi_yoy)} | Core PCE ${fmtV(ind.core_pce)} | GDP ${fmtV(ind.gdp_growth)} | UE ${fmtV(ind.unemployment)} | FF ${fmtV(ind.fed_funds)} | 10Y-2Y ${fmtV(ind.spread_10y2y,3)}`,
+      `INDICATORS: CPI YoY ${fmtV(ind.cpi_yoy)} | Core PCE ${fmtV(ind.core_pce)} | GDP ${fmtV(ind.gdp_growth)} | UE ${fmtV(ind.unemployment)} | FF ${fmtV(ind.fed_funds)} | 10Y-2Y ${fmtV(ind.spread_10y2y,2)}`,
     ];
     if ((e.tags||[]).length) parts.push(`TAGS: ${e.tags.join(', ')}`);
     const fields = [
