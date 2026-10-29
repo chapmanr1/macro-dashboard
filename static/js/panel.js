@@ -53,6 +53,7 @@ function relAge(d, now = Date.now()) {
   const ms = now - (d instanceof Date ? d.getTime() : new Date(d).getTime());
   if (!isFinite(ms)) return '—';
   const m = Math.max(0, Math.round(ms / 60000));
+  if (m < 1) return 'just now';
   if (m < 60) return m + 'm ago';
   const h = Math.round(m / 60);
   return h < 48 ? h + 'h ago' : Math.round(h / 24) + 'd ago';

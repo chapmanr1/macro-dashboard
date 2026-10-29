@@ -328,27 +328,22 @@
   <!-- NEWS TAB                                              -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel" id="tab-news" role="tabpanel" aria-labelledby="tabbtn-news">
-
-    <div class="section-header">
-      <div class="section-title" style="color:var(--neg)">⬥ MARKET DRIVING</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="drivingTimestamp">--</div>
+    <div class="ws ws-2">
+      <div class="ws-col" data-col="nw-left">
+      <section class="panel" id="nw-watch" data-widget-id="nw-watch">
+        <div class="panel-hdr"><span class="panel-title">On Watch</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'news_watchlist')" ontouchstart="event.stopPropagation();_showTooltip(this,'news_watchlist')">ⓘ</button><span class="panel-stamp">Private credit</span><button class="panel-ctl" data-expand aria-label="Open On Watch" title="Open">&#10530;</button></div>
+        <div class="panel-body" id="newsWatchBody"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div></div></div>
+      </section>
+      </div>
+      <div class="ws-col ws-first" data-col="nw-main">
+      <section class="panel" id="nw-feed" data-widget-id="nw-feed">
+        <div class="panel-hdr"><span class="panel-title">News Feed</span><button class="info-btn" aria-label="About this panel" onclick="event.stopPropagation();_showTooltip(this,'news_feed')" ontouchstart="event.stopPropagation();_showTooltip(this,'news_feed')">ⓘ</button><span class="panel-stamp" id="newsTimestamp">—</span>
+          <div class="nf-filter"><button class="nf-filter-btn" id="nfFilterBtn" aria-haspopup="true" aria-expanded="false">Filter: All</button><div class="nf-menu" id="nfMenu" hidden></div></div>
+          <button class="panel-ctl" data-expand aria-label="Open News Feed" title="Open">&#10530;</button></div>
+        <div class="panel-body flush" id="newsContent"><div class="panel-skel"><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:78%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:92%"></div></div></div>
+      </section>
+      </div>
     </div>
-    <div id="drivingContent">
-      <a class="driving-item" href="#" style="border-left:3px solid var(--neg)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:60%"></div></div><div></div></a>
-      <a class="driving-item" href="#" style="border-left:3px solid var(--accent)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:70%"></div></div><div></div></a>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">NEWS FEED</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="newsTimestamp">--</div>
-    </div>
-    <div id="newsContent" class="news-list">
-      <a class="news-item" href="#"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:70%"></div></div><div class="skel" style="height:10px"></div></a>
-      <a class="news-item" href="#"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60%"></div></div><div class="skel" style="height:10px"></div></a>
-    </div>
-
   </div><!-- /tab-news -->
 
   <!-- ══════════════════════════════════════════════════════ -->
@@ -865,6 +860,8 @@ function _srcLink(source) {
 // ════════════════════════════════════════════════════════════
 const INDICATOR_TOOLTIPS = {
   // ── Workspace panels (2026-10 redesign) ──
+  news_feed:      { title:'NEWS FEED', what:'Headlines from free RSS feeds (Bloomberg, FT, CNBC, Axios, Federal Reserve and others), ranked by a keyword relevance score. The top 3 by impact are pinned; the rest run newest first.', read:'Impact = relevance score scaled 0–100. Each story carries one topic tag. CARRIED = nothing newer than the prior close has displaced it; ages are always the true time since publication.', thresholds:'Filter narrows the feed to one topic; counts show how many stories each topic has right now.' },
+  news_watchlist: { title:'ON WATCH — PRIVATE CREDIT', what:'Stories matching the private-credit watchlist terms (BDCs, SRT deals, forbearance, credit stress, insurers) are flagged WATCHLIST and always kept in the feed, whatever their relevance score.', read:'The flagged count covers stories published today (Eastern). The next checkpoint is the next calendar event on the watchlist checkpoint list in config.py.', thresholds:'—' },
   dgs10:          { title:'10-YEAR TREASURY YIELD', what:'Yield on the 10-year US Treasury note at the prior close (FRED DGS10). The benchmark for mortgages, corporate borrowing and equity valuations.', read:'Rising = tighter financial conditions and pressure on long-duration assets; falling = easing or a flight to safety. The change column is in basis points (1bp = 0.01%).', thresholds:'No watch level is set yet — one can be added in config.py.' },
   dgs2:           { title:'2-YEAR TREASURY YIELD', what:'Yield on the 2-year US Treasury note at the prior close (FRED DGS2). The maturity most sensitive to expected Fed policy over the next two years.', read:'Moves with rate expectations: up = market expects a tighter Fed; down = expects cuts. Compare with the 10-year for the curve slope.', thresholds:'2Y above fed funds = market prices hikes | below = prices cuts' },
   ov_markets:     { title:'MARKETS — PRIOR CLOSE', what:'Prior-session closing levels: S&P 500, Nasdaq, Dow and VIX from FRED; 10Y/2Y yields and the HY spread from FRED; crude oil (WTI) from FRED. Not live quotes.', read:'Each row is the latest FRED close. A small date under a row means that series has not yet posted the most recent session.', thresholds:'HY spread trigger (from the thesis) is shown under the HY row.' },
@@ -1914,28 +1911,11 @@ function a_href(u) { return /^https?:\/\//.test(u || '') ? _xe(u) : '#'; }
 
 let _lastNewsRaw = null;
 
-function renderMarketDriving(articles, containerId) {
-  const colors = ['var(--neg)','var(--accent)','var(--pos)'];
-  const labels = ['▶ TOP','▶ 2ND','▶ 3RD'];
-  const top    = [...articles].sort((a,b) => (b.score||0)-(a.score||0)).slice(0,3);
-  if (!top.length) { setEl(containerId,'<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
-  setEl(containerId, top.map((a,i) => `
-    <a class="driving-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" style="border-left:3px solid ${colors[i]}">
-      <div class="driving-rank" style="color:${colors[i]}">${labels[i]}</div>
-      <div>
-        <div class="driving-headline">${a.title||a.headline||''}</div>
-        <div class="driving-meta">${_srcLink(a.source)} · ${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)} · IMPACT ${a.score||0}</div>
-      </div>
-    </a>`).join(''));
-}
 
 function renderOverviewDriving(data) {
   _lastNewsRaw = data.articles || [];
   _lastHeadlines = _lastNewsRaw.slice(0, 10);
   renderTopStories(_lastNewsRaw);
-  renderMarketDriving(_lastNewsRaw, 'drivingContent');
-  const ts = document.getElementById('drivingTimestamp');
-  if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
 
 // ── FED RATE PATH ─────────────────────────────────────────────
@@ -3421,13 +3401,6 @@ async function fetchCredit() {
 // ════════════════════════════════════════════════════════════
 // RENDER: NEWS
 // ════════════════════════════════════════════════════════════
-function renderDriving(articles) {
-  _lastNewsRaw = articles;
-  renderMarketDriving(articles, 'drivingContent');
-  renderTopStories(articles);
-  const ts = document.getElementById('drivingTimestamp');
-  if (ts) ts.textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
-}
 
 // Released value, shown only after release (server decides). "vs prior" is a plain
 // comparison with the previous release — not a forecast beat/miss — so it stays neutral.
@@ -3437,40 +3410,7 @@ function _calActualTag(ev) {
   return `<span class="cal-actual" style="margin-left:5px">ACT ${arrow}${ev.actual_str}</span>`;
 }
 
-function renderNewsFeed(data) {
-  const rawArticles = data.articles || [];
-  _lastHeadlines = rawArticles.slice(0, 10);
-  const articles = typeof filterArticlesBySettings === 'function' ? filterArticlesBySettings(rawArticles) : rawArticles;
-  const ts       = data.timestamp || null;
-  document.getElementById('newsTimestamp').textContent = ts ? 'UPDATED ' + fmtRelTime(ts) : '--';
 
-  renderDriving(rawArticles);
-
-  if (!articles.length) { setEl('newsContent','<div class="error-row">NO NEWS DATA</div>'); return; }
-
-  const items = articles.map(a => `
-    <a class="news-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
-      <div class="news-time">${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)}</div>
-      <div class="news-headline">${a.title||a.headline||''}</div>
-      <div class="news-source"${SOURCE_URLS[a.source] ? ` onclick="event.preventDefault();event.stopPropagation();window.open('${SOURCE_URLS[a.source]}','_blank','noopener,noreferrer')"` : ''}>${(a.source||'').toUpperCase()}</div>
-    </a>`).join('');
-
-  setEl('newsContent', items);
-}
-
-async function fetchNews() {
-  setStatus('loading');
-  let anyError = false;
-  await Promise.allSettled([
-    apiFetch('/api/news').then(renderNewsFeed).catch(e => {
-      renderError('drivingContent','NEWS UNAVAILABLE — '+e.message);
-      renderError('newsContent','NEWS UNAVAILABLE — '+e.message);
-      anyError = true;
-    }),
-  ]);
-  setStatus(anyError ? 'error' : 'ok');
-  startRefreshCountdown();
-}
 
 // ════════════════════════════════════════════════════════════
 // DAILY PREP SUMMARY EXPORT
@@ -3824,8 +3764,6 @@ function sSave(d){localStorage.setItem(S_KEY,JSON.stringify(d));}
 
 // ── Section definitions ───────────────────────────────────────
 const SEC_DEFS = [
-  {id:'news-driving', tab:'news',    title:'Market Driving',     els:['drivingContent'],                        pw:false},
-  {id:'news-feed',    tab:'news',    title:'News Feed',          els:['newsContent'],                           pw:false},
 ];
 
 const DEF_ORDER = Object.fromEntries(SEC_DEFS.map((s,i)=>[s.id,i]));
@@ -4636,7 +4574,7 @@ function filterArticlesBySettings(articles){
       kws.forEach(k=>{if((a.title||'').toLowerCase().includes(k)||(a.description||'').toLowerCase().includes(k))sc+=10;});
       return{...a,score:sc};
     })
-    .filter(a=>a.score>=minSc)
+    .filter(a=>a.score>=minSc || (a.watchlist&&a.watchlist.length))   // watchlist stories always kept
     .sort((a,b)=>new Date(b.publishedAt||b.timestamp||0)-new Date(a.publishedAt||a.timestamp||0))
     .slice(0,maxArt);
 }
@@ -5832,6 +5770,7 @@ _makeDraggable(document.getElementById('thesisFloatPanel'), document.getElementB
 </script>
 <script src="{{ url_for('static', filename='js/status.js') }}?v={{ build_id }}"></script>
 <script src="{{ url_for('static', filename='js/tape.js') }}?v={{ build_id }}"></script>
+<script src="{{ url_for('static', filename='js/news.js') }}?v={{ build_id }}"></script>
 <script src="{{ url_for('static', filename='js/palette.js') }}?v={{ build_id }}"></script>
 </body>
 </html>
