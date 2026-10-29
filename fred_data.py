@@ -1367,6 +1367,13 @@ def _fetch_credit():
                     entry["signal"] = "WIDE"; entry["signal_color"] = "red"
                 else:
                     entry["signal"] = "CRISIS"; entry["signal_color"] = "red"
+                # The spread gauge draws its zones from these, so word and scale always agree.
+                entry["bands"] = [
+                    {"max": CT[f"{key_pre}_tight"],  "label": "TIGHT",  "color": "green"},
+                    {"max": CT[f"{key_pre}_normal"], "label": "NORMAL", "color": "amber"},
+                    {"max": CT[f"{key_pre}_wide"],   "label": "WIDE",   "color": "red"},
+                    {"max": CT[f"{key_pre}_crisis"], "label": "CRISIS", "color": "red"},
+                ]
 
         except Exception as e:
             log.warning(f"Credit fetch failed [{s['fred_id']}]: {e}")
