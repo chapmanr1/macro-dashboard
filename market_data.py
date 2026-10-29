@@ -4,6 +4,7 @@
 
 import time
 import logging
+import threading
 from datetime import datetime, timezone
 from typing import Optional
 from twelve_data import get_quotes
@@ -27,6 +28,7 @@ def _warm_fred_index_cache() -> None:
 _warm_fred_index_cache()
 
 _cache = {"data": None, "ts": 0}
+_fetch_lock = threading.Lock()
 
 def _cache_valid():
     return _cache["data"] is not None and (time.time() - _cache["ts"]) < CACHE_TTL
@@ -277,6 +279,21 @@ def get_market() -> dict:
         log.info("Market: returning cached data.")
         return _cache["data"]
 
+    # Only one thread refreshes at a time. A refresh can wait ~1-2 min on the
+    # Twelve Data rate limit; other callers get the stale copy meanwhile rather
+    # than queueing behind it (or spending the same credits a second time).
+    if not _fetch_lock.acquire(blocking=_cache["data"] is None):
+        log.info("Market: refresh already running — returning stale cache.")
+        return _cache["data"]
+    try:
+        if _cache_valid():  # another thread finished a refresh while we waited
+            return _cache["data"]
+        return _get_market_uncached()
+    finally:
+        _fetch_lock.release()
+
+
+def _get_market_uncached() -> dict:
     log.info("Market: fetching fresh data from Twelve Data...")
     ts = datetime.now(timezone.utc).isoformat()
     try:
