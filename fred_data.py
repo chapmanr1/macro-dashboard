@@ -945,7 +945,7 @@ def _series_last_updated(series_id: str) -> str | None:
 def _fetch_surprise_data() -> dict:
     """
     Latest released value vs the prior period for key calendar series.
-    Returns {event: {"actual_str", "vs_prior": UP|DOWN|UNCH|None, "updated": YYYY-MM-DD}}.
+    Returns {event: {"actual_str", "vs_prior": UP|DOWN|UNCH|None, "actual", "prior", "updated": YYYY-MM-DD}}.
     "vs prior" is a plain comparison with the previous release — not a forecast surprise.
     """
     if _cache_valid("surprises"):
@@ -984,6 +984,8 @@ def _fetch_surprise_data() -> dict:
                 a, b = fmt(curr), fmt(prev)  # compare at displayed precision
                 vs_prior = "UNCH" if a == b else ("UP" if curr > prev else "DOWN")
             result[event_name] = {"actual_str": actual_str, "vs_prior": vs_prior,
+                                  "actual": fmt(curr),
+                                  "prior": fmt(prev) if prev is not None else None,
                                   "updated": _series_last_updated(series_id)}
         except (requests.RequestException, ValueError, KeyError, RuntimeError) as e:
             log.warning(f"Calendar actual failed for {event_name} [{series_id}]: {e}")

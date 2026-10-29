@@ -355,6 +355,8 @@ def attach_actuals(day_events: list[dict], d: date, now_et: datetime, surprises:
                 and _release_passed(ev["time"], now_et)):
             ev["actual_str"] = sur.get("actual_str")
             ev["vs_prior"]   = sur.get("vs_prior")
+            ev["actual"]     = sur.get("actual")
+            ev["prior"]      = sur.get("prior")
 
 
 def _get_schedule(today: date) -> dict[date, list[dict]]:
@@ -375,7 +377,7 @@ def _get_schedule(today: date) -> dict[date, list[dict]]:
 def get_economic_calendar(days: int = 8) -> list:
     """
     Official economic calendar for the next N days:
-    [{"date", "day_of_week", "day_display", "events": [{time, event, impact, note, actual_str?, vs_prior?}]}]
+    [{"date", "day_of_week", "day_display", "events": [{time, event, impact, note, actual_str?, vs_prior?, actual?, prior?}]}]
     """
     now_et = datetime.now(pytz.UTC).astimezone(EASTERN)
     today  = now_et.date()
