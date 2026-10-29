@@ -7,3 +7,9 @@
 # a Twelve Data rate-limit wait or a slow phone download — froze the whole site.
 worker_class = "gthread"
 threads = 4
+
+
+def post_worker_init(worker) -> None:
+    """Start background jobs inside the worker, so they share its caches and rate limiter."""
+    from main import start_background_tasks
+    start_background_tasks()

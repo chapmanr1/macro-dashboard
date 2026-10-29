@@ -527,8 +527,21 @@ def _prewarm_caches() -> None:
 
     threading.Thread(target=_run, daemon=True).start()
 
-_prewarm_caches()
-threading.Thread(target=_prewarm_briefing, daemon=True).start()
+def start_background_tasks() -> None:
+    """Start the startup pre-warm threads in the process that serves requests.
+
+    Not run at import: on Render the gunicorn parent process imports this module
+    before copying itself into the worker, so threads started at import ran in the
+    parent, with caches and a Twelve Data rate limiter the worker never saw.
+    gunicorn.conf.py calls this from the worker; the dev entry point calls it below.
+    """
+    try:
+        from market_data import warm_fred_index_cache
+        warm_fred_index_cache()
+    except ImportError:
+        pass
+    _prewarm_caches()
+    threading.Thread(target=_prewarm_briefing, daemon=True).start()
 
 # ── INTERNAL KEEP-ALIVE ───────────────────────────────────────
 def internal_keepalive():
@@ -564,6 +577,7 @@ signal.signal(signal.SIGINT,  _shutdown)
 
 # ── ENTRY POINT (dev only — production uses gunicorn) ─────────
 if __name__ == "__main__":
+    start_background_tasks()
     threading.Thread(target=internal_keepalive, daemon=True).start()
     threading.Thread(target=health_monitor,     daemon=True).start()
     port = int(os.environ.get("PORT", 5000))

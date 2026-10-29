@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 CACHE_TTL = 3600  # 60 minutes — keeps TD daily calls at ~72/day (well under 800 free-tier limit)
 
-def _warm_fred_index_cache() -> None:
+def warm_fred_index_cache() -> None:
     """Background thread: fetch FRED index data at startup so it's ready for the first request."""
     import threading as _th
     def _run():
@@ -25,7 +25,6 @@ def _warm_fred_index_cache() -> None:
             log.warning(f"FRED index cache warm failed: {e}")
     _th.Thread(target=_run, daemon=True).start()
 
-_warm_fred_index_cache()
 
 _cache = {"data": None, "ts": 0}
 _fetch_lock = threading.Lock()

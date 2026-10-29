@@ -90,7 +90,7 @@ Falsification triggers (if these occur thesis weakens):
 
 ## Key data flow patterns
 
-**FRED index pre-warming**: `market_data.py` spawns a background thread at import time to pre-fetch `get_index_data()`. If FRED isn't warm when the first `/api/market` request arrives, the market response caches for only 30s so the next request retries rather than serving stale empty data for the full TTL.
+**FRED index pre-warming**: `main.start_background_tasks()` (called from the gunicorn `post_worker_init` hook, never at import) runs `market_data.warm_fred_index_cache()` to pre-fetch `get_index_data()`. If FRED isn't warm when the first `/api/market` request arrives, the market response caches for only 30s so the next request retries rather than serving stale empty data for the full TTL.
 
 **Twelve Data rate limit**: Free tier is 8 calls/min, 800/day. `twelve_data.py` has a per-process rate limiter. Current market fetch uses 2 batches (breadth=SPY+RSP, sectors = 2 TD calls per refresh). Commodities and EUR/USD moved to FRED. Adding new TD calls must account for this budget.
 
